@@ -11,6 +11,7 @@ import 'package:tateyomi_gigarizer/model/frame_image.dart';
 import 'package:tateyomi_gigarizer/page/corner_ball.dart';
 import 'dart:ui' as ui;
 import 'dart:math' as math;
+import 'dart:convert';
 
 class EditPage extends StatefulWidget {
   final DbImpl dbInstance;
@@ -45,6 +46,7 @@ class EditPageState extends State<EditPage> {
     List<Widget> showWidgetList = [];
     for (FrameImage _frameData in frameImageList) {
       if( _frameData.byteData == null ) continue;
+      if( _frameData.sizeRate == 0.0 ) continue;
 
       showWidgetList.add(_frameWidget(_frameData));
     }
@@ -167,7 +169,6 @@ class EditPageState extends State<EditPage> {
           ),
         ),
 
-
       ],
     );
   }
@@ -230,11 +231,10 @@ class EditPageState extends State<EditPage> {
 
         for (PlatformFile _file in result.files) {
           if(_file.extension == null ) continue;
-
+          if(_file.bytes == null) continue;
 
           // 画像読み込み
           if( _file.extension == "png"){
-            if(_file.bytes == null) continue;
 
             Future<ui.Image> _loadImage(Uint8List _charThumbImg) async {
               final Completer<ui.Image> completer = Completer();
@@ -258,7 +258,7 @@ class EditPageState extends State<EditPage> {
                   dbInstance  : widget.dbInstance,
                   byteData    : _file.bytes, 
                   name        : _file.name,
-                  sizeRate    : 1.0,
+                  sizeRate    : 0.0,
                   position    : const Point<double>(0,0),
                   size        : Point(_image.width.toDouble(), _image.height.toDouble())
                 )
@@ -270,8 +270,37 @@ class EditPageState extends State<EditPage> {
 
           // 設定読み込み
           if( _file.extension == "json"){
-            // TODO: 
-            //  すでにあるなら、無視
+            List<dynamic> jsonData = json.decode(utf8.decode(_file.bytes!)); 
+            // List<List<Map<String, dynamic>>> jsonData = json.decode(utf8.decode(_file.bytes!)); 
+            print( jsonData );
+
+            jsonData.asMap().forEach((_pageIndex, _pageValueJson) {
+              List<dynamic> _pageJson  = _pageValueJson as List<dynamic>;
+
+              print( "frameNum in Page : $_pageIndex" );
+              _pageJson.asMap().forEach((_frameIndex, _frameValuejson) {
+                Map<String, dynamic> _framejson  = _frameValuejson as Map<String, dynamic>;
+
+                String _imageTitle(){
+                  int pageNumCutLength = jsonData.length >= 100 ? -3:-2;
+                  String fullPageNum = '00000' + (_pageIndex+1).toString();
+                  String cutPageNum  = fullPageNum.substring(fullPageNum.length+pageNumCutLength);
+
+                  int frameNumCutLength = _pageJson.length >= 100 ? -3:-2;
+                  String fullFrameNum = '00000' + (_frameIndex+1).toString();
+                  String cutFrameNum  = fullFrameNum.substring(fullFrameNum.length+frameNumCutLength);
+
+                  return cutPageNum + "p_" + cutFrameNum + ".png";
+                };
+
+                print( _imageTitle() + " " + _framejson["StepData"].toString() );
+              });
+
+            });
+
+            // TODO: すでにあるなら、無視
+            // 
+
             //  ないなら、ファイルを作って保存処理＋自然配置
             continue;
           }
