@@ -1,10 +1,10 @@
 // キャンパス
 
-class tateCanvas{
+class TateCanvas{
   //  late DbImplement dbInstance;
   //  late String canvasIndex;
   //  late Point<double> frameSize;
-  tateCanvas(
+  TateCanvas(
     // {
     //   // required this.dbInstance, 
     // }
