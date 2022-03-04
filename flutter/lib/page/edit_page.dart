@@ -25,9 +25,6 @@ class EditPage extends StatefulWidget {
   EditPageState createState() => EditPageState();
 }
 
-// TODO: 
-//  json読み込み
-
 class EditPageState extends State<EditPage> {
   List<FrameImage> frameImageList = [];
 
@@ -229,84 +226,82 @@ class EditPageState extends State<EditPage> {
 
         setState(() { });
 
-        for (PlatformFile _file in result.files) {
-          if(_file.extension == null ) continue;
+        // 画像読み込み
+        for (PlatformFile _file in result.files.where((_file) => _file.extension != null && _file.extension == "png").toList()) {
           if(_file.bytes == null) continue;
 
-          // 画像読み込み
-          if( _file.extension == "png"){
+          Future<ui.Image> _loadImage(Uint8List _charThumbImg) async {
+            final Completer<ui.Image> completer = Completer();
 
-            Future<ui.Image> _loadImage(Uint8List _charThumbImg) async {
-              final Completer<ui.Image> completer = Completer();
-
-              ui.decodeImageFromList(_charThumbImg, (ui.Image convertedImg) {
-                return completer.complete(convertedImg);
-              });
-              return completer.future;
-            }
-                        
-            ui.Image _image = await _loadImage(_file.bytes!);
-
-            try{
-              FrameImage frameImage = frameImageList.singleWhere((_frameImage) => _frameImage.name == _file.name);
-              frameImage.byteData = _file.bytes;
-              frameImage.size = Point(_image.width.toDouble(), _image.height.toDouble());
-            } catch(e){
-              // TODO: 本当はファイル読み込み時にやるべきな気がする
-              frameImageList.add(
-                FrameImage(
-                  dbInstance  : widget.dbInstance,
-                  byteData    : _file.bytes, 
-                  name        : _file.name,
-                  sizeRate    : 0.0,
-                  position    : const Point<double>(0,0),
-                  size        : Point(_image.width.toDouble(), _image.height.toDouble())
-                )
-              );
-            }
-            continue;
-          }
-
-
-          // 設定読み込み
-          if( _file.extension == "json"){
-            List<dynamic> jsonData = json.decode(utf8.decode(_file.bytes!)); 
-            // List<List<Map<String, dynamic>>> jsonData = json.decode(utf8.decode(_file.bytes!)); 
-            print( jsonData );
-
-            jsonData.asMap().forEach((_pageIndex, _pageValueJson) {
-              List<dynamic> _pageJson  = _pageValueJson as List<dynamic>;
-
-              print( "frameNum in Page : $_pageIndex" );
-              _pageJson.asMap().forEach((_frameIndex, _frameValuejson) {
-                Map<String, dynamic> _framejson  = _frameValuejson as Map<String, dynamic>;
-
-                String _imageTitle(){
-                  int pageNumCutLength = jsonData.length >= 100 ? -3:-2;
-                  String fullPageNum = '00000' + (_pageIndex+1).toString();
-                  String cutPageNum  = fullPageNum.substring(fullPageNum.length+pageNumCutLength);
-
-                  int frameNumCutLength = _pageJson.length >= 100 ? -3:-2;
-                  String fullFrameNum = '00000' + (_frameIndex+1).toString();
-                  String cutFrameNum  = fullFrameNum.substring(fullFrameNum.length+frameNumCutLength);
-
-                  return cutPageNum + "p_" + cutFrameNum + ".png";
-                };
-
-                print( _imageTitle() + " " + _framejson["StepData"].toString() );
-              });
-
+            ui.decodeImageFromList(_charThumbImg, (ui.Image convertedImg) {
+              return completer.complete(convertedImg);
             });
-
-            // TODO: すでにあるなら、無視
-            // 
-
-            //  ないなら、ファイルを作って保存処理＋自然配置
-            continue;
+            return completer.future;
           }
+                      
+          ui.Image _image = await _loadImage(_file.bytes!);
+
+          try{
+            FrameImage frameImage = frameImageList.singleWhere((_frameImage) => _frameImage.name == _file.name);
+            frameImage.byteData = _file.bytes;
+            frameImage.size = Point(_image.width.toDouble(), _image.height.toDouble());
+          } catch(e){
+            frameImageList.add(
+              FrameImage(
+                dbInstance  : widget.dbInstance,
+                byteData    : _file.bytes, 
+                name        : _file.name,
+                sizeRate    : 0.0,
+                position    : const Point<double>(0,0),
+                size        : Point(_image.width.toDouble(), _image.height.toDouble())
+              )
+            );
+          }
+          continue;
         }
 
-      },
+        // 設定読み込み
+        for (PlatformFile _file in result.files.where((_file) => _file.extension != null && _file.extension == "json").toList()) {
+          if(_file.bytes == null) continue;
+
+          List<dynamic> jsonData = json.decode(utf8.decode(_file.bytes!)); 
+          // List<List<Map<String, dynamic>>> jsonData = json.decode(utf8.decode(_file.bytes!)); 
+          // print( jsonData );
+
+          jsonData.asMap().forEach((_pageIndex, _pageValueJson) {
+            List<dynamic> _pageJson  = _pageValueJson as List<dynamic>;
+
+            // print( "frameNum in Page : $_pageIndex" );
+            _pageJson.asMap().forEach((_frameIndex, _frameValuejson) {
+
+              String _imageTitle(){
+                int pageNumCutLength = jsonData.length >= 100 ? -3:-2;
+                String fullPageNum = '00000' + (_pageIndex+1).toString();
+                String cutPageNum  = fullPageNum.substring(fullPageNum.length+pageNumCutLength);
+
+                int frameNumCutLength = _pageJson.length >= 100 ? -3:-2;
+                String fullFrameNum = '00000' + (_frameIndex+1).toString();
+                String cutFrameNum  = fullFrameNum.substring(fullFrameNum.length+frameNumCutLength);
+
+                return cutPageNum + "p_" + cutFrameNum + ".png";
+              }
+
+              // すでにwebに設定済みのデータがある（読み込み済み）なら、なにもせずに終了
+              int targetFrameIndex = frameImageList.indexWhere((_frameImage) => _frameImage.name == _imageTitle());
+              if( frameImageList[targetFrameIndex].sizeRate >= 0 ) return;
+
+              // TODO:設定済みがない場合は設定をしてあげる
+              // Map<String, dynamic> _framejson  = _frameValuejson as Map<String, dynamic>;
+              // frameImageList[targetFrameIndex].position
+              // frameImageList[targetFrameIndex].sizeRate
+            });
+          });
+
+
+          //  ないなら、ファイルを作って保存処理＋自然配置
+          continue;
+        }
+      }
     );
 
   }
