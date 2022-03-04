@@ -21,7 +21,7 @@ class EditPage extends StatefulWidget {
 
 // TODO: 
 //  json読み込み
-//  画像を並び替え
+//  画像を並び替え・大きさ変換
 
 class EditPageState extends State<EditPage> {
   List<FrameImage> frameImageList = [];
@@ -76,6 +76,8 @@ class EditPageState extends State<EditPage> {
         onDragStarted: (){
         },
         onDraggableCanceled: (Velocity velocity, Offset offset){
+          _frameData.position = Point<double>(offset.dx, offset.dy - kToolbarHeight);
+          setState(() { });
         }
       ),
     );
@@ -85,22 +87,6 @@ class EditPageState extends State<EditPage> {
       top   : _frameData.position.y,
       child : dragging,
     );
-
-      // Widget _charThumb = Positioned(
-      //   left  : charPos.left,
-      //   top   : charPos.top,
-      //   child : dragging,
-      // );
-      // showWidgetList.add(
-      //   Image.memory(
-      //     _frameData.byteData!, 
-      //     width: 1000, 
-      //     fit: BoxFit.fitWidth, 
-      //     filterQuality: FilterQuality.high,
-      //   )
-      // );
-
-
   }
 
   Widget inputFileButton(){
@@ -119,11 +105,11 @@ class EditPageState extends State<EditPage> {
         setState(() { });
 
         for (PlatformFile _file in result.files) {
-          if(_file.extension == null ) return;
+          if(_file.extension == null ) continue;
 
           // 画像読み込み
           if( _file.extension == "png"){
-            if(_file.bytes == null) return;
+            if(_file.bytes == null) continue;
 
             try{
               FrameImage frameImage = frameImageList.singleWhere((_frameImage) => _frameImage.name == _file.name);
@@ -140,7 +126,7 @@ class EditPageState extends State<EditPage> {
                 )
               );
             }
-            return;
+            continue;
           }
 
 
@@ -149,7 +135,7 @@ class EditPageState extends State<EditPage> {
             // TODO: 
             //  すでにあるなら、無視
             //  ないなら、ファイルを作って保存処理＋自然配置
-            return;
+            continue;
           }
         }
 
