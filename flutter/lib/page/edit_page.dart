@@ -32,7 +32,7 @@ class EditPageState extends State<EditPage> {
     return Scaffold(
       appBar: AppBar(
         title   : const Text( "編集ページ" ),
-        actions : []
+        // actions : []
       ),
 
       body : SafeArea( child : _body() ),
@@ -44,8 +44,21 @@ class EditPageState extends State<EditPage> {
     for (FrameImage _frameData in frameImageList) {
       if( _frameData.byteData == null ) continue;
 
-      showWidgetList.add(
-        Image.memory(
+      showWidgetList.add(frameDraggingWidget(_frameData));
+    }
+
+    if(showWidgetList.isEmpty) return Center( child: inputFileButton());
+
+    return Stack(
+      children: showWidgetList,
+    );
+  }
+
+  Widget frameDraggingWidget(FrameImage _frameData){
+    frameWidgetUnit(bool isDragging){
+      return Opacity(
+        opacity: isDragging ? 0.5 : 1.0,
+        child: Image.memory(
           _frameData.byteData!, 
           width: 1000, 
           fit: BoxFit.fitWidth, 
@@ -54,11 +67,40 @@ class EditPageState extends State<EditPage> {
       );
     }
 
-    if(showWidgetList.isEmpty) return Center( child: inputFileButton());
-
-    return Column(
-      children: showWidgetList,
+    Widget dragging = MouseRegion(
+      cursor  : SystemMouseCursors.click,
+      child   : Draggable(
+        child             : frameWidgetUnit(false),
+        childWhenDragging : frameWidgetUnit(true),
+        feedback          : frameWidgetUnit(false),
+        onDragStarted: (){
+        },
+        onDraggableCanceled: (Velocity velocity, Offset offset){
+        }
+      ),
     );
+
+    return Positioned(
+      left  : _frameData.position.x,
+      top   : _frameData.position.y,
+      child : dragging,
+    );
+
+      // Widget _charThumb = Positioned(
+      //   left  : charPos.left,
+      //   top   : charPos.top,
+      //   child : dragging,
+      // );
+      // showWidgetList.add(
+      //   Image.memory(
+      //     _frameData.byteData!, 
+      //     width: 1000, 
+      //     fit: BoxFit.fitWidth, 
+      //     filterQuality: FilterQuality.high,
+      //   )
+      // );
+
+
   }
 
   Widget inputFileButton(){
