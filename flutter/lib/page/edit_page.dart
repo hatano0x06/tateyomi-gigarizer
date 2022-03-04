@@ -58,36 +58,64 @@ class EditPageState extends State<EditPage> {
   }
 
   // コマの表示（大きさ変えるための、角に四角配置
+
+  Point<double> dragStartLeftTopPos = const Point(0,0);
+  Point<double> dragStartRightBottomPos = const Point(0,0);
   Widget _frameWidget(FrameImage _frameData){
-    double ballDiameter = 20.0;
+    if(isDragging) return _frameDraggingWidget(_frameData);
+
+    double ballDiameter = 10.0;
     return Stack(
       children: [
         // 左上
+        _frameDraggingWidget(_frameData),
         Positioned(
           left  : _frameData.position.x - ballDiameter / 2,
           top   : _frameData.position.y - ballDiameter / 2,
           child: CornerBallWidget(
-            onDrag: (dx, dy) {
-              print( "$dx : $dy");
+            cursor      : SystemMouseCursors.resizeDownRight,
+            ballDiameter: ballDiameter,
+            onDragStart: (){
+              dragStartLeftTopPos     = _frameData.position;
+              dragStartRightBottomPos = Point(
+                _frameData.position.x + _frameData.size.x * _frameData.sizeRate,
+                _frameData.position.y + _frameData.size.y * _frameData.sizeRate,
+              );
+            },
+            onDrag: (dragPos) {
+              // _frameData.position = Point(dragPos.dx, dragPos.dy - kToolbarHeight);
+              _frameData.sizeRate = (dragPos.dx - dragStartRightBottomPos.x).abs()/_frameData.size.x;
+              _frameData.position = Point(
+                dragStartRightBottomPos.x - _frameData.size.x * _frameData.sizeRate,
+                dragStartRightBottomPos.y - _frameData.size.y * _frameData.sizeRate,
+              );
+
+              setState(() { });
+
               // var mid = (dx + dy) / 2;
               // var newHeight = height - 2 * mid;
               // var newWidth = width - 2 * mid;
             },
+            onDragEnd: () {
+              // TODO: 保存処理
+            },
+
           ),
         ),
-        _frameDraggingWidget(_frameData)
       ],
     );
   }
 
   // コマの表示（ドラッグ
+  bool isDragging = false;
   Widget _frameDraggingWidget(FrameImage _frameData){
-    frameWidgetUnit(bool isDragging){
+    frameWidgetUnit(bool _isDragging){
       return Opacity(
-        opacity: isDragging ? 0.5 : 1.0,
+        opacity: _isDragging ? 0.5 : 1.0,
         child: Image.memory(
           _frameData.byteData!, 
-          width: _frameData.size.x, height: _frameData.size.y,
+          width: _frameData.size.x * _frameData.sizeRate, 
+          // height: _frameData.size.y,
           fit: BoxFit.fitWidth, 
           filterQuality: FilterQuality.high,
         )
@@ -101,8 +129,11 @@ class EditPageState extends State<EditPage> {
         childWhenDragging : frameWidgetUnit(true),
         feedback          : frameWidgetUnit(false),
         onDragStarted: (){
+          isDragging = true;
+          setState(() { });
         },
         onDraggableCanceled: (Velocity velocity, Offset offset){
+          isDragging = false;
           _frameData.position = Point<double>(offset.dx, offset.dy - kToolbarHeight);
           setState(() { });
         }
@@ -150,8 +181,6 @@ class EditPageState extends State<EditPage> {
                         
             ui.Image _image = await _loadImage(_file.bytes!);
 
-            print(_image);
-
             try{
               FrameImage frameImage = frameImageList.singleWhere((_frameImage) => _frameImage.name == _file.name);
               frameImage.byteData = _file.bytes;
@@ -163,8 +192,8 @@ class EditPageState extends State<EditPage> {
                   dbInstance  : widget.dbInstance,
                   byteData    : _file.bytes, 
                   name        : _file.name,
-                  position    : const Point<double>(0,0),
                   sizeRate    : 1.0,
+                  position    : const Point<double>(0,0),
                   size        : Point(_image.width.toDouble(), _image.height.toDouble())
                 )
               );

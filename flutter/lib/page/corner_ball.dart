@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class CornerBallWidget extends StatefulWidget {
-    final Function onDrag;
+    final Function() onDragStart;
+    final Function(Offset) onDrag;
+    final Function() onDragEnd;
+    final double ballDiameter;
+    final SystemMouseCursor cursor;
 
     const CornerBallWidget({
       Key? key, 
+      required this.onDragStart, 
       required this.onDrag, 
+      required this.onDragEnd, 
+      required this.ballDiameter, 
+      required this.cursor, 
     }):super(key:key);
 
 
@@ -14,36 +23,34 @@ class CornerBallWidget extends StatefulWidget {
   }
 
   class _CornerBallWidgetState extends State<CornerBallWidget> {
-    double? initX;
-    double? initY;
-
-    _handleDrag(details) {
-      setState(() {
-        initX = details.globalPosition.dx;
-        initY = details.globalPosition.dy;
-      });
+    _handleStart(DragStartDetails details) {
+      widget.onDragStart();
     }
 
-    _handleUpdate(details) {
-      var dx = details.globalPosition.dx - initX;
-      var dy = details.globalPosition.dy - initY;
-      initX = details.globalPosition.dx;
-      initY = details.globalPosition.dy;
-      widget.onDrag(dx, dy);
+    _handleUpdate(DragUpdateDetails details) {
+      widget.onDrag(details.globalPosition);
+    }
+
+    _handleEnd(DragEndDetails details) {
+      widget.onDragEnd();
     }
 
     @override
     Widget build(BuildContext context) {
-      double ballDiameter = 20;
-      return GestureDetector(
-        onPanStart: _handleDrag,
-        onPanUpdate: _handleUpdate,
-        child: Container(
-          width: ballDiameter,
-          height: ballDiameter,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
+      return MouseRegion(
+        cursor  : widget.cursor,
+        child   : GestureDetector(
+          onPanStart  : _handleStart,
+          onPanUpdate : _handleUpdate,
+          onPanEnd    : _handleEnd,
+          child: Container(
+            width: widget.ballDiameter,
+            height: widget.ballDiameter,
+            decoration: const BoxDecoration(
+              color: Colors.blue,
+              // color: Colors.blue.withOpacity(200),
+              shape: BoxShape.circle,
+            ),
           ),
         ),
       );
