@@ -1,5 +1,7 @@
 // ignore_for_file: avoid_print
 
+import 'dart:typed_data';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
@@ -18,6 +20,7 @@ class EditPage extends StatefulWidget {
 
 class EditPageState extends State<EditPage> {
 
+  Map<String, Uint8List?> frameImageMap = {};
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,9 +37,25 @@ class EditPageState extends State<EditPage> {
                 type              : FileType.custom,
                 allowedExtensions : ['png', 'json'],
               );
-              
+
               if(result == null) return; 
               print( result.files.length.toString() );
+
+              for (PlatformFile _file in result.files) {
+                if(_file.extension == null ) return;
+                if( _file.extension == "png"){
+                  if(_file.bytes != null) frameImageMap[_file.name] = _file.bytes;
+                  return;
+                }
+                if( _file.extension == "json"){
+                  // TODO: asdf
+                  return;
+                }                
+
+
+                print( _file.name + " | " + (_file.extension ?? "noneEx") );
+
+              }
             },
           ),
         ]
