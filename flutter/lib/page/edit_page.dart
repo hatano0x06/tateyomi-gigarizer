@@ -10,6 +10,7 @@ import 'package:tateyomi_gigarizer/db/db_impl.dart';
 import 'package:tateyomi_gigarizer/model/frame_image.dart';
 import 'package:tateyomi_gigarizer/page/corner_ball.dart';
 import 'dart:ui' as ui;
+import 'dart:math' as math;
 
 class EditPage extends StatefulWidget {
   final DbImpl dbInstance;
@@ -87,7 +88,10 @@ class EditPageState extends State<EditPage> {
             onDragStart : (){ tempSavePos(); },
             onDragEnd   : (){ _frameData.save(); },
             onDrag      : (dragPos) {
-              _frameData.sizeRate = (dragPos.dx - dragStartRightBottomPos.x).abs()/_frameData.size.x;
+              _frameData.sizeRate = math.max(
+                (dragPos.dx - dragStartRightBottomPos.x).abs()/_frameData.size.x, 
+                (dragPos.dy - dragStartRightBottomPos.y).abs()/_frameData.size.y, 
+              );
               _frameData.position = Point(
                 dragStartRightBottomPos.x - _frameData.size.x * _frameData.sizeRate,
                 dragStartRightBottomPos.y - _frameData.size.y * _frameData.sizeRate,
@@ -108,7 +112,15 @@ class EditPageState extends State<EditPage> {
             onDragStart : (){ tempSavePos(); },
             onDragEnd   : (){ _frameData.save(); },
             onDrag      : (dragPos) {
-              _frameData.sizeRate = (dragPos.dx - dragStartLeftTopPos.x).abs()/_frameData.size.x;
+              _frameData.sizeRate = math.max(
+                (dragPos.dx - dragStartLeftTopPos.x).abs()/_frameData.size.x, 
+                (dragPos.dy - dragStartRightBottomPos.y).abs()/_frameData.size.y, 
+              );
+              _frameData.position = Point(
+                _frameData.position.x,
+                dragStartRightBottomPos.y - _frameData.size.y * _frameData.sizeRate,
+              );
+
               setState(() { });
             },
           ),
@@ -124,11 +136,15 @@ class EditPageState extends State<EditPage> {
             onDragStart : (){ tempSavePos(); },
             onDragEnd   : (){ _frameData.save(); },
             onDrag      : (dragPos) {
-              _frameData.sizeRate = (dragPos.dx - dragStartRightBottomPos.x).abs()/_frameData.size.x;
+              _frameData.sizeRate = math.max(
+                (dragPos.dx - dragStartRightBottomPos.x).abs()/_frameData.size.x, 
+                (dragPos.dy - dragStartLeftTopPos.y).abs()/_frameData.size.y, 
+              );
               _frameData.position = Point(
                 dragStartRightBottomPos.x - _frameData.size.x * _frameData.sizeRate,
-                dragStartRightBottomPos.y - _frameData.size.y * _frameData.sizeRate,
+                _frameData.position.y,
               );
+
               setState(() { });
             },
           ),
@@ -144,7 +160,10 @@ class EditPageState extends State<EditPage> {
             onDragStart : (){ tempSavePos(); },
             onDragEnd   : (){ _frameData.save(); },
             onDrag      : (dragPos) {
-              _frameData.sizeRate = (dragPos.dx - dragStartLeftTopPos.x).abs()/_frameData.size.x;
+              _frameData.sizeRate = math.max(
+                (dragPos.dx - dragStartLeftTopPos.x).abs()/_frameData.size.x, 
+                (dragPos.dy - dragStartLeftTopPos.y).abs()/_frameData.size.y, 
+              );
               setState(() { });
             },
           ),

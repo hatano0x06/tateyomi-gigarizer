@@ -28,7 +28,7 @@ class CornerBallWidget extends StatefulWidget {
     }
 
     _handleUpdate(DragUpdateDetails details) {
-      widget.onDrag(details.globalPosition);
+      widget.onDrag(Offset(details.globalPosition.dx, details.globalPosition.dy - kToolbarHeight));
     }
 
     _handleEnd(DragEndDetails details) {
