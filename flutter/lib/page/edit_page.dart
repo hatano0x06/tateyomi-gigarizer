@@ -64,26 +64,29 @@ class EditPageState extends State<EditPage> {
   Widget _frameWidget(FrameImage _frameData){
     if(isDragging) return _frameDraggingWidget(_frameData);
 
+    void tempSavePos(){
+      dragStartLeftTopPos     = _frameData.position;
+      dragStartRightBottomPos = Point(
+        _frameData.position.x + _frameData.size.x * _frameData.sizeRate,
+        _frameData.position.y + _frameData.size.y * _frameData.sizeRate,
+      );
+    }
+
     double ballDiameter = 10.0;
     return Stack(
       children: [
-        // 左上
         _frameDraggingWidget(_frameData),
+
+        // 左上
         Positioned(
           left  : _frameData.position.x - ballDiameter / 2,
           top   : _frameData.position.y - ballDiameter / 2,
           child: CornerBallWidget(
-            cursor      : SystemMouseCursors.resizeDownRight,
+            cursor      : SystemMouseCursors.resizeUpLeftDownRight,
             ballDiameter: ballDiameter,
-            onDragStart: (){
-              dragStartLeftTopPos     = _frameData.position;
-              dragStartRightBottomPos = Point(
-                _frameData.position.x + _frameData.size.x * _frameData.sizeRate,
-                _frameData.position.y + _frameData.size.y * _frameData.sizeRate,
-              );
-            },
-            onDrag: (dragPos) {
-              // _frameData.position = Point(dragPos.dx, dragPos.dy - kToolbarHeight);
+            onDragStart : (){ tempSavePos(); },
+            onDragEnd   : (){ _frameData.save(); },
+            onDrag      : (dragPos) {
               _frameData.sizeRate = (dragPos.dx - dragStartRightBottomPos.x).abs()/_frameData.size.x;
               _frameData.position = Point(
                 dragStartRightBottomPos.x - _frameData.size.x * _frameData.sizeRate,
@@ -91,17 +94,63 @@ class EditPageState extends State<EditPage> {
               );
 
               setState(() { });
-
-              // var mid = (dx + dy) / 2;
-              // var newHeight = height - 2 * mid;
-              // var newWidth = width - 2 * mid;
             },
-            onDragEnd: () {
-              // TODO: 保存処理
-            },
-
           ),
         ),
+
+        // 右上
+        Positioned(
+          left  : _frameData.position.x + _frameData.size.x * _frameData.sizeRate - ballDiameter / 2,
+          top   : _frameData.position.y - ballDiameter / 2,
+          child: CornerBallWidget(
+            cursor      : SystemMouseCursors.resizeUpRightDownLeft,
+            ballDiameter: ballDiameter,
+            onDragStart : (){ tempSavePos(); },
+            onDragEnd   : (){ _frameData.save(); },
+            onDrag      : (dragPos) {
+              _frameData.sizeRate = (dragPos.dx - dragStartLeftTopPos.x).abs()/_frameData.size.x;
+              setState(() { });
+            },
+          ),
+        ),
+
+        // 左下
+        Positioned(
+          left  : _frameData.position.x - ballDiameter / 2,
+          top   : _frameData.position.y + _frameData.size.y * _frameData.sizeRate - ballDiameter / 2,
+          child: CornerBallWidget(
+            cursor      : SystemMouseCursors.resizeUpRightDownLeft,
+            ballDiameter: ballDiameter,
+            onDragStart : (){ tempSavePos(); },
+            onDragEnd   : (){ _frameData.save(); },
+            onDrag      : (dragPos) {
+              _frameData.sizeRate = (dragPos.dx - dragStartRightBottomPos.x).abs()/_frameData.size.x;
+              _frameData.position = Point(
+                dragStartRightBottomPos.x - _frameData.size.x * _frameData.sizeRate,
+                dragStartRightBottomPos.y - _frameData.size.y * _frameData.sizeRate,
+              );
+              setState(() { });
+            },
+          ),
+        ),
+
+        // 右下
+        Positioned(
+          left  : _frameData.position.x + _frameData.size.x * _frameData.sizeRate - ballDiameter / 2,
+          top   : _frameData.position.y + _frameData.size.y * _frameData.sizeRate - ballDiameter / 2,
+          child: CornerBallWidget(
+            cursor      : SystemMouseCursors.resizeUpLeftDownRight,
+            ballDiameter: ballDiameter,
+            onDragStart : (){ tempSavePos(); },
+            onDragEnd   : (){ _frameData.save(); },
+            onDrag      : (dragPos) {
+              _frameData.sizeRate = (dragPos.dx - dragStartLeftTopPos.x).abs()/_frameData.size.x;
+              setState(() { });
+            },
+          ),
+        ),
+
+
       ],
     );
   }
@@ -127,7 +176,7 @@ class EditPageState extends State<EditPage> {
       child   : Draggable(
         child             : frameWidgetUnit(false),
         childWhenDragging : frameWidgetUnit(true),
-        feedback          : frameWidgetUnit(false),
+        feedback          : frameWidgetUnit(true),
         onDragStarted: (){
           isDragging = true;
           setState(() { });
