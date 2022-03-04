@@ -26,7 +26,6 @@ class EditPage extends StatefulWidget {
 
 // TODO: 
 //  json読み込み
-//  画像を大きさ変換
 
 class EditPageState extends State<EditPage> {
   List<FrameImage> frameImageList = [];
@@ -36,7 +35,6 @@ class EditPageState extends State<EditPage> {
     return Scaffold(
       appBar: AppBar(
         title   : const Text( "編集ページ" ),
-        // actions : []
       ),
 
       body : SafeArea( child : _body() ),
