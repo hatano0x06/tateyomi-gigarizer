@@ -5,7 +5,7 @@ Example Flutter project.
 ## Getting Started
 
 # web
-
+$ flutter run -d chrome --web-port=5000 --web-renderer=canvaskit
 $ flutter build web --web-renderer canvaskit --release;
 
 # android
