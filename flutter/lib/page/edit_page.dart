@@ -19,6 +19,10 @@ class EditPage extends StatefulWidget {
   EditPageState createState() => EditPageState();
 }
 
+// TODO: 
+//  json読み込み
+//  画像を並び替え
+
 class EditPageState extends State<EditPage> {
   List<FrameImage> frameImageList = [];
 
@@ -28,58 +32,7 @@ class EditPageState extends State<EditPage> {
     return Scaffold(
       appBar: AppBar(
         title   : const Text( "編集ページ" ),
-        actions : [
-          IconButton(
-            icon: const Icon(Icons.file_open),
-            tooltip: 'ファイルの読み込み',
-            onPressed: () async {
-              FilePickerResult? result = await FilePicker.platform.pickFiles(
-                allowMultiple     : true,
-                type              : FileType.custom,
-                allowedExtensions : ['png', 'json'],
-              );
-
-              if(result == null) return; 
-
-              setState(() { });
-
-              for (PlatformFile _file in result.files) {
-                if(_file.extension == null ) return;
-
-                // 画像読み込み
-                if( _file.extension == "png"){
-                  if(_file.bytes == null) return;
-
-                  try{
-                    FrameImage frameImage = frameImageList.singleWhere((_frameImage) => _frameImage.name == _file.name);
-                    frameImage.byteData = _file.bytes;
-                  } catch(e){
-                    // TODO: 本当はファイル読み込み時にやるべきな気がする
-                    frameImageList.add(
-                      FrameImage(
-                        dbInstance  : widget.dbInstance,
-                        byteData    : _file.bytes, 
-                        name        : _file.name,
-                        position    : const Point<double>(0,0),
-                        sizeRate    : 1.0
-                      )
-                    );
-                  }
-                  return;
-                }
-
-
-                // 設定読み込み
-                if( _file.extension == "json"){
-                  // TODO: 
-                  //  すでにあるなら、無視
-                  //  ないなら、ファイルを作って保存処理＋自然配置
-                  return;
-                }
-              }
-            },
-          ),
-        ]
+        actions : []
       ),
 
       body : SafeArea( child : _body() ),
@@ -87,8 +40,6 @@ class EditPageState extends State<EditPage> {
   }
 
   Widget _body(){
-    if( frameImageList.isEmpty ) return Container();
-
     List<Widget> showWidgetList = [];
     for (FrameImage _frameData in frameImageList) {
       if( _frameData.byteData == null ) continue;
@@ -103,8 +54,65 @@ class EditPageState extends State<EditPage> {
       );
     }
 
+    if(showWidgetList.isEmpty) return Center( child: inputFileButton());
+
     return Column(
       children: showWidgetList,
     );
+  }
+
+  Widget inputFileButton(){
+    return ElevatedButton.icon(
+      icon    : const Icon(Icons.file_open),
+      label   : const Text('画像・ファイルの読み込み'),
+      onPressed: () async { 
+        FilePickerResult? result = await FilePicker.platform.pickFiles(
+          allowMultiple     : true,
+          type              : FileType.custom,
+          allowedExtensions : ['png', 'json'],
+        );
+
+        if(result == null) return; 
+
+        setState(() { });
+
+        for (PlatformFile _file in result.files) {
+          if(_file.extension == null ) return;
+
+          // 画像読み込み
+          if( _file.extension == "png"){
+            if(_file.bytes == null) return;
+
+            try{
+              FrameImage frameImage = frameImageList.singleWhere((_frameImage) => _frameImage.name == _file.name);
+              frameImage.byteData = _file.bytes;
+            } catch(e){
+              // TODO: 本当はファイル読み込み時にやるべきな気がする
+              frameImageList.add(
+                FrameImage(
+                  dbInstance  : widget.dbInstance,
+                  byteData    : _file.bytes, 
+                  name        : _file.name,
+                  position    : const Point<double>(0,0),
+                  sizeRate    : 1.0
+                )
+              );
+            }
+            return;
+          }
+
+
+          // 設定読み込み
+          if( _file.extension == "json"){
+            // TODO: 
+            //  すでにあるなら、無視
+            //  ないなら、ファイルを作って保存処理＋自然配置
+            return;
+          }
+        }
+
+      },
+    );
+
   }
 }
