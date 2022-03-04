@@ -71,9 +71,11 @@ class EditPageState extends State<EditPage> {
 
                 // 設定読み込み
                 if( _file.extension == "json"){
-                  // TODO: すでにあるなら、無視
+                  // TODO: 
+                  //  すでにあるなら、無視
+                  //  ないなら、ファイルを作って保存処理＋自然配置
                   return;
-                }                
+                }
               }
             },
           ),
