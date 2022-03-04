@@ -1,17 +1,18 @@
 // ignore_for_file: avoid_print
 
-import 'dart:typed_data';
+import 'dart:math';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
+import 'package:tateyomi_gigarizer/model/frame_image.dart';
 
 class EditPage extends StatefulWidget {
-  final DbImpl? dbInstance;
+  final DbImpl dbInstance;
 
   const EditPage({
     Key? key,
-    this.dbInstance, 
+    required this.dbInstance, 
   }):super(key:key);
   
   @override
@@ -19,12 +20,12 @@ class EditPage extends StatefulWidget {
 }
 
 class EditPageState extends State<EditPage> {
+  List<FrameImage> frameImageList = [];
 
-  Map<String, Uint8List> frameImageMap = {};
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // key   : Key("memoEditPage"),
       appBar: AppBar(
         title   : const Text( "編集ページ" ),
         actions : [
@@ -39,23 +40,40 @@ class EditPageState extends State<EditPage> {
               );
 
               if(result == null) return; 
-              print( result.files.length.toString() );
 
               setState(() { });
 
               for (PlatformFile _file in result.files) {
                 if(_file.extension == null ) return;
+
+                // 画像読み込み
                 if( _file.extension == "png"){
-                  if(_file.bytes != null) frameImageMap[_file.name] = _file.bytes!;
+                  if(_file.bytes == null) return;
+
+                  try{
+                    FrameImage frameImage = frameImageList.singleWhere((_frameImage) => _frameImage.name == _file.name);
+                    frameImage.byteData = _file.bytes;
+                  } catch(e){
+                    // TODO: 本当はファイル読み込み時にやるべきな気がする
+                    frameImageList.add(
+                      FrameImage(
+                        dbInstance  : widget.dbInstance,
+                        byteData    : _file.bytes, 
+                        name        : _file.name,
+                        position    : const Point<double>(0,0),
+                        sizeRate    : 1.0
+                      )
+                    );
+                  }
                   return;
                 }
+
+
+                // 設定読み込み
                 if( _file.extension == "json"){
-                  // TODO: asdf
+                  // TODO: すでにあるなら、無視
                   return;
                 }                
-
-
-                print( _file.name + " | " + (_file.extension ?? "noneEx") );
               }
             },
           ),
@@ -67,15 +85,15 @@ class EditPageState extends State<EditPage> {
   }
 
   Widget _body(){
-
-
-    if( frameImageMap.isEmpty ) return Container();
+    if( frameImageList.isEmpty ) return Container();
 
     List<Widget> showWidgetList = [];
-    for (Uint8List _imageBytes in frameImageMap.values.toList()) {
+    for (FrameImage _frameData in frameImageList) {
+      if( _frameData.byteData == null ) continue;
+
       showWidgetList.add(
         Image.memory(
-          _imageBytes, 
+          _frameData.byteData!, 
           width: 1000, 
           fit: BoxFit.fitWidth, 
           filterQuality: FilterQuality.high,

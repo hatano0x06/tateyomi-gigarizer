@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tateyomi_gigarizer/db/db_impl.dart';
 import 'package:tateyomi_gigarizer/page/edit_page.dart';
 
 void main() {
@@ -34,7 +35,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: const EditPage(),
+      home: EditPage(dbInstance: DbImpl(),),
     );
   }
 }

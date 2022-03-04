@@ -1,13 +1,15 @@
 // キャンパス
 
+import 'package:tateyomi_gigarizer/db/db_impl.dart';
+
 class TateCanvas{
-  //  late DbImplement dbInstance;
-  //  late String canvasIndex;
-  //  late Point<double> frameSize;
+   late DbImpl dbInstance;
+   late String canvasIndex;
   TateCanvas(
-    // {
-    //   // required this.dbInstance, 
-    // }
+    {
+      required this.dbInstance, 
+      required this.canvasIndex, 
+    }
   );
 
   void save(){
