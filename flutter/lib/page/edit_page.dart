@@ -288,15 +288,18 @@ class EditPageState extends State<EditPage> {
 
               // すでにwebに設定済みのデータがある（読み込み済み）なら、なにもせずに終了
               int targetFrameIndex = frameImageList.indexWhere((_frameImage) => _frameImage.name == _imageTitle());
+
+              print( _imageTitle() + " : $targetFrameIndex" );
+
+              if( targetFrameIndex < 0 ) return;
               if( frameImageList[targetFrameIndex].sizeRate >= 0 ) return;
 
-              // TODO:設定済みがない場合は設定をしてあげる
+              // TODO: canvas
               // Map<String, dynamic> _framejson  = _frameValuejson as Map<String, dynamic>;
               // frameImageList[targetFrameIndex].position
               // frameImageList[targetFrameIndex].sizeRate
             });
           });
-
 
           //  ないなら、ファイルを作って保存処理＋自然配置
           continue;

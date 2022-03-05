@@ -8,12 +8,17 @@ void main() {
   runApp(const MyApp());
 }
 
+// TODO: 
+//  キャンパス作り
+//  適当配置
+//  キャンパスの拡大縮小
+//  フォーカス
+
 
 // TODO: 縦読みの機能
-//  - 背景
+//  - 背景レイヤー
 //  - 21日にモックアップ（連動機能とか、なし
-//  - 90度回転
-//  - キャラメルママ８８万・機能開発 マルＣキャラメルママ
+//  - 大コマは90度回転（機能としても出しておく
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
