@@ -93,7 +93,7 @@ class EditPageState extends State<EditPage> {
     List<Widget> showWidgetList = [];
     for (FrameImage _frameData in frameImageList) {
       if( _frameData.byteData == null ) continue;
-      if( _frameData.sizeRate == 0.0 ) continue;
+      if( _frameData.sizeRate <= 0.0 ) continue;
 
       showWidgetList.add(_frameWidget(_frameData));
     }
@@ -121,6 +121,10 @@ class EditPageState extends State<EditPage> {
     }
 
     double ballDiameter = 10.0;
+
+    return _frameDraggingWidget(_frameData);
+
+
     return Stack(
       children: [
         _frameDraggingWidget(_frameData),
@@ -256,7 +260,7 @@ class EditPageState extends State<EditPage> {
 
     return Positioned(
       left  : _frameData.position.x,
-      top   : _frameData.position.y,
+      top   : _frameData.position.y - scrollController.position.pixels,
       child : dragging,
     );
   }
@@ -273,8 +277,6 @@ class EditPageState extends State<EditPage> {
         );
 
         if(result == null) return; 
-
-        setState(() { });
 
         // 画像読み込み
         for (PlatformFile _file in result.files.where((_file) => _file.extension != null && _file.extension == "png").toList()) {
@@ -301,12 +303,15 @@ class EditPageState extends State<EditPage> {
                 dbInstance  : widget.dbInstance,
                 byteData    : _file.bytes, 
                 name        : _file.name,
-                sizeRate    : 0.0,
+                sizeRate    : -1.0,
                 position    : const Point<double>(0,0),
                 size        : Point(_image.width.toDouble(), _image.height.toDouble())
               )
             );
           }
+
+          setState(() { });
+
           continue;
         }
 
@@ -318,6 +323,8 @@ class EditPageState extends State<EditPage> {
           // List<List<Map<String, dynamic>>> jsonData = json.decode(utf8.decode(_file.bytes!)); 
           // print( jsonData );
 
+          // TODO: こいつ消す
+          int temp = 0;
           jsonData.asMap().forEach((_pageIndex, _pageValueJson) {
             List<dynamic> _pageJson  = _pageValueJson as List<dynamic>;
 
@@ -342,11 +349,14 @@ class EditPageState extends State<EditPage> {
               print( _imageTitle() + " : $targetFrameIndex" );
 
               if( targetFrameIndex < 0 ) return;
-              if( frameImageList[targetFrameIndex].sizeRate >= 0 ) return;
-
-
+              if( frameImageList[targetFrameIndex].sizeRate > 0 ) return;
+    
               // TODO: canvas
               frameImageList[targetFrameIndex].sizeRate = 1.0; // 仮
+              frameImageList[targetFrameIndex].position = Point(0, temp * 300);
+
+              temp++;
+              setState(() { });
 
               // Map<String, dynamic> _framejson  = _frameValuejson as Map<String, dynamic>;
               // frameImageList[targetFrameIndex].position
