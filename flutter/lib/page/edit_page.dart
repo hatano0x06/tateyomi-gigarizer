@@ -222,14 +222,6 @@ class EditPageState extends State<EditPage> {
       if( _frameData.byteData == null ) continue;
       if( _frameData.sizeRate <= 0.0 ) continue;
 
-      // print( 
-      //   _frameData.name + " : " + _frameData.position.toString()
-      //   + " | " + canvasToGlobalPos(_frameData.position).y.toString() + " : " + (canvasToGlobalPos(_frameData.position).y > MediaQuery.of(context).size.height).toString()
-      //   + " | " + (canvasToGlobalPos(_frameData.position).y + _frameData.size.y * _frameData.sizeRate).toString() + " : " + (canvasToGlobalPos(_frameData.position).y + _frameData.size.y * _frameData.sizeRate < 0).toString() 
-      // );
-
-      // if( !isEnableFrame(_frameData) ) continue;
-
       showWidgetList.addAll(_frameWidgetList(_frameData));
     }
 
@@ -257,7 +249,7 @@ class EditPageState extends State<EditPage> {
 
     double ballDiameter = 10.0;
 
-    return [
+    List<Widget> _frameWidgetList = [
       _frameDraggingWidget(_frameData),
 
       // 左上
@@ -280,6 +272,12 @@ class EditPageState extends State<EditPage> {
               dragStartRightBottomPos.x - _frameData.size.x * _frameData.sizeRate,
               dragStartRightBottomPos.y - _frameData.size.y * _frameData.sizeRate,
             );
+
+            if( focusFrame == _frameData){
+              framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
+              framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
+              frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
+            }
 
             setState(() { });
           },
@@ -307,6 +305,12 @@ class EditPageState extends State<EditPage> {
               dragStartRightBottomPos.y - _frameData.size.y * _frameData.sizeRate,
             );
 
+            if( focusFrame == _frameData){
+              framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
+              framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
+              frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
+            }
+
             setState(() { });
           },
         ),
@@ -333,6 +337,12 @@ class EditPageState extends State<EditPage> {
               _frameData.position.y,
             );
 
+            if( focusFrame == _frameData){
+              framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
+              framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
+              frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
+            }
+
             setState(() { });
           },
         ),
@@ -348,20 +358,42 @@ class EditPageState extends State<EditPage> {
           onDragStart : (){ tempSavePos(); },
           onDragEnd   : (){ _frameData.save(); },
           onDrag      : (dragPos) {
-
             Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
-
-
             _frameData.sizeRate = math.max(
               (canvasDragPos.x - dragStartLeftTopPos.x).abs()/_frameData.size.x, 
               (canvasDragPos.y - dragStartLeftTopPos.y).abs()/_frameData.size.y, 
             );
+
+            if( focusFrame == _frameData){
+              framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
+              framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
+              frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
+            }
+
             setState(() { });
           },
         ),
       ),
-
     ];
+
+    if( focusFrame != _frameData) return _frameWidgetList;
+
+    _frameWidgetList.insert(0,
+      Positioned(
+        left  : canvasToGlobalPos(_frameData.position).x-2,
+        top   : canvasToGlobalPos(_frameData.position).y-2,
+        child : Container(
+          decoration: BoxDecoration(
+            color: Colors.transparent,
+            border: Border.all( color: Colors.blue.withAlpha(200), width: 4 )
+          ),
+          width: _frameData.size.x * _frameData.sizeRate+2,
+          height: _frameData.size.y * _frameData.sizeRate+4,
+        )
+      )
+    );
+
+    return _frameWidgetList;
   }
 
   // コマの表示（ドラッグ
@@ -394,6 +426,13 @@ class EditPageState extends State<EditPage> {
           globalToCanvasPos(Point<double>(_offset.dx, _offset.dy)).x, 
           globalToCanvasPos(Point<double>(_offset.dx, _offset.dy)).y - kToolbarHeight
         );
+
+        if( focusFrame == draggingFrame){
+          framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
+          framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
+          frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
+        }
+
         draggingFrame = null;
         setState(() { });
       },      
@@ -404,13 +443,18 @@ class EditPageState extends State<EditPage> {
       child   : GestureDetector(
         child   : draggableWidget,
         onTapUp : (_){
+          setState(() { });
+
+          if( focusFrame == _frameData){
+            focusFrame = null;
+            return;
+          }
           focusFrame = _frameData;
 
           framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
           framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
           frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
 
-          setState(() { });
         },
       ),
     );
