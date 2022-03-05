@@ -6,6 +6,7 @@ import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
 import 'package:tateyomi_gigarizer/model/frame_image.dart';
 import 'package:tateyomi_gigarizer/page/corner_ball.dart';
@@ -28,18 +29,67 @@ class EditPage extends StatefulWidget {
 class EditPageState extends State<EditPage> {
   List<FrameImage> frameImageList = [];
 
+  final ScrollController scrollController = ScrollController();
+
+  Size canvasSize = Size.zero;
+
+  @override
+  void initState(){
+    super.initState();
+
+    // TODO: こいつも外部からの読み込みにする
+    SchedulerBinding.instance?.addPostFrameCallback((_){
+      canvasSize = Size(
+        MediaQuery.of(context).size.width/2, 
+        MediaQuery.of(context).size.height * 10,
+      );
+      setState(() { });
+    });
+
+    scrollController.addListener(() {
+      setState(() { });
+    });
+  }
+
+  @override
+  void dispose(){
+    scrollController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+
+    Widget body = Stack(
+      children: [
+        _backGroundBody(),
+        _frameBody(),
+      ],
+    );
+
     return Scaffold(
       appBar: AppBar(
         title   : const Text( "編集ページ" ),
       ),
 
-      body : SafeArea( child : _body() ),
+      body : SafeArea( child : body ),
     );
   }
 
-  Widget _body(){
+  Widget _backGroundBody(){
+    return Center(
+      child: SingleChildScrollView(
+        controller  : scrollController,
+        child       : Container(
+          width : canvasSize.width,
+          height: canvasSize.height,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  Widget _frameBody(){
     List<Widget> showWidgetList = [];
     for (FrameImage _frameData in frameImageList) {
       if( _frameData.byteData == null ) continue;
@@ -294,7 +344,10 @@ class EditPageState extends State<EditPage> {
               if( targetFrameIndex < 0 ) return;
               if( frameImageList[targetFrameIndex].sizeRate >= 0 ) return;
 
+
               // TODO: canvas
+              frameImageList[targetFrameIndex].sizeRate = 1.0; // 仮
+
               // Map<String, dynamic> _framejson  = _frameValuejson as Map<String, dynamic>;
               // frameImageList[targetFrameIndex].position
               // frameImageList[targetFrameIndex].sizeRate
