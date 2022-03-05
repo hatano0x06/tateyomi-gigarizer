@@ -62,8 +62,8 @@ class EditPageState extends State<EditPage> {
 
     // TODO: 左右に範囲外描写つけた方がよさそう
     List<Widget> showWidgetList = [_backGroundBody(), ..._frameBodyList()];
-    
-    Widget body = Stack( children: showWidgetList );
+    //   child : Stack( children: showWidgetList )
+    // );
 
     return Scaffold(
       appBar: AppBar(
@@ -72,14 +72,17 @@ class EditPageState extends State<EditPage> {
 
       body : SingleChildScrollView(
         controller  : scrollController,
-        child       : SafeArea( child : body ),
+        child       : Stack( children: showWidgetList ),
       ),
+      
     );
   }
 
   Widget _backGroundBody(){
     return Center(
       child: Container(
+        // width : MediaQuery.of(context).size.width/2,
+        // height: MediaQuery.of(context).size.height,
         width : canvasSize.width,
         height: canvasSize.height,
         color: Colors.white,
@@ -89,24 +92,8 @@ class EditPageState extends State<EditPage> {
   }
 
   List<Widget> _frameBodyList(){
-
-    bool isEnableFrame(FrameImage _frameData){
-      // 下方向に超えていたら、非表示
-      if( canvasToGlobalPos(_frameData.position).y > MediaQuery.of(context).size.height ) return false;
-
-      // 上方向に超えていたら、非表示
-      if( canvasToGlobalPos(_frameData.position).y + _frameData.size.y * _frameData.sizeRate < 0 ) return false;
-
-      return true;
-    }
-
     List<Widget> showWidgetList = [];
-    print(
-      " --- " + 
-      MediaQuery.of(context).size.toString() + " : " + 
-      (scrollController.hasClients ? scrollController.position.pixels.toString() : "0") + " : " + 
-      (scrollController.hasClients ? scrollController.offset.toString() : "0")
-    );
+
     for (FrameImage _frameData in frameImageList) {
       if( _frameData.byteData == null ) continue;
       if( _frameData.sizeRate <= 0.0 ) continue;
@@ -117,7 +104,7 @@ class EditPageState extends State<EditPage> {
       //   + " | " + (canvasToGlobalPos(_frameData.position).y + _frameData.size.y * _frameData.sizeRate).toString() + " : " + (canvasToGlobalPos(_frameData.position).y + _frameData.size.y * _frameData.sizeRate < 0).toString() 
       // );
 
-      if( !isEnableFrame(_frameData) ) continue;
+      // if( !isEnableFrame(_frameData) ) continue;
 
       showWidgetList.addAll(_frameWidgetList(_frameData));
     }
@@ -132,7 +119,9 @@ class EditPageState extends State<EditPage> {
   Point<double> dragStartLeftTopPos = const Point(0,0);
   Point<double> dragStartRightBottomPos = const Point(0,0);
   List<Widget> _frameWidgetList(FrameImage _frameData){
-    if(isDragging) return [ _frameDraggingWidget(_frameData) ];
+
+
+    if( draggingFrame != null ) return [ _frameDraggingWidget(_frameData) ];
 
     void tempSavePos(){
       dragStartLeftTopPos     = _frameData.position;
@@ -252,7 +241,7 @@ class EditPageState extends State<EditPage> {
   }
 
   // コマの表示（ドラッグ
-  bool isDragging = false;
+  FrameImage? draggingFrame;
   Widget _frameDraggingWidget(FrameImage _frameData){
     frameWidgetUnit(bool _isDragging){
       return Opacity(
@@ -272,16 +261,15 @@ class EditPageState extends State<EditPage> {
       childWhenDragging : frameWidgetUnit(true),
       feedback          : frameWidgetUnit(true),
       onDragStarted: (){
-        isDragging = true;
+        draggingFrame = _frameData;
         setState(() { });
       },
       onDraggableCanceled: (_, _offset){
-        isDragging = false;
-
-        _frameData.position = Point<double>(
+        draggingFrame!.position = Point<double>(
           globalToCanvasPos(Point<double>(_offset.dx, _offset.dy)).x, 
           globalToCanvasPos(Point<double>(_offset.dx, _offset.dy)).y - kToolbarHeight
         );
+        draggingFrame = null;
         setState(() { });
       },      
     );
@@ -290,8 +278,6 @@ class EditPageState extends State<EditPage> {
       cursor  : SystemMouseCursors.click,
       child   : draggableWidget
     );
-
-    // print( _frameData.name + " -- " +  canvasToGlobalPos(_frameData.position).toString()) ;
 
     return Positioned(
       left  : canvasToGlobalPos(_frameData.position).x,
@@ -417,7 +403,8 @@ class EditPageState extends State<EditPage> {
 
     return Point(
       _pos.x + _offsetSize.dx,
-      _pos.y - _offsetSize.dy,
+      _pos.y,
+      // _pos.y - _offsetSize.dy,
     );
   }
 
