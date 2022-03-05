@@ -86,16 +86,6 @@ class EditPageState extends State<EditPage> {
       )
     );
 
-    return Center(
-      child: SingleChildScrollView(
-        controller  : scrollController,
-        child       : Container(
-          width : canvasSize.width,
-          height: canvasSize.height,
-          color: Colors.white,
-        ),
-      ),
-    );
   }
 
   List<Widget> _frameBodyList(){
@@ -104,7 +94,7 @@ class EditPageState extends State<EditPage> {
       if( _frameData.byteData == null ) continue;
       if( _frameData.sizeRate <= 0.0 ) continue;
 
-      showWidgetList.add(_frameWidget(_frameData));
+      showWidgetList.addAll(_frameWidgetList(_frameData));
     }
 
     if(showWidgetList.isEmpty) return [ Center( child: inputFileButton()) ] ;
@@ -116,8 +106,8 @@ class EditPageState extends State<EditPage> {
 
   Point<double> dragStartLeftTopPos = const Point(0,0);
   Point<double> dragStartRightBottomPos = const Point(0,0);
-  Widget _frameWidget(FrameImage _frameData){
-    if(isDragging) return _frameDraggingWidget(_frameData);
+  List<Widget> _frameWidgetList(FrameImage _frameData){
+    if(isDragging) return [ _frameDraggingWidget(_frameData) ];
 
     void tempSavePos(){
       dragStartLeftTopPos     = _frameData.position;
@@ -129,106 +119,109 @@ class EditPageState extends State<EditPage> {
 
     double ballDiameter = 10.0;
 
-    return _frameDraggingWidget(_frameData);
+    return [
+      _frameDraggingWidget(_frameData),
 
+      // 左上
+      Positioned(
+        left  : canvasToGlobalPos(_frameData.position).x - ballDiameter / 2,
+        top   : canvasToGlobalPos(_frameData.position).y - ballDiameter / 2,
+        child: CornerBallWidget(
+          cursor      : SystemMouseCursors.resizeUpLeftDownRight,
+          ballDiameter: ballDiameter,
+          onDragStart : (){ tempSavePos(); },
+          onDragEnd   : (){ _frameData.save(); },
+          onDrag      : (dragPos) {
+            Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
 
-    return Stack(
-      children: [
-        _frameDraggingWidget(_frameData),
+            _frameData.sizeRate = math.max(
+              (canvasDragPos.x - dragStartRightBottomPos.x).abs()/_frameData.size.x, 
+              (canvasDragPos.y - dragStartRightBottomPos.y).abs()/_frameData.size.y, 
+            );
+            _frameData.position = Point(
+              dragStartRightBottomPos.x - _frameData.size.x * _frameData.sizeRate,
+              dragStartRightBottomPos.y - _frameData.size.y * _frameData.sizeRate,
+            );
 
-        // 左上
-        Positioned(
-          left  : _frameData.position.x - ballDiameter / 2,
-          top   : _frameData.position.y - ballDiameter / 2,
-          child: CornerBallWidget(
-            cursor      : SystemMouseCursors.resizeUpLeftDownRight,
-            ballDiameter: ballDiameter,
-            onDragStart : (){ tempSavePos(); },
-            onDragEnd   : (){ _frameData.save(); },
-            onDrag      : (dragPos) {
-              _frameData.sizeRate = math.max(
-                (dragPos.dx - dragStartRightBottomPos.x).abs()/_frameData.size.x, 
-                (dragPos.dy - dragStartRightBottomPos.y).abs()/_frameData.size.y, 
-              );
-              _frameData.position = Point(
-                dragStartRightBottomPos.x - _frameData.size.x * _frameData.sizeRate,
-                dragStartRightBottomPos.y - _frameData.size.y * _frameData.sizeRate,
-              );
-
-              setState(() { });
-            },
-          ),
+            setState(() { });
+          },
         ),
+      ),
 
-        // 右上
-        Positioned(
-          left  : _frameData.position.x + _frameData.size.x * _frameData.sizeRate - ballDiameter / 2,
-          top   : _frameData.position.y - ballDiameter / 2,
-          child: CornerBallWidget(
-            cursor      : SystemMouseCursors.resizeUpRightDownLeft,
-            ballDiameter: ballDiameter,
-            onDragStart : (){ tempSavePos(); },
-            onDragEnd   : (){ _frameData.save(); },
-            onDrag      : (dragPos) {
-              _frameData.sizeRate = math.max(
-                (dragPos.dx - dragStartLeftTopPos.x).abs()/_frameData.size.x, 
-                (dragPos.dy - dragStartRightBottomPos.y).abs()/_frameData.size.y, 
-              );
-              _frameData.position = Point(
-                _frameData.position.x,
-                dragStartRightBottomPos.y - _frameData.size.y * _frameData.sizeRate,
-              );
+      // 右上
+      Positioned(
+        left  : canvasToGlobalPos(_frameData.position).x + _frameData.size.x * _frameData.sizeRate - ballDiameter / 2,
+        top   : canvasToGlobalPos(_frameData.position).y - ballDiameter / 2,
+        child: CornerBallWidget(
+          cursor      : SystemMouseCursors.resizeUpRightDownLeft,
+          ballDiameter: ballDiameter,
+          onDragStart : (){ tempSavePos(); },
+          onDragEnd   : (){ _frameData.save(); },
+          onDrag      : (dragPos) {
+            Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
 
-              setState(() { });
-            },
-          ),
+            _frameData.sizeRate = math.max(
+              (canvasDragPos.x - dragStartLeftTopPos.x).abs()/_frameData.size.x, 
+              (canvasDragPos.y - dragStartRightBottomPos.y).abs()/_frameData.size.y, 
+            );
+            _frameData.position = Point(
+              _frameData.position.x,
+              dragStartRightBottomPos.y - _frameData.size.y * _frameData.sizeRate,
+            );
+
+            setState(() { });
+          },
         ),
+      ),
 
-        // 左下
-        Positioned(
-          left  : _frameData.position.x - ballDiameter / 2,
-          top   : _frameData.position.y + _frameData.size.y * _frameData.sizeRate - ballDiameter / 2,
-          child: CornerBallWidget(
-            cursor      : SystemMouseCursors.resizeUpRightDownLeft,
-            ballDiameter: ballDiameter,
-            onDragStart : (){ tempSavePos(); },
-            onDragEnd   : (){ _frameData.save(); },
-            onDrag      : (dragPos) {
-              _frameData.sizeRate = math.max(
-                (dragPos.dx - dragStartRightBottomPos.x).abs()/_frameData.size.x, 
-                (dragPos.dy - dragStartLeftTopPos.y).abs()/_frameData.size.y, 
-              );
-              _frameData.position = Point(
-                dragStartRightBottomPos.x - _frameData.size.x * _frameData.sizeRate,
-                _frameData.position.y,
-              );
+      // 左下
+      Positioned(
+        left  : canvasToGlobalPos(_frameData.position).x - ballDiameter / 2,
+        top   : canvasToGlobalPos(_frameData.position).y + _frameData.size.y * _frameData.sizeRate - ballDiameter / 2,
+        child: CornerBallWidget(
+          cursor      : SystemMouseCursors.resizeUpRightDownLeft,
+          ballDiameter: ballDiameter,
+          onDragStart : (){ tempSavePos(); },
+          onDragEnd   : (){ _frameData.save(); },
+          onDrag      : (dragPos) {
+            Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
 
-              setState(() { });
-            },
-          ),
+            _frameData.sizeRate = math.max(
+              (canvasDragPos.x - dragStartRightBottomPos.x).abs()/_frameData.size.x, 
+              (canvasDragPos.y - dragStartLeftTopPos.y).abs()/_frameData.size.y, 
+            );
+            _frameData.position = Point(
+              dragStartRightBottomPos.x - _frameData.size.x * _frameData.sizeRate,
+              _frameData.position.y,
+            );
+
+            setState(() { });
+          },
         ),
+      ),
 
-        // 右下
-        Positioned(
-          left  : _frameData.position.x + _frameData.size.x * _frameData.sizeRate - ballDiameter / 2,
-          top   : _frameData.position.y + _frameData.size.y * _frameData.sizeRate - ballDiameter / 2,
-          child: CornerBallWidget(
-            cursor      : SystemMouseCursors.resizeUpLeftDownRight,
-            ballDiameter: ballDiameter,
-            onDragStart : (){ tempSavePos(); },
-            onDragEnd   : (){ _frameData.save(); },
-            onDrag      : (dragPos) {
-              _frameData.sizeRate = math.max(
-                (dragPos.dx - dragStartLeftTopPos.x).abs()/_frameData.size.x, 
-                (dragPos.dy - dragStartLeftTopPos.y).abs()/_frameData.size.y, 
-              );
-              setState(() { });
-            },
-          ),
+      // 右下
+      Positioned(
+        left  : canvasToGlobalPos(_frameData.position).x + _frameData.size.x * _frameData.sizeRate - ballDiameter / 2,
+        top   : canvasToGlobalPos(_frameData.position).y + _frameData.size.y * _frameData.sizeRate - ballDiameter / 2,
+        child: CornerBallWidget(
+          cursor      : SystemMouseCursors.resizeUpLeftDownRight,
+          ballDiameter: ballDiameter,
+          onDragStart : (){ tempSavePos(); },
+          onDragEnd   : (){ _frameData.save(); },
+          onDrag      : (dragPos) {
+            Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
+
+            _frameData.sizeRate = math.max(
+              (canvasDragPos.x - dragStartLeftTopPos.x).abs()/_frameData.size.x, 
+              (canvasDragPos.y - dragStartLeftTopPos.y).abs()/_frameData.size.y, 
+            );
+            setState(() { });
+          },
         ),
+      ),
 
-      ],
-    );
+    ];
   }
 
   // コマの表示（ドラッグ
@@ -257,7 +250,11 @@ class EditPageState extends State<EditPage> {
       },
       onDraggableCanceled: (Velocity velocity, Offset offset){
         isDragging = false;
-        _frameData.position = Point<double>(offset.dx, offset.dy - kToolbarHeight);
+        
+        _frameData.position = Point<double>(
+          globalToCanvasPos(Point<double>(offset.dx, offset.dy)).x, 
+          globalToCanvasPos(Point<double>(offset.dx, offset.dy)).y - kToolbarHeight
+        );
         setState(() { });
       }
     );
@@ -267,19 +264,9 @@ class EditPageState extends State<EditPage> {
       child   : draggableWidget
     );
 
-    // return Container(
-    //   margin: EdgeInsets.only(
-    //     left  : _frameData.position.x,
-    //     top   : _frameData.position.y - scrollController.position.pixels,
-    //   ),
-    //   child: dragging,
-    // );
-    
-    ;
-
     return Positioned(
-      left  : _frameData.position.x,
-      top   : _frameData.position.y - scrollController.position.pixels,
+      left  : canvasToGlobalPos(_frameData.position).x,
+      top   : canvasToGlobalPos(_frameData.position).y,
       child : dragging,
     );
   }
@@ -370,8 +357,7 @@ class EditPageState extends State<EditPage> {
     
               // TODO: canvas
               frameImageList[targetFrameIndex].sizeRate = 1.0; // 仮
-              frameImageList[targetFrameIndex].position = Point(0, temp * 10);
-              // frameImageList[targetFrameIndex].position = Point(0, temp * 300);
+              frameImageList[targetFrameIndex].position = Point(0, temp * 300);
 
               temp++;
               setState(() { });
@@ -392,6 +378,30 @@ class EditPageState extends State<EditPage> {
       padding: const EdgeInsets.only(top: 200),
       child : button,
     );
-
   }
+
+  Point<double> canvasToGlobalPos(Point<double> _pos){
+    Offset _offsetSize = Offset(
+      (MediaQuery.of(context).size.width - canvasSize.width)/2,
+      scrollController.position.pixels
+    );
+
+    return Point(
+      _pos.x + _offsetSize.dx,
+      _pos.y - _offsetSize.dy,
+    );
+  }
+
+  Point<double> globalToCanvasPos(Point<double> _pos){
+    Offset _offsetSize = Offset(
+      (MediaQuery.of(context).size.width - canvasSize.width)/2,
+      scrollController.position.pixels
+    );
+
+    return Point(
+      _pos.x - _offsetSize.dx,
+      _pos.y + _offsetSize.dy,
+    );
+  }  
+
 }
