@@ -7,12 +7,14 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
 import 'package:tateyomi_gigarizer/model/frame_image.dart';
 import 'package:tateyomi_gigarizer/page/corner_ball.dart';
 import 'dart:ui' as ui;
 import 'dart:math' as math;
 import 'dart:convert';
+import 'package:validators/validators.dart' as validator;
 
 class EditPage extends StatefulWidget {
   final DbImpl dbInstance;
@@ -30,6 +32,9 @@ class EditPageState extends State<EditPage> {
   List<FrameImage> frameImageList = [];
 
   final ScrollController scrollController = ScrollController();
+  final TextEditingController framePosXController = TextEditingController();
+  final TextEditingController framePosYController = TextEditingController();
+  final TextEditingController frameSizeRateController = TextEditingController();
 
   Size canvasSize = Size.zero;
 
@@ -49,34 +54,146 @@ class EditPageState extends State<EditPage> {
     scrollController.addListener(() {
       setState(() { });
     });
+
+    framePosXController.addListener((){
+      if(posStringValidate(framePosXController.text) != null ) return;
+
+      focusFrame!.position = Point<double>(double.parse(framePosXController.text), focusFrame!.position.y);
+      setState(() { });
+    });    
+
+    framePosYController.addListener((){
+      if(posStringValidate(framePosYController.text) != null ) return;
+
+      focusFrame!.position = Point<double>(focusFrame!.position.x, double.parse(framePosYController.text));
+      setState(() { });
+    });    
+
+    frameSizeRateController.addListener((){
+      if(rateStringValidate(frameSizeRateController.text) != null ) return;
+
+      double _rate = double.parse(frameSizeRateController.text);
+      _rate = math.max(_rate, 0.01);
+
+      focusFrame!.sizeRate = _rate;
+      setState(() { });
+    });
+
   }
 
   @override
   void dispose(){
     scrollController.dispose();
+    framePosXController.dispose();
+    framePosYController.dispose();
+    frameSizeRateController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    print( focusFrame) ;
-
     // TODO: 左右に範囲外描写つけた方がよさそう
     List<Widget> showWidgetList = [_backGroundBody(), ..._frameBodyList()];
-    //   child : Stack( children: showWidgetList )
-    // );
 
     return Scaffold(
       appBar: AppBar(
         title   : const Text( "編集ページ" ),
       ),
 
-      body : SingleChildScrollView(
-        controller  : scrollController,
-        child       : Stack( children: showWidgetList ),
+      body : Stack(
+        children: [
+          SingleChildScrollView(
+            controller  : scrollController,
+            child       : Stack( children: showWidgetList ),
+          ),
+          focusDetailSettingBox()
+        ],
       ),
-      
     );
+  }
+
+  String? posStringValidate(String posString){
+    if(posString.isEmpty) return "数字を入力してください";
+    if(posString == "-") return "数字を入力してください";
+
+    if( !validator.isFloat(posString) ) return "有効な形になっていません";
+    if( !validator.isFloat(posString) ) return "有効な形になっていません";
+
+    return null;
+  }
+
+  String? rateStringValidate(String posString){
+    if(posString.isEmpty) return "数字を入力してください";
+
+    if( !validator.isFloat(posString) ) return "有効な形になっていません";
+    if( !validator.isFloat(posString) ) return "有効な形になっていません";
+
+    return null;
+  }
+
+
+  Widget focusDetailSettingBox(){
+    if(focusFrame == null ) return Container();
+
+    return Positioned(
+      top   : 20,
+      left  : MediaQuery.of(context).size.width/2 + canvasSize.width/2 + 20,
+      child: Container(
+        width: 300,
+        decoration: BoxDecoration(
+          color: Colors.grey[100],
+          border: Border.all( color: Colors.black, )
+        ),
+        child: Column(
+          children: [
+            Padding(
+              padding : const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+              child   : TextFormField(
+                autovalidateMode: AutovalidateMode.always,
+                controller: framePosXController,
+                decoration      : const InputDecoration( labelText: 'X位置', ),
+                inputFormatters : [FilteringTextInputFormatter.allow(RegExp('[0123456789.-]'))],
+                validator    : (String? value){
+                  if( value == null ) return null;
+                  return posStringValidate(value);
+                },
+              )
+            ),
+            Padding(
+              padding : const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+              child   : TextFormField(
+                autovalidateMode: AutovalidateMode.always,
+                controller: framePosYController,
+                decoration: const InputDecoration( labelText: 'Y位置', ),
+                keyboardType: TextInputType.number,
+                inputFormatters : [FilteringTextInputFormatter.allow(RegExp('[0123456789.-]'))],
+                validator    : (String? value){
+                  if( value == null ) return null;
+                  return posStringValidate(value);
+                },
+              ),
+            ),
+            Padding(
+              padding : const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+              child   : TextFormField(
+                autovalidateMode: AutovalidateMode.always,
+                controller: frameSizeRateController,
+                decoration: const InputDecoration( labelText: '大きさ倍率', ),
+                keyboardType: TextInputType.number,
+                inputFormatters : [FilteringTextInputFormatter.allow(RegExp('[0123456789.]'))],
+                validator    : (String? value){
+                  if( value == null ) return null;
+                  return rateStringValidate(value);
+                },
+              ),
+            )
+          ],
+
+          // 
+        )
+      ),
+    );
+
   }
 
   Widget _backGroundBody(){
@@ -288,6 +405,11 @@ class EditPageState extends State<EditPage> {
         child   : draggableWidget,
         onTapUp : (_){
           focusFrame = _frameData;
+
+          framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
+          framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
+          frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
+
           setState(() { });
         },
       ),
