@@ -59,6 +59,7 @@ class EditPageState extends State<EditPage> {
 
   @override
   Widget build(BuildContext context) {
+    print( focusFrame) ;
 
     // TODO: 左右に範囲外描写つけた方がよさそう
     List<Widget> showWidgetList = [_backGroundBody(), ..._frameBodyList()];
@@ -80,13 +81,19 @@ class EditPageState extends State<EditPage> {
 
   Widget _backGroundBody(){
     return Center(
-      child: Container(
-        // width : MediaQuery.of(context).size.width/2,
-        // height: MediaQuery.of(context).size.height,
-        width : canvasSize.width,
-        height: canvasSize.height,
-        color: Colors.white,
-      )
+      child: GestureDetector(
+        child : Container(
+          // width : MediaQuery.of(context).size.width/2,
+          // height: MediaQuery.of(context).size.height,
+          width : canvasSize.width,
+          height: canvasSize.height,
+          color: Colors.white,
+        ),
+        onTapUp: (_){
+          focusFrame = null;
+          setState(() { });
+        },
+      ),
     );
 
   }
@@ -242,6 +249,7 @@ class EditPageState extends State<EditPage> {
 
   // コマの表示（ドラッグ
   FrameImage? draggingFrame;
+  FrameImage? focusFrame;
   Widget _frameDraggingWidget(FrameImage _frameData){
     frameWidgetUnit(bool _isDragging){
       return Opacity(
@@ -276,7 +284,13 @@ class EditPageState extends State<EditPage> {
 
     Widget dragging = MouseRegion(
       cursor  : SystemMouseCursors.click,
-      child   : draggableWidget
+      child   : GestureDetector(
+        child   : draggableWidget,
+        onTapUp : (_){
+          focusFrame = _frameData;
+          setState(() { });
+        },
+      ),
     );
 
     return Positioned(
