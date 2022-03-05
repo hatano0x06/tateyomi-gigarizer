@@ -60,23 +60,32 @@ class EditPageState extends State<EditPage> {
   @override
   Widget build(BuildContext context) {
 
-    Widget body = Stack(
-      children: [
-        _backGroundBody(),
-        _frameBody(),
-      ],
-    );
+    // TODO: 左右に範囲外描写つけた方がよさそう
+    List<Widget> showWidgetList = [_backGroundBody(), ..._frameBodyList()];
+    
+    Widget body = Stack( children: showWidgetList );
 
     return Scaffold(
       appBar: AppBar(
         title   : const Text( "編集ページ" ),
       ),
 
-      body : SafeArea( child : body ),
+      body : SingleChildScrollView(
+        controller  : scrollController,
+        child       : SafeArea( child : body ),
+      ),
     );
   }
 
   Widget _backGroundBody(){
+    return Center(
+      child: Container(
+        width : canvasSize.width,
+        height: canvasSize.height,
+        color: Colors.white,
+      )
+    );
+
     return Center(
       child: SingleChildScrollView(
         controller  : scrollController,
@@ -89,7 +98,7 @@ class EditPageState extends State<EditPage> {
     );
   }
 
-  Widget _frameBody(){
+  List<Widget> _frameBodyList(){
     List<Widget> showWidgetList = [];
     for (FrameImage _frameData in frameImageList) {
       if( _frameData.byteData == null ) continue;
@@ -98,11 +107,9 @@ class EditPageState extends State<EditPage> {
       showWidgetList.add(_frameWidget(_frameData));
     }
 
-    if(showWidgetList.isEmpty) return Center( child: inputFileButton());
+    if(showWidgetList.isEmpty) return [ Center( child: inputFileButton()) ] ;
 
-    return Stack(
-      children: showWidgetList,
-    );
+    return showWidgetList;
   }
 
   // コマの表示（大きさ変えるための、角に四角配置
@@ -240,23 +247,35 @@ class EditPageState extends State<EditPage> {
       );
     }
 
+    Widget draggableWidget = Draggable(
+      child             : frameWidgetUnit(false),
+      childWhenDragging : frameWidgetUnit(true),
+      feedback          : frameWidgetUnit(true),
+      onDragStarted: (){
+        isDragging = true;
+        setState(() { });
+      },
+      onDraggableCanceled: (Velocity velocity, Offset offset){
+        isDragging = false;
+        _frameData.position = Point<double>(offset.dx, offset.dy - kToolbarHeight);
+        setState(() { });
+      }
+    );
+
     Widget dragging = MouseRegion(
       cursor  : SystemMouseCursors.click,
-      child   : Draggable(
-        child             : frameWidgetUnit(false),
-        childWhenDragging : frameWidgetUnit(true),
-        feedback          : frameWidgetUnit(true),
-        onDragStarted: (){
-          isDragging = true;
-          setState(() { });
-        },
-        onDraggableCanceled: (Velocity velocity, Offset offset){
-          isDragging = false;
-          _frameData.position = Point<double>(offset.dx, offset.dy - kToolbarHeight);
-          setState(() { });
-        }
-      ),
+      child   : draggableWidget
     );
+
+    // return Container(
+    //   margin: EdgeInsets.only(
+    //     left  : _frameData.position.x,
+    //     top   : _frameData.position.y - scrollController.position.pixels,
+    //   ),
+    //   child: dragging,
+    // );
+    
+    ;
 
     return Positioned(
       left  : _frameData.position.x,
@@ -266,7 +285,7 @@ class EditPageState extends State<EditPage> {
   }
 
   Widget inputFileButton(){
-    return ElevatedButton.icon(
+    Widget button = ElevatedButton.icon(
       icon    : const Icon(Icons.file_open),
       label   : const Text('画像・ファイルの読み込み'),
       onPressed: () async { 
@@ -323,7 +342,7 @@ class EditPageState extends State<EditPage> {
           // List<List<Map<String, dynamic>>> jsonData = json.decode(utf8.decode(_file.bytes!)); 
           // print( jsonData );
 
-          // TODO: こいつ消す
+          // TODO: こいつできたら消す
           int temp = 0;
           jsonData.asMap().forEach((_pageIndex, _pageValueJson) {
             List<dynamic> _pageJson  = _pageValueJson as List<dynamic>;
@@ -346,14 +365,13 @@ class EditPageState extends State<EditPage> {
               // すでにwebに設定済みのデータがある（読み込み済み）なら、なにもせずに終了
               int targetFrameIndex = frameImageList.indexWhere((_frameImage) => _frameImage.name == _imageTitle());
 
-              print( _imageTitle() + " : $targetFrameIndex" );
-
               if( targetFrameIndex < 0 ) return;
               if( frameImageList[targetFrameIndex].sizeRate > 0 ) return;
     
               // TODO: canvas
               frameImageList[targetFrameIndex].sizeRate = 1.0; // 仮
-              frameImageList[targetFrameIndex].position = Point(0, temp * 300);
+              frameImageList[targetFrameIndex].position = Point(0, temp * 10);
+              // frameImageList[targetFrameIndex].position = Point(0, temp * 300);
 
               temp++;
               setState(() { });
@@ -368,6 +386,11 @@ class EditPageState extends State<EditPage> {
           continue;
         }
       }
+    );
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 200),
+      child : button,
     );
 
   }
