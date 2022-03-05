@@ -89,10 +89,30 @@ class EditPageState extends State<EditPage> {
   }
 
   List<Widget> _frameBodyList(){
+
+    bool isEnableFrame(FrameImage _frameData){
+      // 下方向に超えていたら、非表示
+      if( canvasToGlobalPos(_frameData.position).y > MediaQuery.of(context).size.height ) return false;
+
+      // 上方向に超えていたら、非表示
+      if( canvasToGlobalPos(_frameData.position).y + _frameData.size.y * _frameData.sizeRate < 0 ) return false;
+
+      return true;
+    }
+
     List<Widget> showWidgetList = [];
+    print(" --- " + MediaQuery.of(context).size.toString() + " : " + (scrollController.hasClients ? scrollController.position.pixels.toString() : "0") );
     for (FrameImage _frameData in frameImageList) {
       if( _frameData.byteData == null ) continue;
       if( _frameData.sizeRate <= 0.0 ) continue;
+
+      print( 
+        _frameData.name + " : " + _frameData.position.toString()
+        + " | " + canvasToGlobalPos(_frameData.position).y.toString() + " : " + (canvasToGlobalPos(_frameData.position).y > MediaQuery.of(context).size.height).toString()
+        + " | " + (canvasToGlobalPos(_frameData.position).y + _frameData.size.y * _frameData.sizeRate).toString() + " : " + (canvasToGlobalPos(_frameData.position).y + _frameData.size.y * _frameData.sizeRate < 0).toString() 
+      );
+
+      if( !isEnableFrame(_frameData) ) continue;
 
       showWidgetList.addAll(_frameWidgetList(_frameData));
     }
@@ -210,7 +230,9 @@ class EditPageState extends State<EditPage> {
           onDragStart : (){ tempSavePos(); },
           onDragEnd   : (){ _frameData.save(); },
           onDrag      : (dragPos) {
+
             Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
+
 
             _frameData.sizeRate = math.max(
               (canvasDragPos.x - dragStartLeftTopPos.x).abs()/_frameData.size.x, 
@@ -248,21 +270,24 @@ class EditPageState extends State<EditPage> {
         isDragging = true;
         setState(() { });
       },
-      onDraggableCanceled: (Velocity velocity, Offset offset){
+      onDragEnd: (DraggableDetails _dragDetail){
         isDragging = false;
-        
+
         _frameData.position = Point<double>(
-          globalToCanvasPos(Point<double>(offset.dx, offset.dy)).x, 
-          globalToCanvasPos(Point<double>(offset.dx, offset.dy)).y - kToolbarHeight
+          globalToCanvasPos(Point<double>(_dragDetail.offset.dx, _dragDetail.offset.dy)).x, 
+          globalToCanvasPos(Point<double>(_dragDetail.offset.dx, _dragDetail.offset.dy)).y - kToolbarHeight
         );
         setState(() { });
-      }
+
+      },
     );
 
     Widget dragging = MouseRegion(
       cursor  : SystemMouseCursors.click,
       child   : draggableWidget
     );
+
+    // print( _frameData.name + " -- " +  canvasToGlobalPos(_frameData.position).toString()) ;
 
     return Positioned(
       left  : canvasToGlobalPos(_frameData.position).x,
