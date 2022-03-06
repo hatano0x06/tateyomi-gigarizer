@@ -16,11 +16,13 @@ class CanvasToImage{
 
   Future<void> download(String fileName) async {
     saveRelationMapUnit().then((_imageBytes){
+      if( _imageBytes == null ) return;
       javascript.context.callMethod('saveCanvas', [_imageBytes, fileName + ".png"]);  
     });
   }
 
   Future<Uint8List?> saveRelationMapUnit() async {
+    // 下準備
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(
       recorder,
@@ -30,6 +32,13 @@ class CanvasToImage{
       )
     );
 
+    // 背景色
+    canvas.drawRect( 
+      Rect.fromPoints(Offset.zero, Offset(canvasSize.width, canvasSize.height)), 
+      Paint()..color = Colors.white..style = PaintingStyle.fill
+    );
+
+    // 画像の描画
     await Future.forEach(frameImageList.toList(), (FrameImage _frameData) async {
       if( _frameData.byteData == null ) return;
       if( _frameData.sizeRate <= 0 ) return;
@@ -46,11 +55,13 @@ class CanvasToImage{
       canvas.drawImageRect(_image, srcRect, dstRect, paint);
     });
 
+    // 保存
     try{
       final picture = recorder.endRecording();
       final ui.Image img = await picture.toImage(canvasSize.width.toInt(), canvasSize.height.toInt());
       final ByteData? pngBytes = await img.toByteData(format: ui.ImageByteFormat.png);
       return Uint8List.view(pngBytes!.buffer);
+    // ignore: empty_catches
     } catch(e){
     }
 
