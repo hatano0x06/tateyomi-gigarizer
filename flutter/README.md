@@ -18,3 +18,5 @@ output : C:\Users\81708\Documents\GitHub\tateyomi-gigarizer\flutter\build\app\ou
 
 $ flutter build ipa --export-options-plist=./ios/ExportOptions.plist;
 
+
+## download

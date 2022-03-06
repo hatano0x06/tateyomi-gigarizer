@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
 import 'package:tateyomi_gigarizer/model/frame_image.dart';
 import 'package:tateyomi_gigarizer/page/corner_ball.dart';
+import 'package:tateyomi_gigarizer/download/canvas_to_image.dart';
 import 'dart:ui' as ui;
 import 'dart:math' as math;
 import 'dart:convert';
@@ -102,8 +103,9 @@ class EditPageState extends State<EditPage> {
           IconButton(
             icon: const Icon(Icons.download),
             onPressed: (){
-              print("asdfasdf");
               if( frameImageList.isEmpty ) return;
+
+              CanvasToImage(frameImageList, canvasSize).download("sample");
             },
           )
         ]
