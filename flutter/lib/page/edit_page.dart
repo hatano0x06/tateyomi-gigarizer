@@ -98,6 +98,15 @@ class EditPageState extends State<EditPage> {
     return Scaffold(
       appBar: AppBar(
         title   : const Text( "編集ページ" ),
+        actions : [
+          IconButton(
+            icon: const Icon(Icons.download),
+            onPressed: (){
+              print("asdfasdf");
+              if( frameImageList.isEmpty ) return;
+            },
+          )
+        ]
       ),
 
       body : Stack(
