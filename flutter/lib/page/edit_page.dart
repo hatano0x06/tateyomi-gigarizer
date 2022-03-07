@@ -45,6 +45,10 @@ class EditPageState extends State<EditPage> {
 
   Size canvasSize = Size.zero;
 
+  // TODO: ダウンロード
+  // TODO: 回転表示
+  // TODO: 回転できるようにする
+
   @override
   void initState(){
     super.initState();
@@ -267,6 +271,16 @@ class EditPageState extends State<EditPage> {
                   return rateStringValidate(value);
                 }
               ),
+              Align(
+                alignment : Alignment.centerLeft,
+                child     : IconButton(
+                  icon: const Icon(Icons.rotate_right_outlined),
+                  onPressed: (){
+                    focusFrame!.angle += 1;
+                    setState(() { });
+                  }, 
+                )
+              )
             ],
           ),
         ),
@@ -365,8 +379,8 @@ class EditPageState extends State<EditPage> {
     void tempSavePos(){
       dragStartLeftTopPos     = _frameData.position;
       dragStartRightBottomPos = Point(
-        _frameData.position.x + _frameData.size.x * _frameData.sizeRate,
-        _frameData.position.y + _frameData.size.y * _frameData.sizeRate,
+        _frameData.position.x + _frameData.rotateSize.x * _frameData.sizeRate,
+        _frameData.position.y + _frameData.rotateSize.y * _frameData.sizeRate,
       );
     }
 
@@ -409,7 +423,7 @@ class EditPageState extends State<EditPage> {
 
       // 右上
       Positioned(
-        left  : canvasToGlobalPos(_frameData.position).x + _frameData.size.x * _frameData.sizeRate - ballDiameter / 2,
+        left  : canvasToGlobalPos(_frameData.position).x + _frameData.rotateSize.x * _frameData.sizeRate - ballDiameter / 2,
         top   : canvasToGlobalPos(_frameData.position).y - ballDiameter / 2,
         child: CornerBallWidget(
           cursor      : SystemMouseCursors.resizeUpRightDownLeft,
@@ -420,12 +434,12 @@ class EditPageState extends State<EditPage> {
             Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
 
             _frameData.sizeRate = math.max(
-              (canvasDragPos.x - dragStartLeftTopPos.x).abs()/_frameData.size.x, 
-              (canvasDragPos.y - dragStartRightBottomPos.y).abs()/_frameData.size.y, 
+              (canvasDragPos.x - dragStartLeftTopPos.x).abs()/_frameData.rotateSize.x, 
+              (canvasDragPos.y - dragStartRightBottomPos.y).abs()/_frameData.rotateSize.y, 
             );
             _frameData.position = Point(
               _frameData.position.x,
-              dragStartRightBottomPos.y - _frameData.size.y * _frameData.sizeRate,
+              dragStartRightBottomPos.y - _frameData.rotateSize.y * _frameData.sizeRate,
             );
 
             if( focusFrame == _frameData){
@@ -442,7 +456,7 @@ class EditPageState extends State<EditPage> {
       // 左下
       Positioned(
         left  : canvasToGlobalPos(_frameData.position).x - ballDiameter / 2,
-        top   : canvasToGlobalPos(_frameData.position).y + _frameData.size.y * _frameData.sizeRate - ballDiameter / 2,
+        top   : canvasToGlobalPos(_frameData.position).y + _frameData.rotateSize.y * _frameData.sizeRate - ballDiameter / 2,
         child: CornerBallWidget(
           cursor      : SystemMouseCursors.resizeUpRightDownLeft,
           ballDiameter: ballDiameter,
@@ -452,11 +466,11 @@ class EditPageState extends State<EditPage> {
             Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
 
             _frameData.sizeRate = math.max(
-              (canvasDragPos.x - dragStartRightBottomPos.x).abs()/_frameData.size.x, 
-              (canvasDragPos.y - dragStartLeftTopPos.y).abs()/_frameData.size.y, 
+              (canvasDragPos.x - dragStartRightBottomPos.x).abs()/_frameData.rotateSize.x, 
+              (canvasDragPos.y - dragStartLeftTopPos.y).abs()/_frameData.rotateSize.y, 
             );
             _frameData.position = Point(
-              dragStartRightBottomPos.x - _frameData.size.x * _frameData.sizeRate,
+              dragStartRightBottomPos.x - _frameData.rotateSize.x * _frameData.sizeRate,
               _frameData.position.y,
             );
 
@@ -473,8 +487,8 @@ class EditPageState extends State<EditPage> {
 
       // 右下
       Positioned(
-        left  : canvasToGlobalPos(_frameData.position).x + _frameData.size.x * _frameData.sizeRate - ballDiameter / 2,
-        top   : canvasToGlobalPos(_frameData.position).y + _frameData.size.y * _frameData.sizeRate - ballDiameter / 2,
+        left  : canvasToGlobalPos(_frameData.position).x + _frameData.rotateSize.x * _frameData.sizeRate - ballDiameter / 2,
+        top   : canvasToGlobalPos(_frameData.position).y + _frameData.rotateSize.y * _frameData.sizeRate - ballDiameter / 2,
         child: CornerBallWidget(
           cursor      : SystemMouseCursors.resizeUpLeftDownRight,
           ballDiameter: ballDiameter,
@@ -483,8 +497,8 @@ class EditPageState extends State<EditPage> {
           onDrag      : (dragPos) {
             Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
             _frameData.sizeRate = math.max(
-              (canvasDragPos.x - dragStartLeftTopPos.x).abs()/_frameData.size.x, 
-              (canvasDragPos.y - dragStartLeftTopPos.y).abs()/_frameData.size.y, 
+              (canvasDragPos.x - dragStartLeftTopPos.x).abs()/_frameData.rotateSize.x, 
+              (canvasDragPos.y - dragStartLeftTopPos.y).abs()/_frameData.rotateSize.y, 
             );
 
             if( focusFrame == _frameData){
@@ -510,8 +524,8 @@ class EditPageState extends State<EditPage> {
             color: Colors.transparent,
             border: Border.all( color: Colors.blue.withAlpha(200), width: 4 )
           ),
-          width: _frameData.size.x * _frameData.sizeRate+2,
-          height: _frameData.size.y * _frameData.sizeRate+4,
+          width: _frameData.rotateSize.x * _frameData.sizeRate+4,
+          height: _frameData.rotateSize.y * _frameData.sizeRate+4,
         )
       )
     );
@@ -524,14 +538,17 @@ class EditPageState extends State<EditPage> {
   FrameImage? focusFrame;
   Widget _frameDraggingWidget(FrameImage _frameData){
     frameWidgetUnit(bool _isDragging){
-      return Opacity(
-        opacity: _isDragging ? 0.5 : 1.0,
-        child: Image.memory(
-          _frameData.byteData!, 
-          width: _frameData.size.x * _frameData.sizeRate, 
-          // height: _frameData.size.y,
-          fit: BoxFit.fitWidth, 
-          filterQuality: FilterQuality.high,
+      return RotatedBox(
+        quarterTurns: _frameData.angle,
+        child : Opacity(
+          opacity: _isDragging ? 0.5 : 1.0,
+          child: Image.memory(
+            _frameData.byteData!, 
+            width: _frameData.size.x * _frameData.sizeRate, 
+            // height: _frameData.size.y,
+            fit: BoxFit.fitWidth, 
+            filterQuality: FilterQuality.high,
+          )
         )
       );
     }
@@ -627,6 +644,7 @@ class EditPageState extends State<EditPage> {
                 dbInstance  : widget.dbInstance,
                 byteData    : _file.bytes, 
                 name        : _file.name,
+                angle       : 0,
                 sizeRate    : -1.0,
                 position    : const Point<double>(0,0),
                 size        : Point(_image.width.toDouble(), _image.height.toDouble())
