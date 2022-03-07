@@ -99,12 +99,22 @@ class EditPageState extends State<EditPage> {
     // TODO: 左右に範囲外描写つけた方がよさそう
     List<Widget> showWidgetList = [_backGroundBody(), ..._frameBodyList()];
 
+    Widget outsideGraySpace(){
+      return Container(
+        width: (MediaQuery.of(context).size.width - canvasSize.width)/2,
+        height: MediaQuery.of(context).size.height,
+        color: Colors.grey.withAlpha(200),
+      );
+    }
+
     Widget _body = Stack(
       children: [
         SingleChildScrollView(
           controller  : scrollController,
           child       : Stack( children: showWidgetList ),
         ),
+        Align( alignment : Alignment.centerLeft, child : outsideGraySpace(),),
+        Align( alignment : Alignment.centerRight, child : outsideGraySpace(),),
         focusDetailSettingBox()
       ],
     );
