@@ -33,7 +33,6 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      scrollBehavior: const MaterialScrollBehavior().copyWith( dragDevices: {PointerDeviceKind.mouse}, ),
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(

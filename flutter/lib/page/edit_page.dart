@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:adaptive_scrollbar/adaptive_scrollbar.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -149,6 +150,7 @@ class EditPageState extends State<EditPage> {
       {LogicalKeyboardKey.keyD}       : TYPE_SHORTCUT_RIGHT,
     };
 
+    // shortCuts
     _body = KeyBoardShortcuts(
       keysToPressList: _shortCutKeyMap.keys.toList(),
       onKeysPressed: (int _shortCutIndex){
@@ -177,6 +179,29 @@ class EditPageState extends State<EditPage> {
       child: _body
     );    
 
+    // scrollbar
+    double scrollbarSize = 15.0;
+    _body = AdaptiveScrollbar(
+      controller: verticalScrollController,
+      width: scrollbarSize,
+      child: AdaptiveScrollbar(
+        controller: horizonScrollController,
+        width: scrollbarSize,
+        position: ScrollbarPosition.bottom,
+        underSpacing: EdgeInsets.only(bottom: scrollbarSize),
+        child: _body
+      )
+    );
+
+    // gfesture focus
+    _body = GestureDetector(
+      child     : _body,
+      onTapUp   : (_){
+        focusFrame = null;
+        setState(() { });
+      },
+    );
+
     return Scaffold(
       appBar: AppBar(
         title   : const Text( "編集ページ" ),
@@ -192,13 +217,7 @@ class EditPageState extends State<EditPage> {
         ]
       ),
 
-      body : GestureDetector(
-        child     : _body,
-        onTapUp   : (_){
-          focusFrame = null;
-          setState(() { });
-        },
-      ),
+      body : _body,
     );
   }
 
@@ -216,7 +235,6 @@ class EditPageState extends State<EditPage> {
         validator    : validatorFunc,
       );
     }
-
 
     return Positioned(
       top   : 20,
@@ -286,7 +304,7 @@ class EditPageState extends State<EditPage> {
       );
     }
 
-    return SingleChildScrollView(
+    Widget horizonScrollWidget = SingleChildScrollView(
       controller      : horizonScrollController,
       scrollDirection : Axis.horizontal,
       child: Row(
@@ -309,6 +327,17 @@ class EditPageState extends State<EditPage> {
         ],
       ),
     );
+
+    // return Listener(
+    //     onPointerSignal: (event) {
+    //       if (event is PointerScrollEvent) {
+    //         final offset = event.scrollDelta.dy;
+    //         innerController.jumpTo(innerController.offset + offset);
+    //         outerController.jumpTo(outerController.offset - offset);
+    //       }
+    //     },
+
+    return horizonScrollWidget;
   }
 
   List<Widget> _frameBodyList(){
