@@ -43,11 +43,10 @@ class EditPageState extends State<EditPage> {
   final FocusNode framePosYFocusNode = FocusNode();
   final FocusNode frameSizeRateFocusNode = FocusNode();
 
-  Size canvasSize = Size.zero;
+  final TextEditingController downloadController = TextEditingController();
+  final FocusNode downloadFocusNode = FocusNode();
 
-  // TODO: ダウンロード
-  // TODO: 回転表示
-  // TODO: 回転できるようにする
+  Size canvasSize = Size.zero;
 
   @override
   void initState(){
@@ -95,6 +94,10 @@ class EditPageState extends State<EditPage> {
       setState(() { });
     });
 
+    downloadController.addListener(() {
+      setState(() { });
+    });
+
   }
 
   @override
@@ -109,6 +112,9 @@ class EditPageState extends State<EditPage> {
     framePosXFocusNode.dispose();
     framePosYFocusNode.dispose();
     frameSizeRateFocusNode.dispose();
+
+    downloadController.dispose();
+    downloadFocusNode.dispose();
 
     super.dispose();
   }
@@ -165,7 +171,7 @@ class EditPageState extends State<EditPage> {
 
         String shortCutType = _shortCutKeyMap.values.toList()[_shortCutIndex];
 
-        if(framePosXFocusNode.hasFocus || framePosYFocusNode.hasFocus || frameSizeRateFocusNode.hasFocus )  return;
+        if(framePosXFocusNode.hasFocus || framePosYFocusNode.hasFocus || frameSizeRateFocusNode.hasFocus || downloadFocusNode.hasFocus )  return;
         if( focusFrame != null ){
 
           double moveSize = 0.1;
@@ -211,14 +217,36 @@ class EditPageState extends State<EditPage> {
       appBar: AppBar(
         title   : const Text( "編集ページ" ),
         actions : [
+          Padding(
+            padding : const EdgeInsets.symmetric(vertical: 5),
+            child   : Container(
+              padding     : const EdgeInsets.symmetric(horizontal: 20),
+              width: 300,
+              height: 30,
+              decoration  : BoxDecoration(
+                borderRadius  : BorderRadius.circular(30.0),
+                border        : Border.all( color: Colors.white.withAlpha(200) ),
+                color         : Colors.white.withAlpha(120),
+              ),
+              child: Padding(
+                padding : const EdgeInsets.only(bottom:8),
+                child   : TextFormField(
+                  controller: downloadController,
+                  focusNode : downloadFocusNode,
+                  decoration      : const InputDecoration( hintText: "ダウンロード名", ),
+                ),
+              ),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.download),
             onPressed: (){
               if( frameImageList.isEmpty ) return;
 
-              CanvasToImage(frameImageList, canvasSize).download("sample");
+              CanvasToImage(frameImageList, canvasSize).download(downloadController.text);
             },
-          )
+          ),
+          const SizedBox(width: 10,),
         ]
       ),
 
@@ -271,6 +299,11 @@ class EditPageState extends State<EditPage> {
                   if( value == null ) return null;
                   return rateStringValidate(value);
                 }
+              ),
+              Container(
+                padding   : const EdgeInsets.symmetric(vertical: 10),
+                alignment : Alignment.centerLeft,
+                child : Text("右端からの距離 : " + (canvasSize.width - (focusFrame!.position.x + focusFrame!.size.x * focusFrame!.sizeRate)).toString() ),
               ),
               Align(
                 alignment : Alignment.centerLeft,
