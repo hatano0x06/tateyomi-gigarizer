@@ -37,7 +37,7 @@
 
       ctx.beginPath();
       ctx.rect(0, 0, canvasWidth, canvasHeight);
-      ctx.fillStyle = "#000000";
+      ctx.fillStyle = "#FFFFFF";
       ctx.fill();
       ctx.closePath();
 
@@ -61,11 +61,31 @@
     function addImage(ctx, frameData){
       var img = new Image();
       img.onload = function() {
+
+        var startPosX = 0
+        var startPosY = 0
+        if(frameData["angle"] == 1){
+          startPosX = frameData["size"]["height"];
+          startPosY = 0;
+        }
+        if(frameData["angle"] == 2){
+          startPosX = frameData["size"]["width"];
+          startPosY = frameData["size"]["height"];
+        }
+        if(frameData["angle"] == 3){
+          startPosX = 0;
+          startPosY = frameData["size"]["width"];
+        }
+
+        ctx.save();
+        ctx.translate( frameData["position"]["x"] + startPosX, frameData["position"]["y"] + startPosY );
+        ctx.rotate(frameData["angle"] * Math.PI/2);
         ctx.drawImage(
           img, 
           0, 0, frameData["imageSize"]["width"], frameData["imageSize"]["height"], 
-          frameData["position"]["x"], frameData["position"]["y"], frameData["size"]["width"], frameData["size"]["height"],
+          0, 0, frameData["size"]["width"], frameData["size"]["height"],
         )
+        ctx.restore();
       }
 
       img.src = frameData.byteData;

@@ -57,7 +57,8 @@ class EditPageState extends State<EditPage> {
     SchedulerBinding.instance?.addPostFrameCallback((_){
       // comico設定　https://tips.clip-studio.com/ja-jp/articles/2781#:~:text=%E8%A7%A3%E5%83%8F%E5%BA%A6%E3%81%AF%E5%8D%B0%E5%88%B7%E3%81%AE%E9%9A%9B,%E3%81%99%E3%82%8B%E3%81%93%E3%81%A8%E3%81%8C%E5%A4%9A%E3%81%84%E3%81%A7%E3%81%99%E3%80%82
       canvasSize = const Size(
-        690, 20000
+        690, 3000
+        // 690, 20000
       );
 
       setState(() { });
@@ -277,6 +278,7 @@ class EditPageState extends State<EditPage> {
                   icon: const Icon(Icons.rotate_right_outlined),
                   onPressed: (){
                     focusFrame!.angle += 1;
+                    focusFrame!.angle = focusFrame!.angle%4;
                     setState(() { });
                   }, 
                 )
