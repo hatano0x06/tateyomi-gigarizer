@@ -1,7 +1,6 @@
 // ignore_for_file: avoid_print, constant_identifier_names
 
 import 'dart:async';
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
@@ -13,6 +12,7 @@ import 'package:tateyomi_gigarizer/model/frame_image.dart';
 import 'package:tateyomi_gigarizer/model/keyboard.dart';
 import 'package:tateyomi_gigarizer/page/corner_ball.dart';
 import 'package:tateyomi_gigarizer/download/canvas_to_image.dart';
+import 'package:universal_html/html.dart';
 import 'dart:ui' as ui;
 import 'dart:math' as math;
 import 'dart:convert';
@@ -48,10 +48,11 @@ class EditPageState extends State<EditPage> {
 
     // TODO: こいつも外部からの読み込みにする
     SchedulerBinding.instance?.addPostFrameCallback((_){
-      canvasSize = Size(
-        MediaQuery.of(context).size.width/2, 
-        MediaQuery.of(context).size.height * 5,
+      // comico設定　https://tips.clip-studio.com/ja-jp/articles/2781#:~:text=%E8%A7%A3%E5%83%8F%E5%BA%A6%E3%81%AF%E5%8D%B0%E5%88%B7%E3%81%AE%E9%9A%9B,%E3%81%99%E3%82%8B%E3%81%93%E3%81%A8%E3%81%8C%E5%A4%9A%E3%81%84%E3%81%A7%E3%81%99%E3%80%82
+      canvasSize = const Size(
+        690, 20000
       );
+
       setState(() { });
     });
 
@@ -98,13 +99,13 @@ class EditPageState extends State<EditPage> {
   Widget build(BuildContext context) {
     List<Widget> showWidgetList = [_backGroundBody(), ..._frameBodyList()];
 
-    Widget outsideGraySpace(){
-      return Container(
-        width: (MediaQuery.of(context).size.width - canvasSize.width)/2,
-        height: MediaQuery.of(context).size.height,
-        color: Colors.grey.withAlpha(200),
-      );
-    }
+    // Widget outsideGraySpace(){
+    //   return Container(
+    //     width: (MediaQuery.of(context).size.width - canvasSize.width)/2,
+    //     height: MediaQuery.of(context).size.height,
+    //     color: Colors.grey.withAlpha(200),
+    //   );
+    // }
 
     Widget _body = Stack(
       children: [
@@ -112,8 +113,8 @@ class EditPageState extends State<EditPage> {
           controller  : scrollController,
           child       : Stack( children: showWidgetList ),
         ),
-        Align( alignment : Alignment.centerLeft, child : outsideGraySpace(),),
-        Align( alignment : Alignment.centerRight, child : outsideGraySpace(),),
+        // Align( alignment : Alignment.centerLeft, child : outsideGraySpace(),),
+        // Align( alignment : Alignment.centerRight, child : outsideGraySpace(),),
         focusDetailSettingBox()
       ],
     );
@@ -173,7 +174,13 @@ class EditPageState extends State<EditPage> {
         ]
       ),
 
-      body : _body,
+      body : GestureDetector(
+        child     : _body,
+        onTapUp   : (_){
+          focusFrame = null;
+          setState(() { });
+        },
+      ),
     );
   }
 
@@ -228,26 +235,61 @@ class EditPageState extends State<EditPage> {
         ),
       ),
     );
+  }
 
+  double windowZoomSize(){
+    return window.devicePixelRatio/1.25;
+  }
+
+  bool isImageLoaded(){
+    return frameImageList.where((_frameImage) => _frameImage.byteData != null).isNotEmpty;
   }
 
   Widget _backGroundBody(){
-    return Center(
-      child: GestureDetector(
-        child : Container(
-          // width : MediaQuery.of(context).size.width/2,
-          // height: MediaQuery.of(context).size.height,
-          width : canvasSize.width,
-          height: canvasSize.height,
-          color: Colors.white,
-        ),
-        onTapUp: (_){
-          focusFrame = null;
-          setState(() { });
-        },
+    if( !isImageLoaded() ) {
+      return Container(
+        width : MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height,
+        color: Colors.white,
+      );
+    }
+
+
+    double sideSpaceWidth(){
+      if( windowZoomSize() >= 1.0 ){
+        Size realWindowSize = Size(
+          MediaQuery.of(context).size.width*windowZoomSize(),
+          MediaQuery.of(context).size.height*windowZoomSize(),
+        );
+
+        return (realWindowSize.width - canvasSize.width)/2;
+      }
+
+      return (MediaQuery.of(context).size.width - canvasSize.width)/2;
+    }
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          Container(
+            color: Colors.red,
+            width : sideSpaceWidth(),
+            height: canvasSize.height,
+          ),
+          Container(
+            width : canvasSize.width,
+            height: canvasSize.height,
+            color: Colors.white,
+          ),
+          Container(
+            color: Colors.red,
+            width : sideSpaceWidth(),
+            height: canvasSize.height,
+          ),
+        ],
       ),
     );
-
   }
 
   List<Widget> _frameBodyList(){

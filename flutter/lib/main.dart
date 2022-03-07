@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
 import 'package:tateyomi_gigarizer/page/edit_page.dart';
@@ -10,17 +12,17 @@ void main() {
 
 // TODO: 
 //  キャンパスの大きさ指定
+//  - 大コマは90度回転（機能としても出しておく
 
 // TODO: 縦読みの機能（２１日まで
-//  - 大コマは90度回転（機能としても出しておく
 //  - 保存機能（ログイン
+//  - スマホ連携
 //  - 特殊な指定（それ以降の奴もコマも一緒に移動
 //  - 配置を良い感じにする
 //  - firebase反映
 
 // TODO: オプション
 //  - 背景レイヤー
-//  - スマホ連携
 //  - 横に全体像が見れるやつ
 //  - クラッシュログ
 
@@ -31,6 +33,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      scrollBehavior: const MaterialScrollBehavior().copyWith( dragDevices: {PointerDeviceKind.mouse}, ),
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(
