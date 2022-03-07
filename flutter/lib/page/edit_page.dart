@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print, constant_identifier_names
 
 import 'dart:async';
 import 'dart:math';
@@ -10,12 +10,12 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
 import 'package:tateyomi_gigarizer/model/frame_image.dart';
+import 'package:tateyomi_gigarizer/model/keyboard.dart';
 import 'package:tateyomi_gigarizer/page/corner_ball.dart';
 import 'package:tateyomi_gigarizer/download/canvas_to_image.dart';
 import 'dart:ui' as ui;
 import 'dart:math' as math;
 import 'dart:convert';
-import 'package:validators/validators.dart' as validator;
 
 class EditPage extends StatefulWidget {
   final DbImpl dbInstance;
@@ -96,6 +96,39 @@ class EditPageState extends State<EditPage> {
     // TODO: 左右に範囲外描写つけた方がよさそう
     List<Widget> showWidgetList = [_backGroundBody(), ..._frameBodyList()];
 
+    Widget _body = Stack(
+      children: [
+        SingleChildScrollView(
+          controller  : scrollController,
+          child       : Stack( children: showWidgetList ),
+        ),
+        focusDetailSettingBox()
+      ],
+    );
+    
+
+    const String TYPE_SHORTCUT_PLUS = "plus";
+    const String TYPE_SHORTCUT_MINUS = "minus";
+    Map<Set<LogicalKeyboardKey>, String> _shortCutKeyMap = {
+      {LogicalKeyboardKey.controlLeft , LogicalKeyboardKey.semicolon}   : TYPE_SHORTCUT_PLUS,
+      {LogicalKeyboardKey.controlLeft , LogicalKeyboardKey.equal}       : TYPE_SHORTCUT_MINUS,
+      {LogicalKeyboardKey.controlLeft , LogicalKeyboardKey.minus}       : TYPE_SHORTCUT_MINUS,
+    };
+
+    _body = KeyBoardShortcuts(
+      keysToPressList: _shortCutKeyMap.keys.toList(),
+      onKeysPressed: (int _shortCutIndex){
+        if (!mounted)       return;
+        if( ModalRoute.of(context) == null ) return;
+        if( !ModalRoute.of(context)!.isCurrent ) return;
+
+        String shortCutType = _shortCutKeyMap.values.toList()[_shortCutIndex];
+        if( shortCutType == TYPE_SHORTCUT_PLUS ) print("plus");
+        if( shortCutType == TYPE_SHORTCUT_MINUS ) print("minus");
+      },
+      child: _body
+    );    
+
     return Scaffold(
       appBar: AppBar(
         title   : const Text( "編集ページ" ),
@@ -111,35 +144,8 @@ class EditPageState extends State<EditPage> {
         ]
       ),
 
-      body : Stack(
-        children: [
-          SingleChildScrollView(
-            controller  : scrollController,
-            child       : Stack( children: showWidgetList ),
-          ),
-          focusDetailSettingBox()
-        ],
-      ),
+      body : _body,
     );
-  }
-
-  String? posStringValidate(String posString){
-    if(posString.isEmpty) return "数字を入力してください";
-    if(posString == "-") return "数字を入力してください";
-
-    if( !validator.isFloat(posString) ) return "有効な形になっていません";
-    if( !validator.isFloat(posString) ) return "有効な形になっていません";
-
-    return null;
-  }
-
-  String? rateStringValidate(String posString){
-    if(posString.isEmpty) return "数字を入力してください";
-
-    if( !validator.isFloat(posString) ) return "有効な形になっていません";
-    if( !validator.isFloat(posString) ) return "有効な形になっていません";
-
-    return null;
   }
 
 

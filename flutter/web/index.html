@@ -25,30 +25,55 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js"></script>
 
   <script>
-    function saveCanvas(bufferData, fileName) {
-      var blob = new Blob([bufferData.buffer], { type: 'image/png' });
-      saveAs(blob, fileName);
+    function saveCanvas(frameDatalistJson, canvasWidth, canvasHeight, fileName) {
+
+      var frameDatalist = JSON.parse(frameDatalistJson);
+
+      // var canvas = document.createElement('canvas');
+      var canvas = document.getElementById("myCanvas");
+      var ctx = canvas.getContext('2d');      
+      canvas.width    = canvasWidth
+		  canvas.height   = canvasHeight
+
+      ctx.beginPath();
+      ctx.rect(0, 0, canvasWidth, canvasHeight);
+      ctx.fillStyle = "#000000";
+      ctx.fill();
+      ctx.closePath();
+
+      for (frameDataIndex in frameDatalist){
+        // 'position'    : { "x" : position.x, "y" : position.y },
+        // 'size'        : { "width" : size.x * sizeRate, "height" : size.y * sizeRate },
+        // 'imageSize'   : { "width" : size.x, "height" : size.y },
+        // 'byteData'    : byteData,
+        var frameData = frameDatalist[frameDataIndex];
+
+        addImage(ctx, frameData)
+      }
+
+      window.setTimeout( function() {
+        canvas.toBlob(function(blob) {
+          saveAs(blob, fileName);
+        });
+      }, 500 );      
     }
+
+    function addImage(ctx, frameData){
+      var img = new Image();
+      img.onload = function() {
+        ctx.drawImage(
+          img, 
+          0, 0, frameData["imageSize"]["width"], frameData["imageSize"]["height"], 
+          frameData["position"]["x"], frameData["position"]["y"], frameData["size"]["width"], frameData["size"]["height"],
+        )
+      }
+
+      img.src = frameData.byteData;
+    }
+
   </script>
 
-  <!-- 拡大縮小の禁止 -->
-  <script>
-    document.addEventListener('wheel', function(e) {
-      e.ctrlKey && e.preventDefault();
-    }, {
-      passive: false,
-    });
-    window.addEventListener('keydown', function(e) {
-      if (event.metaKey || event.ctrlKey) {
-        switch (event.key) {
-          case '+':
-          case '-':
-            event.preventDefault();
-            break;
-        }
-      }
-    });
-  </script>
+  <canvas id="myCanvas" style="display:none"></canvas>
 
   <script src="main.dart.js?version=6.13.18" type="application/javascript"></script>
 </body>

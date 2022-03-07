@@ -1,9 +1,10 @@
+// ignore_for_file: avoid_print
+
 import 'dart:async';
-import 'dart:typed_data';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:tateyomi_gigarizer/model/frame_image.dart';
-import 'dart:ui' as ui;
 
 import 'package:universal_html/js.dart' as javascript;
 
@@ -15,69 +16,13 @@ class CanvasToImage{
   CanvasToImage(this.frameImageList, this.canvasSize);
 
   Future<void> download(String fileName) async {
-    saveRelationMapUnit().then((_imageBytes){
-      if( _imageBytes == null ) return;
-      javascript.context.callMethod('saveCanvas', [_imageBytes, fileName + ".png"]);  
-    });
-  }
-
-  Future<Uint8List?> saveRelationMapUnit() async {
-    // 下準備
-    final recorder = ui.PictureRecorder();
-    final canvas = Canvas(
-      recorder,
-      Rect.fromPoints( 
-        Offset.zero, 
-        Offset(canvasSize.width, canvasSize.height)
-      )
-    );
-
-    // 背景色
-    canvas.drawRect( 
-      Rect.fromPoints(Offset.zero, Offset(canvasSize.width, canvasSize.height)), 
-      Paint()..color = Colors.white..style = PaintingStyle.fill
-    );
-
-    // 画像の描画
-    await Future.forEach(frameImageList.toList(), (FrameImage _frameData) async {
-      if( _frameData.byteData == null ) return;
-      if( _frameData.sizeRate <= 0 ) return;
-
-      ui.Image _image = await _loadImage(_frameData.byteData!);
-      Rect srcRect = Rect.fromLTWH( 0, 0, _image.width.toDouble(), _image.height.toDouble() );
-      Rect dstRect = Rect.fromLTWH(
-        _frameData.position.x, _frameData.position.y, 
-        _frameData.size.x * _frameData.sizeRate, 
-        _frameData.size.y * _frameData.sizeRate
-      );
-
-      final paint = Paint()..style = PaintingStyle.fill..filterQuality = FilterQuality.high;
-      canvas.drawImageRect(_image, srcRect, dstRect, paint);
-    });
-
-    // 保存
-    try{
-      final picture = recorder.endRecording();
-      final ui.Image img = await picture.toImage(canvasSize.width.toInt(), canvasSize.height.toInt());
-      final ByteData? pngBytes = await img.toByteData(format: ui.ImageByteFormat.png);
-      return Uint8List.view(pngBytes!.buffer);
-    // ignore: empty_catches
-    } catch(e){
+    List<Map<String, dynamic>> frameImageJsonList = [];
+    for (FrameImage _frameImage in frameImageList) {
+      if( _frameImage.byteData == null )  continue;
+      if(_frameImage.sizeRate <= 0.0)     continue;
+      frameImageJsonList.add(_frameImage.toJson());
     }
 
-    return null;
-
-
+    javascript.context.callMethod('saveCanvas', [jsonEncode(frameImageJsonList), canvasSize.width, canvasSize.height,  fileName + ".png"]);  
   }
-
-  Future<ui.Image> _loadImage(Uint8List _imageBytes) async {
-    final Completer<ui.Image> completer = Completer();
-
-    ui.decodeImageFromList(_imageBytes, (ui.Image convertedImg) {
-      return completer.complete(convertedImg);
-    });
-    return completer.future;
-  }
-
-
 }

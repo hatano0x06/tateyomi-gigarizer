@@ -2,6 +2,7 @@
 
 import 'dart:math';
 import 'dart:typed_data';
+import 'dart:convert';
 
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
 
@@ -27,6 +28,15 @@ class FrameImage{
     }
   );
 
+   Map<String, dynamic> toJson(){
+     return {
+      'position'    : { "x" : position.x, "y" : position.y },
+      'size'        : { "width" : size.x * sizeRate, "height" : size.y * sizeRate },
+      'imageSize'   : { "width" : size.x, "height" : size.y },
+      'byteData'    : byteData != null ? ("data:image/png;base64," + base64.encode(byteData!)) : "",
+    };
+   }
+
   void save(){
     _insertSave();
     _updateSave();
@@ -39,3 +49,4 @@ class FrameImage{
   }
 
 }
+
