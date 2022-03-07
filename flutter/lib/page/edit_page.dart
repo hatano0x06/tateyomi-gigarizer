@@ -96,7 +96,6 @@ class EditPageState extends State<EditPage> {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: 左右に範囲外描写つけた方がよさそう
     List<Widget> showWidgetList = [_backGroundBody(), ..._frameBodyList()];
 
     Widget outsideGraySpace(){
