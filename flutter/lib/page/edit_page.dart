@@ -36,6 +36,9 @@ class EditPageState extends State<EditPage> {
   final TextEditingController framePosXController = TextEditingController();
   final TextEditingController framePosYController = TextEditingController();
   final TextEditingController frameSizeRateController = TextEditingController();
+  final FocusNode framePosXFocusNode = FocusNode();
+  final FocusNode framePosYFocusNode = FocusNode();
+  final FocusNode frameSizeRateFocusNode = FocusNode();
 
   Size canvasSize = Size.zero;
 
@@ -107,12 +110,15 @@ class EditPageState extends State<EditPage> {
     );
     
 
-    const String TYPE_SHORTCUT_PLUS = "plus";
-    const String TYPE_SHORTCUT_MINUS = "minus";
+    const String TYPE_SHORTCUT_UP     = "up";
+    const String TYPE_SHORTCUT_LEFT   = "left";
+    const String TYPE_SHORTCUT_DOWN   = "down";
+    const String TYPE_SHORTCUT_RIGHT  = "right";
     Map<Set<LogicalKeyboardKey>, String> _shortCutKeyMap = {
-      {LogicalKeyboardKey.controlLeft , LogicalKeyboardKey.semicolon}   : TYPE_SHORTCUT_PLUS,
-      {LogicalKeyboardKey.controlLeft , LogicalKeyboardKey.equal}       : TYPE_SHORTCUT_MINUS,
-      {LogicalKeyboardKey.controlLeft , LogicalKeyboardKey.minus}       : TYPE_SHORTCUT_MINUS,
+      {LogicalKeyboardKey.keyW}       : TYPE_SHORTCUT_UP,
+      {LogicalKeyboardKey.keyA}       : TYPE_SHORTCUT_LEFT,
+      {LogicalKeyboardKey.keyS}       : TYPE_SHORTCUT_DOWN,
+      {LogicalKeyboardKey.keyD}       : TYPE_SHORTCUT_RIGHT,
     };
 
     _body = KeyBoardShortcuts(
@@ -123,8 +129,22 @@ class EditPageState extends State<EditPage> {
         if( !ModalRoute.of(context)!.isCurrent ) return;
 
         String shortCutType = _shortCutKeyMap.values.toList()[_shortCutIndex];
-        if( shortCutType == TYPE_SHORTCUT_PLUS ) print("plus");
-        if( shortCutType == TYPE_SHORTCUT_MINUS ) print("minus");
+
+        if(framePosXFocusNode.hasFocus || framePosYFocusNode.hasFocus || frameSizeRateFocusNode.hasFocus )  return;
+        if( focusFrame != null ){
+
+          double moveSize = 0.1;
+          if( shortCutType == TYPE_SHORTCUT_UP    ) focusFrame!.position = Point(focusFrame!.position.x           , focusFrame!.position.y-moveSize);
+          if( shortCutType == TYPE_SHORTCUT_LEFT  ) focusFrame!.position = Point(focusFrame!.position.x-moveSize  , focusFrame!.position.y);
+          if( shortCutType == TYPE_SHORTCUT_DOWN  ) focusFrame!.position = Point(focusFrame!.position.x           , focusFrame!.position.y+moveSize);
+          if( shortCutType == TYPE_SHORTCUT_RIGHT ) focusFrame!.position = Point(focusFrame!.position.x+moveSize  , focusFrame!.position.y);
+
+          framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
+          framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
+          frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
+          setState(() { });
+        }
+
       },
       child: _body
     );    
@@ -167,7 +187,8 @@ class EditPageState extends State<EditPage> {
               padding : const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
               child   : TextFormField(
                 autovalidateMode: AutovalidateMode.always,
-                controller: framePosXController,
+                controller  : framePosXController,
+                focusNode   : framePosXFocusNode,
                 decoration      : const InputDecoration( labelText: 'X位置', ),
                 inputFormatters : [FilteringTextInputFormatter.allow(RegExp('[0123456789.-]'))],
                 validator    : (String? value){
@@ -180,7 +201,8 @@ class EditPageState extends State<EditPage> {
               padding : const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
               child   : TextFormField(
                 autovalidateMode: AutovalidateMode.always,
-                controller: framePosYController,
+                controller  : framePosYController,
+                focusNode   : framePosYFocusNode,
                 decoration: const InputDecoration( labelText: 'Y位置', ),
                 keyboardType: TextInputType.number,
                 inputFormatters : [FilteringTextInputFormatter.allow(RegExp('[0123456789.-]'))],
@@ -194,8 +216,9 @@ class EditPageState extends State<EditPage> {
               padding : const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
               child   : TextFormField(
                 autovalidateMode: AutovalidateMode.always,
-                controller: frameSizeRateController,
-                decoration: const InputDecoration( labelText: '大きさ倍率', ),
+                controller  : frameSizeRateController,
+                focusNode   : frameSizeRateFocusNode,
+                decoration  : const InputDecoration( labelText: '大きさ倍率', ),
                 keyboardType: TextInputType.number,
                 inputFormatters : [FilteringTextInputFormatter.allow(RegExp('[0123456789.]'))],
                 validator    : (String? value){
@@ -252,8 +275,6 @@ class EditPageState extends State<EditPage> {
   Point<double> dragStartLeftTopPos = const Point(0,0);
   Point<double> dragStartRightBottomPos = const Point(0,0);
   List<Widget> _frameWidgetList(FrameImage _frameData){
-
-
     if( draggingFrame != null ) return [ _frameDraggingWidget(_frameData) ];
 
     void tempSavePos(){
