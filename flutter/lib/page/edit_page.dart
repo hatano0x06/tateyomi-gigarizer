@@ -47,7 +47,7 @@ class EditPageState extends State<EditPage> {
     SchedulerBinding.instance?.addPostFrameCallback((_){
       canvasSize = Size(
         MediaQuery.of(context).size.width/2, 
-        MediaQuery.of(context).size.height * 10,
+        MediaQuery.of(context).size.height * 5,
       );
       setState(() { });
     });
