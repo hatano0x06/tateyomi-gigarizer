@@ -181,6 +181,17 @@ class EditPageState extends State<EditPage> {
   Widget focusDetailSettingBox(){
     if(focusFrame == null ) return Container();
 
+    Widget textFormWidget(TextEditingController editController, FocusNode focusNode, String labeltext, List<TextInputFormatter> formatList, String? Function(String?)? validatorFunc){
+      return TextFormField(
+        autovalidateMode: AutovalidateMode.always,
+        controller  : editController,
+        focusNode   : focusNode,
+        decoration      : InputDecoration( labelText: labeltext, ),
+        inputFormatters : formatList,
+        validator    : validatorFunc,
+      );
+    }
+
     return Positioned(
       top   : 20,
       left  : MediaQuery.of(context).size.width/2 + canvasSize.width/2 + 20,
@@ -190,56 +201,31 @@ class EditPageState extends State<EditPage> {
           color: Colors.grey[100],
           border: Border.all( color: Colors.black, )
         ),
-        child: Column(
-          children: [
-            Padding(
-              padding : const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-              child   : TextFormField(
-                autovalidateMode: AutovalidateMode.always,
-                controller  : framePosXController,
-                focusNode   : framePosXFocusNode,
-                decoration      : const InputDecoration( labelText: 'X位置', ),
-                inputFormatters : [FilteringTextInputFormatter.allow(RegExp('[0123456789.-]'))],
-                validator    : (String? value){
+        child: Padding(
+          padding : const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+          child   : Column(
+            children: [
+              textFormWidget(framePosXController, framePosXFocusNode, "X位置", [FilteringTextInputFormatter.allow(RegExp('[0123456789.-]'))], 
+                (String? value){
                   if( value == null ) return null;
                   return posStringValidate(value);
-                },
-              )
-            ),
-            Padding(
-              padding : const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-              child   : TextFormField(
-                autovalidateMode: AutovalidateMode.always,
-                controller  : framePosYController,
-                focusNode   : framePosYFocusNode,
-                decoration: const InputDecoration( labelText: 'Y位置', ),
-                keyboardType: TextInputType.number,
-                inputFormatters : [FilteringTextInputFormatter.allow(RegExp('[0123456789.-]'))],
-                validator    : (String? value){
-                  if( value == null ) return null;
-                  return posStringValidate(value);
-                },
+                }
               ),
-            ),
-            Padding(
-              padding : const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-              child   : TextFormField(
-                autovalidateMode: AutovalidateMode.always,
-                controller  : frameSizeRateController,
-                focusNode   : frameSizeRateFocusNode,
-                decoration  : const InputDecoration( labelText: '大きさ倍率', ),
-                keyboardType: TextInputType.number,
-                inputFormatters : [FilteringTextInputFormatter.allow(RegExp('[0123456789.]'))],
-                validator    : (String? value){
+              textFormWidget(framePosYController, framePosYFocusNode, "Y位置", [FilteringTextInputFormatter.allow(RegExp('[0123456789.-]'))], 
+                (String? value){
+                  if( value == null ) return null;
+                  return posStringValidate(value);
+                }
+              ),
+              textFormWidget(frameSizeRateController, frameSizeRateFocusNode, "大きさ倍率", [FilteringTextInputFormatter.allow(RegExp('[0123456789.]'))], 
+                (String? value){
                   if( value == null ) return null;
                   return rateStringValidate(value);
-                },
+                }
               ),
-            )
-          ],
-
-          // 
-        )
+            ],
+          ),
+        ),
       ),
     );
 
