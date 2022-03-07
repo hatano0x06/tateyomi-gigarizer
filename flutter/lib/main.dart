@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
 import 'package:tateyomi_gigarizer/page/edit_page.dart';
@@ -11,7 +9,6 @@ void main() {
 }
 
 // TODO: 
-//  キャンパスの大きさ指定
 //  - 大コマは90度回転（機能としても出しておく
 
 // TODO: 縦読みの機能（２１日まで
