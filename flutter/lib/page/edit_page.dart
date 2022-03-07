@@ -32,7 +32,9 @@ class EditPage extends StatefulWidget {
 class EditPageState extends State<EditPage> {
   List<FrameImage> frameImageList = [];
 
-  final ScrollController scrollController = ScrollController();
+  final ScrollController verticalScrollController = ScrollController();
+  final ScrollController horizonScrollController  = ScrollController();
+
   final TextEditingController framePosXController = TextEditingController();
   final TextEditingController framePosYController = TextEditingController();
   final TextEditingController frameSizeRateController = TextEditingController();
@@ -56,7 +58,10 @@ class EditPageState extends State<EditPage> {
       setState(() { });
     });
 
-    scrollController.addListener(() {
+    verticalScrollController.addListener(() {
+      setState(() { });
+    });
+    horizonScrollController.addListener(() {
       setState(() { });
     });
 
@@ -88,10 +93,17 @@ class EditPageState extends State<EditPage> {
 
   @override
   void dispose(){
-    scrollController.dispose();
+    verticalScrollController.dispose();
+    horizonScrollController.dispose();
+    
     framePosXController.dispose();
     framePosYController.dispose();
     frameSizeRateController.dispose();
+
+    framePosXFocusNode.dispose();
+    framePosYFocusNode.dispose();
+    frameSizeRateFocusNode.dispose();
+
     super.dispose();
   }
 
@@ -99,22 +111,28 @@ class EditPageState extends State<EditPage> {
   Widget build(BuildContext context) {
     List<Widget> showWidgetList = [_backGroundBody(), ..._frameBodyList()];
 
-    // Widget outsideGraySpace(){
-    //   return Container(
-    //     width: (MediaQuery.of(context).size.width - canvasSize.width)/2,
-    //     height: MediaQuery.of(context).size.height,
-    //     color: Colors.grey.withAlpha(200),
-    //   );
-    // }
+    Widget outsideGraySpace(){
+      return Container(
+        width: sideSpaceWidth(),
+        height: MediaQuery.of(context).size.height,
+        color: Colors.grey.withAlpha(200),
+      );
+    }
 
     Widget _body = Stack(
       children: [
         SingleChildScrollView(
-          controller  : scrollController,
+          controller  : verticalScrollController,
           child       : Stack( children: showWidgetList ),
         ),
-        // Align( alignment : Alignment.centerLeft, child : outsideGraySpace(),),
-        // Align( alignment : Alignment.centerRight, child : outsideGraySpace(),),
+        horizonScrollController.hasClients ? Positioned(
+          left  : -horizonScrollController.position.pixels,
+          child : outsideGraySpace(),
+        ) : Container(),
+        horizonScrollController.hasClients ? Positioned(
+          left  : -horizonScrollController.position.pixels + canvasSize.width + sideSpaceWidth(),
+          child : outsideGraySpace(),
+        ) : Container(),
         focusDetailSettingBox()
       ],
     );
@@ -199,9 +217,10 @@ class EditPageState extends State<EditPage> {
       );
     }
 
+
     return Positioned(
       top   : 20,
-      left  : MediaQuery.of(context).size.width/2 + canvasSize.width/2 + 20,
+      left  : sideSpaceWidth() + canvasSize.width - horizonScrollController.position.pixels + 20,
       child: Container(
         width: 300,
         decoration: BoxDecoration(
@@ -245,35 +264,35 @@ class EditPageState extends State<EditPage> {
     return frameImageList.where((_frameImage) => _frameImage.byteData != null).isNotEmpty;
   }
 
+  double sideSpaceWidth(){
+    if( windowZoomSize() >= 1.0 ){
+      Size realWindowSize = Size(
+        MediaQuery.of(context).size.width*windowZoomSize(),
+        MediaQuery.of(context).size.height*windowZoomSize(),
+      );
+
+      return (realWindowSize.width - canvasSize.width)/2;
+    }
+
+    return (MediaQuery.of(context).size.width - canvasSize.width)/2;
+  }  
+
   Widget _backGroundBody(){
     if( !isImageLoaded() ) {
       return Container(
         width : MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
+        height: MediaQuery.of(context).size.height - kToolbarHeight,
         color: Colors.white,
       );
     }
 
-
-    double sideSpaceWidth(){
-      if( windowZoomSize() >= 1.0 ){
-        Size realWindowSize = Size(
-          MediaQuery.of(context).size.width*windowZoomSize(),
-          MediaQuery.of(context).size.height*windowZoomSize(),
-        );
-
-        return (realWindowSize.width - canvasSize.width)/2;
-      }
-
-      return (MediaQuery.of(context).size.width - canvasSize.width)/2;
-    }
-
     return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
+      controller      : horizonScrollController,
+      scrollDirection : Axis.horizontal,
       child: Row(
         children: [
           Container(
-            color: Colors.red,
+            color: Colors.grey,
             width : sideSpaceWidth(),
             height: canvasSize.height,
           ),
@@ -283,7 +302,7 @@ class EditPageState extends State<EditPage> {
             color: Colors.white,
           ),
           Container(
-            color: Colors.red,
+            color: Colors.grey,
             width : sideSpaceWidth(),
             height: canvasSize.height,
           ),
@@ -652,8 +671,8 @@ class EditPageState extends State<EditPage> {
 
   Point<double> canvasToGlobalPos(Point<double> _pos){
     Offset _offsetSize = Offset(
-      (MediaQuery.of(context).size.width - canvasSize.width)/2,
-      scrollController.position.pixels
+      sideSpaceWidth() - horizonScrollController.position.pixels,
+      verticalScrollController.position.pixels
     );
 
     return Point(
@@ -665,8 +684,8 @@ class EditPageState extends State<EditPage> {
 
   Point<double> globalToCanvasPos(Point<double> _pos){
     Offset _offsetSize = Offset(
-      (MediaQuery.of(context).size.width - canvasSize.width)/2,
-      scrollController.position.pixels
+      sideSpaceWidth() - horizonScrollController.position.pixels,
+      verticalScrollController.position.pixels
     );
 
     return Point(
