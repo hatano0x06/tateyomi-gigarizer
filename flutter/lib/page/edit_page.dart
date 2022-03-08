@@ -69,7 +69,7 @@ class EditPageState extends State<EditPage> {
     // TODO: こいつも外部からの読み込みにする
       // comico設定　https://tips.clip-studio.com/ja-jp/articles/2781#:~:text=%E8%A7%A3%E5%83%8F%E5%BA%A6%E3%81%AF%E5%8D%B0%E5%88%B7%E3%81%AE%E9%9A%9B,%E3%81%99%E3%82%8B%E3%81%93%E3%81%A8%E3%81%8C%E5%A4%9A%E3%81%84%E3%81%A7%E3%81%99%E3%80%82
       canvasSize = const Size(
-        690, 3000
+        690, 2000
         // 690, 20000
       );
       canvasSizeXController.value = canvasSizeXController.value.copyWith( text: canvasSize.width.toString() );
@@ -176,7 +176,7 @@ class EditPageState extends State<EditPage> {
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> showWidgetList = [_backGroundBody(), ..._frameBodyList()];
+    List<Widget> showWidgetList = [_backGroundBody(), _canvasBody(), ..._frameBodyList()];
 
     Widget outsideGraySpace(){
       return Container(
@@ -487,7 +487,7 @@ class EditPageState extends State<EditPage> {
     return (MediaQuery.of(context).size.width - canvasSize.width)/2;
   }  
 
-  Widget _backGroundBody(){
+  Widget _canvasBody(){
     if( !isImageLoaded() ) {
       return Container(
         width : MediaQuery.of(context).size.width,
@@ -520,17 +520,23 @@ class EditPageState extends State<EditPage> {
       ),
     );
 
-    // return Listener(
-    //     onPointerSignal: (event) {
-    //       if (event is PointerScrollEvent) {
-    //         final offset = event.scrollDelta.dy;
-    //         innerController.jumpTo(innerController.offset + offset);
-    //         outerController.jumpTo(outerController.offset - offset);
-    //       }
-    //     },
-
     return horizonScrollWidget;
   }
+
+  Widget _backGroundBody(){
+    if( !isImageLoaded() ) return Container();
+
+    List<double> bottomList = [canvasSize.height];
+    for (FrameImage _frameImage in frameImageList) {
+      bottomList.add( _frameImage.position.y + _frameImage.rotateSize.y * _frameImage.sizeRate );
+    }
+
+    return Container(
+      width : MediaQuery.of(context).size.width,
+      height: bottomList.reduce(math.max) + MediaQuery.of(context).size.height*3/4,
+      color: Colors.transparent,
+    );
+  }  
 
   List<Widget> _frameBodyList(){
     List<Widget> showWidgetList = [];
