@@ -297,15 +297,31 @@ class EditPageState extends State<EditPage> {
       appBar: AppBar(
         title   : const Text( "編集ページ" ),
         actions : !isImageLoaded() ? [] : [
+            IconButton(
+            icon    : const Icon(Icons.swap_horiz_outlined),
+            tooltip : "左右反転",
+            onPressed: (){
+
+              for (FrameImage _frameImage in frameImageList) {
+                _frameImage.position = Point(
+                  (canvasSize.width - (_frameImage.position.x + _frameImage.rotateSize.x * _frameImage.sizeRate)), 
+                  _frameImage.position.y
+                );
+              }
+              
+              setState(() { });
+            },
+          ),
           IconButton(
             icon    : const Icon(Icons.photo_size_select_large),
+            tooltip : "キャンパスのサイズ変更",
             onPressed: (){
               FocusScope.of(context).unfocus();
               focusFrame = null;
               showCanvasEdit = true;
               setState(() { });
             },
-          ),          
+          ),
           Padding(
             padding : const EdgeInsets.symmetric(vertical: 5),
             child   : Container(
@@ -329,6 +345,7 @@ class EditPageState extends State<EditPage> {
           ),
           IconButton(
             icon: const Icon(Icons.download),
+            tooltip : "ダウンロード",
             onPressed: (){
               if( frameImageList.isEmpty ) return;
 
