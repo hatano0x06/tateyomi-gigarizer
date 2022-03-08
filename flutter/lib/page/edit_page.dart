@@ -286,7 +286,7 @@ class EditPageState extends State<EditPage> {
     return Scaffold(
       appBar: AppBar(
         title   : const Text( "編集ページ" ),
-        actions : [
+        actions : !isImageLoaded() ? [] : [
           IconButton(
             icon    : const Icon(Icons.photo_size_select_large),
             onPressed: (){
@@ -370,6 +370,10 @@ class EditPageState extends State<EditPage> {
           padding : const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
           child   : Column(
             children: [
+              const Align(
+                alignment: Alignment.centerLeft,
+                child :  Text("キャンパスサイズの編集", style: TextStyle( fontWeight: FontWeight.bold), ),
+              ),
               textFormWidget(canvasSizeXController, canvasSizeXFocusNode, "幅", [FilteringTextInputFormatter.allow(RegExp('[0123456789.]'))], 
                 (String? value){
                   if( value == null ) return null;
@@ -417,6 +421,10 @@ class EditPageState extends State<EditPage> {
           padding : const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
           child   : Column(
             children: [
+              const Align(
+                alignment: Alignment.centerLeft,
+                child :  Text("コマの編集", style: TextStyle( fontWeight: FontWeight.bold), ),
+              ),
               textFormWidget(framePosXController, framePosXFocusNode, "X位置", [FilteringTextInputFormatter.allow(RegExp('[0123456789.-]'))], 
                 (String? value){
                   if( value == null ) return null;
