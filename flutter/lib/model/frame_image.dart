@@ -44,7 +44,7 @@ class FrameImage{
     return angle.isOdd;
   }
 
-  get rotateSize{
+  Point<double> get rotateSize{
     if(isRotateVertical()) return Point<double>(size.y, size.x);
 
     return size;

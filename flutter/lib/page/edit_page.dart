@@ -84,8 +84,16 @@ class EditPageState extends State<EditPage> {
     framePosYController.addListener((){
       if(posStringValidate(framePosYController.text) != null ) return;
 
-      // TODO: asdfasdf
-      focusFrame!.position = Point<double>(focusFrame!.position.x, double.parse(framePosYController.text));
+      double prePosY = focusFrame!.position.y;
+      double newPosY = double.parse(framePosYController.text);
+
+      focusFrame!.position = Point<double>(focusFrame!.position.x, newPosY);
+
+      double diffY = prePosY - newPosY;
+      for (FrameImage _depandFrame in focusFrameDependList) {
+        _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y-diffY);
+      }
+
       setState(() { });
     });    
 
@@ -95,8 +103,16 @@ class EditPageState extends State<EditPage> {
       double _rate = double.parse(frameSizeRateController.text);
       _rate = math.max(_rate, 0.01);
 
-      // TODO: asdfasdf
+      double preBottom = focusFrame!.rotateSize.y * focusFrame!.sizeRate;
+      double newBottom = focusFrame!.rotateSize.y * _rate;
+
       focusFrame!.sizeRate = _rate;
+
+      double diffY = preBottom - newBottom;
+      for (FrameImage _depandFrame in focusFrameDependList) {
+        _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y-diffY);
+      }
+
       setState(() { });
     });
 
@@ -454,7 +470,6 @@ class EditPageState extends State<EditPage> {
           onDragStart : (){ tempSavePos(); },
           onDragEnd   : (){ _frameData.save(); },
           onDrag      : (dragPos) {
-            // TODO: asdfasdf
 
             Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
 
@@ -520,9 +535,10 @@ class EditPageState extends State<EditPage> {
           onDragStart : (){ tempSavePos(); },
           onDragEnd   : (){ _frameData.save(); },
           onDrag      : (dragPos) {
-            // TODO: asdfasdf
-
             Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
+
+            Point<double> prePos = _frameData.position;
+            double preSizeRate = _frameData.sizeRate;
 
             _frameData.sizeRate = math.max(
               (canvasDragPos.x - dragStartRightBottomPos.x).abs()/_frameData.rotateSize.x, 
@@ -537,6 +553,18 @@ class EditPageState extends State<EditPage> {
               framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
               framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
               frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
+            }
+
+            double prePosY = prePos.y + _frameData.rotateSize.y * preSizeRate;
+            double newPosY = _frameData.position.y + _frameData.rotateSize.y * _frameData.sizeRate;
+
+            double diffY = prePosY - newPosY;
+
+            if(RawKeyboard.instance.keysPressed.where((_pressd) => _pressd.keyLabel == LogicalKeyboardKey.controlLeft.keyLabel).isNotEmpty){
+              focusFrameDependList = frameImageList.where((_frame) => _frame.position.y > _frameData.position.y ).toList();
+            }
+            for (FrameImage _depandFrame in focusFrameDependList) {
+              _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y-diffY);
             }
 
             setState(() { });
@@ -554,8 +582,11 @@ class EditPageState extends State<EditPage> {
           onDragStart : (){ tempSavePos(); },
           onDragEnd   : (){ _frameData.save(); },
           onDrag      : (dragPos) {
-            // TODO: asdfasdf
             Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
+
+            Point<double> prePos = _frameData.position;
+            double preSizeRate = _frameData.sizeRate;
+
             _frameData.sizeRate = math.max(
               (canvasDragPos.x - dragStartLeftTopPos.x).abs()/_frameData.rotateSize.x, 
               (canvasDragPos.y - dragStartLeftTopPos.y).abs()/_frameData.rotateSize.y, 
@@ -565,6 +596,17 @@ class EditPageState extends State<EditPage> {
               framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
               framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
               frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
+            }
+
+            double prePosY = prePos.y + _frameData.rotateSize.y * preSizeRate;
+            double newPosY = _frameData.position.y + _frameData.rotateSize.y * _frameData.sizeRate;
+
+            double diffY = prePosY - newPosY;
+            if(RawKeyboard.instance.keysPressed.where((_pressd) => _pressd.keyLabel == LogicalKeyboardKey.controlLeft.keyLabel).isNotEmpty){
+              focusFrameDependList = frameImageList.where((_frame) => _frame.position.y > _frameData.position.y ).toList();
+            }
+            for (FrameImage _depandFrame in focusFrameDependList) {
+              _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y-diffY);
             }
 
             setState(() { });
@@ -622,9 +664,17 @@ class EditPageState extends State<EditPage> {
       feedback          : frameWidgetUnit(true),
       onDragStarted: (){
         draggingFrame = _frameData;
+        if(RawKeyboard.instance.keysPressed.where((_pressd) => _pressd.keyLabel == LogicalKeyboardKey.controlLeft.keyLabel).isNotEmpty){
+          focusFrameDependList = frameImageList.where((_frame) => _frame.position.y > draggingFrame!.position.y ).toList();
+        }
+
         setState(() { });
       },
       onDraggableCanceled: (_, _offset){
+
+        Point<double> prePos = _frameData.position;
+        double preSizeRate = _frameData.sizeRate;
+
         draggingFrame!.position = Point<double>(
           globalToCanvasPos(Point<double>(_offset.dx, _offset.dy)).x, 
           globalToCanvasPos(Point<double>(_offset.dx, _offset.dy)).y - kToolbarHeight
@@ -634,6 +684,14 @@ class EditPageState extends State<EditPage> {
           framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
           framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
           frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
+        }
+
+        double prePosY = prePos.y + _frameData.rotateSize.y * preSizeRate;
+        double newPosY = _frameData.position.y + _frameData.rotateSize.y * _frameData.sizeRate;
+
+        double diffY = prePosY - newPosY;
+        for (FrameImage _depandFrame in focusFrameDependList) {
+          _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y-diffY);
         }
 
         draggingFrame = null;
@@ -663,7 +721,6 @@ class EditPageState extends State<EditPage> {
           framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
           framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
           frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
-
         },
       ),
     );
