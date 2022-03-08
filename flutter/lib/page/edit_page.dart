@@ -13,6 +13,7 @@ import 'package:tateyomi_gigarizer/model/frame_image.dart';
 import 'package:tateyomi_gigarizer/model/keyboard.dart';
 import 'package:tateyomi_gigarizer/page/corner_ball.dart';
 import 'package:tateyomi_gigarizer/download/canvas_to_image.dart';
+import 'package:tateyomi_gigarizer/page/shortcuts_info.dart';
 import 'package:universal_html/html.dart';
 import 'dart:ui' as ui;
 import 'dart:math' as math;
@@ -280,6 +281,13 @@ class EditPageState extends State<EditPage> {
               if( frameImageList.isEmpty ) return;
 
               CanvasToImage(frameImageList, canvasSize).download(downloadController.text);
+            },
+          ),
+          IconButton(
+            icon    : const Icon(Icons.help_outline),
+            onPressed: (){
+              FocusScope.of(context).unfocus();
+              showDialog( context: context, builder: (BuildContext context) => ShortCutInfoDialog( ) );
             },
           ),
           const SizedBox(width: 10,),
