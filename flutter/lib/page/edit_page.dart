@@ -55,7 +55,6 @@ class EditPageState extends State<EditPage> {
   final TextEditingController downloadController = TextEditingController();
   final FocusNode downloadFocusNode = FocusNode();
 
-  // TODO: キャンパスのサイズ編集
   Size canvasSize = Size.zero;
 
   bool showCanvasEdit = false;
@@ -131,7 +130,7 @@ class EditPageState extends State<EditPage> {
     canvasSizeXController.addListener((){
       if(posStringValidate(canvasSizeXController.text) != null ) return;
 
-      // TODO: 拡大
+      // TODO: 拡大対応
       canvasSize = Size(double.parse(canvasSizeXController.text), canvasSize.height);
       setState(() { });
     });    
@@ -176,7 +175,7 @@ class EditPageState extends State<EditPage> {
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> showWidgetList = [_backGroundBody(), _canvasBody(), ..._frameBodyList()];
+    List<Widget> showWidgetList = [_backGroundBody(), ..._canvasBody(), ..._frameBodyList()];
 
     Widget outsideGraySpace(){
       return Container(
@@ -487,13 +486,15 @@ class EditPageState extends State<EditPage> {
     return (MediaQuery.of(context).size.width - canvasSize.width)/2;
   }  
 
-  Widget _canvasBody(){
+  List<Widget> _canvasBody(){
     if( !isImageLoaded() ) {
-      return Container(
-        width : MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height - kToolbarHeight,
-        color: Colors.white,
-      );
+      return [
+        Container(
+          width : MediaQuery.of(context).size.width,
+          height: MediaQuery.of(context).size.height - kToolbarHeight,
+          color: Colors.white,
+        )
+      ];
     }
 
     Widget horizonScrollWidget = SingleChildScrollView(
@@ -520,7 +521,30 @@ class EditPageState extends State<EditPage> {
       ),
     );
 
-    return horizonScrollWidget;
+    Point<double> _dragPointPos = Point(canvasSize.width/2, canvasSize.height);
+
+    double ballDiameter = 20.0;
+
+    return [
+      horizonScrollWidget,
+      Positioned(
+        left  : canvasToGlobalPos(_dragPointPos).x - ballDiameter / 2,
+        top   : canvasToGlobalPos(_dragPointPos).y - ballDiameter / 2,
+        child: CornerBallWidget(
+          cursor      : SystemMouseCursors.resizeUpDown,
+          ballDiameter: ballDiameter,
+          onDragStart : (){ },
+          onDragEnd   : (){
+            // TODO: 保存処理
+          },
+          onDrag      : (dragPos) {
+            Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
+            canvasSize = Size(canvasSize.width, canvasDragPos.y);
+            setState(() { });
+          },
+        ),
+      ),
+    ];
   }
 
   Widget _backGroundBody(){
