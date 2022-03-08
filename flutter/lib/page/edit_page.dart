@@ -33,6 +33,9 @@ class EditPage extends StatefulWidget {
 class EditPageState extends State<EditPage> {
   List<FrameImage> frameImageList = [];
 
+  FrameImage? focusFrame;
+  List<FrameImage> focusFrameDependList = [];
+
   final ScrollController verticalScrollController = ScrollController();
   final ScrollController horizonScrollController  = ScrollController();
 
@@ -46,6 +49,7 @@ class EditPageState extends State<EditPage> {
   final TextEditingController downloadController = TextEditingController();
   final FocusNode downloadFocusNode = FocusNode();
 
+  // TODO: キャンパスのサイズ編集
   Size canvasSize = Size.zero;
 
   @override
@@ -80,6 +84,7 @@ class EditPageState extends State<EditPage> {
     framePosYController.addListener((){
       if(posStringValidate(framePosYController.text) != null ) return;
 
+      // TODO: asdfasdf
       focusFrame!.position = Point<double>(focusFrame!.position.x, double.parse(framePosYController.text));
       setState(() { });
     });    
@@ -90,6 +95,7 @@ class EditPageState extends State<EditPage> {
       double _rate = double.parse(frameSizeRateController.text);
       _rate = math.max(_rate, 0.01);
 
+      // TODO: asdfasdf
       focusFrame!.sizeRate = _rate;
       setState(() { });
     });
@@ -175,10 +181,22 @@ class EditPageState extends State<EditPage> {
         if( focusFrame != null ){
 
           double moveSize = 0.1;
-          if( shortCutType == TYPE_SHORTCUT_UP    ) focusFrame!.position = Point(focusFrame!.position.x           , focusFrame!.position.y-moveSize);
+          if( shortCutType == TYPE_SHORTCUT_UP    ){
+            focusFrame!.position = Point(focusFrame!.position.x, focusFrame!.position.y-moveSize);
+            for (FrameImage _depandFrame in focusFrameDependList) {
+              _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y-moveSize);
+            }
+          }
+          if( shortCutType == TYPE_SHORTCUT_DOWN  ){
+            focusFrame!.position = Point(focusFrame!.position.x, focusFrame!.position.y+moveSize);
+            for (FrameImage _depandFrame in focusFrameDependList) {
+              _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y+moveSize);
+            }
+          }
+
           if( shortCutType == TYPE_SHORTCUT_LEFT  ) focusFrame!.position = Point(focusFrame!.position.x-moveSize  , focusFrame!.position.y);
-          if( shortCutType == TYPE_SHORTCUT_DOWN  ) focusFrame!.position = Point(focusFrame!.position.x           , focusFrame!.position.y+moveSize);
           if( shortCutType == TYPE_SHORTCUT_RIGHT ) focusFrame!.position = Point(focusFrame!.position.x+moveSize  , focusFrame!.position.y);
+
 
           framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
           framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
@@ -209,6 +227,8 @@ class EditPageState extends State<EditPage> {
       child     : _body,
       onTapUp   : (_){
         focusFrame = null;
+        focusFrameDependList.clear();
+        
         setState(() { });
       },
     );
@@ -434,6 +454,8 @@ class EditPageState extends State<EditPage> {
           onDragStart : (){ tempSavePos(); },
           onDragEnd   : (){ _frameData.save(); },
           onDrag      : (dragPos) {
+            // TODO: asdfasdf
+
             Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
 
             _frameData.sizeRate = math.max(
@@ -498,6 +520,8 @@ class EditPageState extends State<EditPage> {
           onDragStart : (){ tempSavePos(); },
           onDragEnd   : (){ _frameData.save(); },
           onDrag      : (dragPos) {
+            // TODO: asdfasdf
+
             Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
 
             _frameData.sizeRate = math.max(
@@ -530,6 +554,7 @@ class EditPageState extends State<EditPage> {
           onDragStart : (){ tempSavePos(); },
           onDragEnd   : (){ _frameData.save(); },
           onDrag      : (dragPos) {
+            // TODO: asdfasdf
             Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
             _frameData.sizeRate = math.max(
               (canvasDragPos.x - dragStartLeftTopPos.x).abs()/_frameData.rotateSize.x, 
@@ -548,29 +573,32 @@ class EditPageState extends State<EditPage> {
       ),
     ];
 
-    if( focusFrame != _frameData) return _frameWidgetList;
-
-    _frameWidgetList.insert(0,
-      Positioned(
+    Widget _frameColorWidget(Color _color){
+      return Positioned(
         left  : canvasToGlobalPos(_frameData.position).x-2,
         top   : canvasToGlobalPos(_frameData.position).y-2,
         child : Container(
           decoration: BoxDecoration(
             color: Colors.transparent,
-            border: Border.all( color: Colors.blue.withAlpha(200), width: 4 )
+            border: Border.all( color: _color.withAlpha(200), width: 4 )
           ),
-          width: _frameData.rotateSize.x * _frameData.sizeRate+4,
-          height: _frameData.rotateSize.y * _frameData.sizeRate+4,
+          width   : _frameData.rotateSize.x * _frameData.sizeRate+4,
+          height  : _frameData.rotateSize.y * _frameData.sizeRate+4,
         )
-      )
-    );
+      );
+    }
+
+    // focusしているときは、青い四角い枠をつける
+    if( focusFrame == _frameData) _frameWidgetList.insert(0, _frameColorWidget(Colors.blue) );
+
+    // 従属しているときは、赤い四角い枠をつける
+    if( focusFrameDependList.contains(_frameData)) _frameWidgetList.insert(0, _frameColorWidget(Colors.grey) );
 
     return _frameWidgetList;
   }
 
   // コマの表示（ドラッグ
   FrameImage? draggingFrame;
-  FrameImage? focusFrame;
   Widget _frameDraggingWidget(FrameImage _frameData){
     frameWidgetUnit(bool _isDragging){
       return RotatedBox(
@@ -622,9 +650,15 @@ class EditPageState extends State<EditPage> {
 
           if( focusFrame == _frameData){
             focusFrame = null;
+            focusFrameDependList.clear();
             return;
           }
           focusFrame = _frameData;
+
+          // ctrlを押しながらやると、従属して動く
+          if(RawKeyboard.instance.keysPressed.where((_pressd) => _pressd.keyLabel == LogicalKeyboardKey.controlLeft.keyLabel).isNotEmpty){
+            focusFrameDependList = frameImageList.where((_frame) => _frame.position.y > focusFrame!.position.y ).toList();
+          }
 
           framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
           framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
@@ -753,8 +787,8 @@ class EditPageState extends State<EditPage> {
 
   Point<double> canvasToGlobalPos(Point<double> _pos){
     Offset _offsetSize = Offset(
-      sideSpaceWidth() - horizonScrollController.position.pixels,
-      verticalScrollController.position.pixels
+      sideSpaceWidth() - (horizonScrollController.hasClients ? horizonScrollController.position.pixels : 0),
+      (verticalScrollController.hasClients ? verticalScrollController.position.pixels : 0)
     );
 
     return Point(
@@ -766,8 +800,8 @@ class EditPageState extends State<EditPage> {
 
   Point<double> globalToCanvasPos(Point<double> _pos){
     Offset _offsetSize = Offset(
-      sideSpaceWidth() - horizonScrollController.position.pixels,
-      verticalScrollController.position.pixels
+      sideSpaceWidth() - (horizonScrollController.hasClients ? horizonScrollController.position.pixels : 0),
+      (verticalScrollController.hasClients ? verticalScrollController.position.pixels : 0)
     );
 
     return Point(
