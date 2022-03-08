@@ -130,8 +130,19 @@ class EditPageState extends State<EditPage> {
     canvasSizeXController.addListener((){
       if(posStringValidate(canvasSizeXController.text) != null ) return;
 
-      // TODO: 拡大対応
-      canvasSize = Size(double.parse(canvasSizeXController.text), canvasSize.height);
+      double preCanvasWidth = canvasSize.width;
+      double newCanvasWidth = double.parse(canvasSizeXController.text);
+
+      if(newCanvasWidth < 100) return;
+
+      double changeRate = newCanvasWidth/preCanvasWidth;
+
+      for (FrameImage _frameImage in frameImageList) {
+        _frameImage.position = Point(_frameImage.position.x * changeRate, _frameImage.position.y * changeRate);
+        _frameImage.sizeRate = _frameImage.sizeRate * changeRate;
+      }
+
+      canvasSize = Size(newCanvasWidth, canvasSize.height);
       setState(() { });
     });    
 
@@ -480,10 +491,11 @@ class EditPageState extends State<EditPage> {
         MediaQuery.of(context).size.height*windowZoomSize(),
       );
 
-      return (realWindowSize.width - canvasSize.width)/2;
+
+      return math.max( (realWindowSize.width - canvasSize.width)/2, 0);
     }
 
-    return (MediaQuery.of(context).size.width - canvasSize.width)/2;
+    return math.max( (MediaQuery.of(context).size.width - canvasSize.width)/2, 0);
   }  
 
   List<Widget> _canvasBody(){
