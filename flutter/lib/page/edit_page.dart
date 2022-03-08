@@ -13,7 +13,7 @@ import 'package:tateyomi_gigarizer/model/frame_image.dart';
 import 'package:tateyomi_gigarizer/model/keyboard.dart';
 import 'package:tateyomi_gigarizer/page/corner_ball.dart';
 import 'package:tateyomi_gigarizer/download/canvas_to_image.dart';
-import 'package:tateyomi_gigarizer/page/shortcuts_info.dart';
+import 'package:tateyomi_gigarizer/dialog/shortcuts_info_dialog.dart';
 import 'package:universal_html/html.dart';
 import 'dart:ui' as ui;
 import 'dart:math' as math;
@@ -47,23 +47,33 @@ class EditPageState extends State<EditPage> {
   final FocusNode framePosYFocusNode = FocusNode();
   final FocusNode frameSizeRateFocusNode = FocusNode();
 
+  final TextEditingController canvasSizeXController = TextEditingController();
+  final TextEditingController canvasSizeYController = TextEditingController();
+  final FocusNode canvasSizeXFocusNode = FocusNode();
+  final FocusNode canvasSizeYFocusNode = FocusNode();
+
   final TextEditingController downloadController = TextEditingController();
   final FocusNode downloadFocusNode = FocusNode();
 
   // TODO: キャンパスのサイズ編集
   Size canvasSize = Size.zero;
 
+  bool showCanvasEdit = false;
+
   @override
   void initState(){
     super.initState();
 
-    // TODO: こいつも外部からの読み込みにする
     SchedulerBinding.instance?.addPostFrameCallback((_){
+
+    // TODO: こいつも外部からの読み込みにする
       // comico設定　https://tips.clip-studio.com/ja-jp/articles/2781#:~:text=%E8%A7%A3%E5%83%8F%E5%BA%A6%E3%81%AF%E5%8D%B0%E5%88%B7%E3%81%AE%E9%9A%9B,%E3%81%99%E3%82%8B%E3%81%93%E3%81%A8%E3%81%8C%E5%A4%9A%E3%81%84%E3%81%A7%E3%81%99%E3%80%82
       canvasSize = const Size(
         690, 3000
         // 690, 20000
       );
+      canvasSizeXController.value = canvasSizeXController.value.copyWith( text: canvasSize.width.toString() );
+      canvasSizeYController.value = canvasSizeYController.value.copyWith( text: canvasSize.height.toString() );
 
       setState(() { });
     });
@@ -117,6 +127,23 @@ class EditPageState extends State<EditPage> {
       setState(() { });
     });
 
+
+    canvasSizeXController.addListener((){
+      if(posStringValidate(canvasSizeXController.text) != null ) return;
+
+      // TODO: 拡大
+      canvasSize = Size(double.parse(canvasSizeXController.text), canvasSize.height);
+      setState(() { });
+    });    
+
+    canvasSizeYController.addListener((){
+      if(posStringValidate(canvasSizeYController.text) != null ) return;
+
+      canvasSize = Size(canvasSize.width, double.parse(canvasSizeYController.text));
+      setState(() { });
+    });    
+
+
     downloadController.addListener(() {
       setState(() { });
     });
@@ -135,6 +162,11 @@ class EditPageState extends State<EditPage> {
     framePosXFocusNode.dispose();
     framePosYFocusNode.dispose();
     frameSizeRateFocusNode.dispose();
+
+    canvasSizeXController.dispose();
+    canvasSizeYController.dispose();
+    canvasSizeXFocusNode.dispose();
+    canvasSizeYFocusNode.dispose();
 
     downloadController.dispose();
     downloadFocusNode.dispose();
@@ -168,7 +200,8 @@ class EditPageState extends State<EditPage> {
           left  : -horizonScrollController.position.pixels + canvasSize.width + sideSpaceWidth(),
           child : outsideGraySpace(),
         ) : Container(),
-        focusDetailSettingBox()
+        focusDetailSettingBox(),
+        canvasSizeSettingBox()
       ],
     );
     
@@ -254,6 +287,15 @@ class EditPageState extends State<EditPage> {
       appBar: AppBar(
         title   : const Text( "編集ページ" ),
         actions : [
+          IconButton(
+            icon    : const Icon(Icons.photo_size_select_large),
+            onPressed: (){
+              FocusScope.of(context).unfocus();
+              focusFrame = null;
+              showCanvasEdit = true;
+              setState(() { });
+            },
+          ),          
           Padding(
             padding : const EdgeInsets.symmetric(vertical: 5),
             child   : Container(
@@ -287,7 +329,7 @@ class EditPageState extends State<EditPage> {
             icon    : const Icon(Icons.help_outline),
             onPressed: (){
               FocusScope.of(context).unfocus();
-              showDialog( context: context, builder: (BuildContext context) => ShortCutInfoDialog( ) );
+              showDialog( context: context, builder: (BuildContext context) => const ShortCutInfoDialog( ) );
             },
           ),
           const SizedBox(width: 10,),
@@ -295,6 +337,55 @@ class EditPageState extends State<EditPage> {
       ),
 
       body : _body,
+    );
+  }
+
+
+
+  Widget canvasSizeSettingBox(){
+    if(focusFrame != null ) return Container();
+    if(!showCanvasEdit) return Container();
+
+    Widget textFormWidget(TextEditingController editController, FocusNode focusNode, String labeltext, List<TextInputFormatter> formatList, String? Function(String?)? validatorFunc){
+      return TextFormField(
+        autovalidateMode: AutovalidateMode.always,
+        controller  : editController,
+        focusNode   : focusNode,
+        decoration      : InputDecoration( labelText: labeltext, ),
+        inputFormatters : formatList,
+        validator    : validatorFunc,
+      );
+    }
+
+    return Positioned(
+      top   : 20,
+      left  : sideSpaceWidth() + canvasSize.width - horizonScrollController.position.pixels + 20,
+      child: Container(
+        width: 300,
+        decoration: BoxDecoration(
+          color: Colors.grey[100],
+          border: Border.all( color: Colors.black, )
+        ),
+        child: Padding(
+          padding : const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+          child   : Column(
+            children: [
+              textFormWidget(canvasSizeXController, canvasSizeXFocusNode, "幅", [FilteringTextInputFormatter.allow(RegExp('[0123456789.]'))], 
+                (String? value){
+                  if( value == null ) return null;
+                  return rateStringValidate(value);
+                }
+              ),
+              textFormWidget(canvasSizeYController, canvasSizeYFocusNode, "縦", [FilteringTextInputFormatter.allow(RegExp('[0123456789.]'))], 
+                (String? value){
+                  if( value == null ) return null;
+                  return rateStringValidate(value);
+                }
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -720,6 +811,7 @@ class EditPageState extends State<EditPage> {
             return;
           }
           focusFrame = _frameData;
+          showCanvasEdit = false;
 
           // ctrlを押しながらやると、従属して動く
           if(RawKeyboard.instance.keysPressed.where((_pressd) => _pressd.keyLabel == LogicalKeyboardKey.controlLeft.keyLabel).isNotEmpty){
