@@ -12,7 +12,16 @@ class DbImpl{
   String get loginId{ return _loginId; }
   set loginId(_text){ _loginId = _text; }
 
+  void Function()? reBuildCanvasBody;
+  void reBuildCanvas(){
+    if( reBuildCanvasBody == null) return;
+
+    reBuildCanvasBody!();
+  }
+
   Future<List<Project>> getProjectList() async {
+    return [];
+
     return [
       Project(
         this, "aaa", "test1", "test1", const Size(200, 200), DateTime.now().millisecondsSinceEpoch, DateTime.now().millisecondsSinceEpoch
@@ -35,6 +44,8 @@ class DbImpl{
 
 
   Future<List<FrameImage>> getFrameList(Project _proj) async {
+    return [];
+    
     return [
       FrameImage(
         dbIndex     : "aaaa",

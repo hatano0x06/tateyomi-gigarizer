@@ -18,6 +18,16 @@ class DbFireStore implements DbImpl {
   @override
   set loginId(_text){ _loginId = _text; }
 
+  @override
+  void Function()? reBuildCanvasBody;
+
+  @override
+  void reBuildCanvas(){
+    if( reBuildCanvasBody == null) return;
+
+    reBuildCanvasBody!();
+  }
+  
   static const String _userCollection = 'user';
   DocumentReference baseDocRef(){ return FirebaseFirestore.instance.collection(_userCollection).doc(_loginId); }
   CollectionReference baseProjRef(){ return baseDocRef().collection(_projectCollection); }
@@ -112,9 +122,7 @@ class DbFireStore implements DbImpl {
         if( isChanged(storedChangedProject.createTime   , _changeProject.createTime   ) ) storedChangedProject.createTime  = _changeProject.createTime;
       }
 
-      // TODO : asdf
-      if(isUpdate) print(" update widget ");
-      // if(isUpdate) reBuildMemolist(isUpdateImage);
+      if(isUpdate) reBuildCanvas();
 
       return;
     },);
@@ -225,9 +233,7 @@ class DbFireStore implements DbImpl {
         if( isChanged(storedChangedFrame.angle, _changeFrame.angle ) ) storedChangedFrame.angle  = _changeFrame.angle;
       }
 
-      // TODO : asdf
-      if(isUpdate) print(" update frame ");
-      // if(isUpdate) reBuildMemolist(isUpdateImage);
+      if(isUpdate) reBuildCanvas();
 
       return;
     },);

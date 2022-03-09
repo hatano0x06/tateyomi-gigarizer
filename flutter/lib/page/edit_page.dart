@@ -63,6 +63,10 @@ class EditPageState extends State<EditPage> {
   void initState(){
     super.initState();
 
+    widget.dbInstance.reBuildCanvasBody = (){
+      setState(() { });
+    };
+
     setEditerEvent();
     getFrameList();
   }
@@ -859,16 +863,22 @@ class EditPageState extends State<EditPage> {
       feedback          : frameWidgetUnit(true),
       onDragStarted: (){
         draggingFrame = _frameData;
+
+        print(" onDragStarted ");
+
+        focusFrameDependList.clear();
         if(RawKeyboard.instance.keysPressed.where((_pressd) => _pressd.keyLabel == LogicalKeyboardKey.controlLeft.keyLabel).isNotEmpty){
           focusFrameDependList = frameImageList.where((_frame) => _frame.position.y > draggingFrame!.position.y ).toList();
         }
+
+        print( focusFrameDependList );
 
         setState(() { });
       },
       onDraggableCanceled: (_, _offset){
 
-        Point<double> prePos = _frameData.position;
-        double preSizeRate = _frameData.sizeRate;
+        double prePosY = draggingFrame!.position.y;
+        double preSizeRate = draggingFrame!.sizeRate;
 
         draggingFrame!.position = Point<double>(
           globalToCanvasPos(Point<double>(_offset.dx, _offset.dy)).x, 
@@ -881,10 +891,11 @@ class EditPageState extends State<EditPage> {
           frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
         }
 
-        double prePosY = prePos.y + _frameData.rotateSize.y * preSizeRate;
-        double newPosY = _frameData.position.y + _frameData.rotateSize.y * _frameData.sizeRate;
+        double preBottomPosY = prePosY + draggingFrame!.rotateSize.y * preSizeRate;
+        double newBottomPosY = draggingFrame!.position.y + draggingFrame!.rotateSize.y * draggingFrame!.sizeRate;
 
-        double diffY = prePosY - newPosY;
+        double diffY = preBottomPosY - newBottomPosY;
+
         for (FrameImage _depandFrame in focusFrameDependList) {
           _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y-diffY);
           _depandFrame.save();
@@ -904,6 +915,8 @@ class EditPageState extends State<EditPage> {
         onTapUp : (_){
           setState(() { });
 
+          print(" ontap ");
+
           if( focusFrame == _frameData){
             focusFrame = null;
             focusFrameDependList.clear();
@@ -911,6 +924,8 @@ class EditPageState extends State<EditPage> {
           }
           focusFrame = _frameData;
           showCanvasEdit = false;
+
+          focusFrameDependList.clear();
 
           // ctrlを押しながらやると、従属して動く
           if(RawKeyboard.instance.keysPressed.where((_pressd) => _pressd.keyLabel == LogicalKeyboardKey.controlLeft.keyLabel).isNotEmpty){

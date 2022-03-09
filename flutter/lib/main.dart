@@ -25,6 +25,7 @@ void main() async {
 //  - 背景レイヤー
 //  - 横に全体像が見れるやつ
 //  - クラッシュログ
+//  - スティッカー（縁に吸い付くやつ
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -46,7 +47,8 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       navigatorObservers: [ FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance), ],
-      home: LoginPageWidget(dbInstance: DbFireStore(),),
+      home: LoginPageWidget(dbInstance: DbImpl(),),
+      // home: LoginPageWidget(dbInstance: DbFireStore(),),
     );
   }
 }
