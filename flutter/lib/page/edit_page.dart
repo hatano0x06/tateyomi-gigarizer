@@ -78,6 +78,7 @@ class EditPageState extends State<EditPage> {
       if(posStringValidate(framePosXController.text) != null ) return;
 
       focusFrame!.position = Point<double>(double.parse(framePosXController.text), focusFrame!.position.y);
+      focusFrame?.save();
       setState(() { });
     });    
 
@@ -88,10 +89,12 @@ class EditPageState extends State<EditPage> {
       double newPosY = double.parse(framePosYController.text);
 
       focusFrame!.position = Point<double>(focusFrame!.position.x, newPosY);
+      focusFrame?.save();
 
       double diffY = prePosY - newPosY;
       for (FrameImage _depandFrame in focusFrameDependList) {
         _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y-diffY);
+        _depandFrame.save();
       }
 
       setState(() { });
@@ -107,10 +110,12 @@ class EditPageState extends State<EditPage> {
       double newBottom = focusFrame!.rotateSize.y * _rate;
 
       focusFrame!.sizeRate = _rate;
+      focusFrame?.save();
 
       double diffY = preBottom - newBottom;
       for (FrameImage _depandFrame in focusFrameDependList) {
         _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y-diffY);
+        _depandFrame.save();
       }
 
       setState(() { });
@@ -130,9 +135,11 @@ class EditPageState extends State<EditPage> {
       for (FrameImage _frameImage in frameImageList) {
         _frameImage.position = Point(_frameImage.position.x * changeRate, _frameImage.position.y * changeRate);
         _frameImage.sizeRate = _frameImage.sizeRate * changeRate;
+        _frameImage.save();
       }
 
       widget.project.canvasSize = Size(newCanvasWidth, widget.project.canvasSize.height);
+      widget.project.save();
       setState(() { });
     });    
 
@@ -140,12 +147,18 @@ class EditPageState extends State<EditPage> {
       if(posStringValidate(canvasSizeYController.text) != null ) return;
 
       widget.project.canvasSize = Size(widget.project.canvasSize.width, double.parse(canvasSizeYController.text));
+      widget.project.save();
       setState(() { });
     });    
 
 
     downloadController.value = downloadController.value.copyWith( text: widget.project.downloadName );
-    downloadController.addListener(() { setState(() { }); });
+    downloadController.addListener(() {
+      widget.project.downloadName = downloadController.text;
+      widget.project.save();
+
+      setState(() { });
+    });
   }
 
   @override
@@ -225,9 +238,16 @@ class EditPageState extends State<EditPage> {
 
         String shortCutType = _shortCutKeyMap.values.toList()[_shortCutIndex];
 
-        if(framePosXFocusNode.hasFocus || framePosYFocusNode.hasFocus || frameSizeRateFocusNode.hasFocus || downloadFocusNode.hasFocus )  return;
+        if(
+          framePosXFocusNode.hasFocus || 
+          framePosYFocusNode.hasFocus || 
+          frameSizeRateFocusNode.hasFocus || 
+          downloadFocusNode.hasFocus || 
+          canvasSizeXFocusNode.hasFocus || 
+          canvasSizeYFocusNode.hasFocus
+        )  return;
         if( focusFrame != null ){
-
+          
           double moveSize = 0.1;
           if( shortCutType == TYPE_SHORTCUT_UP    ){
             focusFrame!.position = Point(focusFrame!.position.x, focusFrame!.position.y-moveSize);
@@ -245,13 +265,23 @@ class EditPageState extends State<EditPage> {
           if( shortCutType == TYPE_SHORTCUT_LEFT  ) focusFrame!.position = Point(focusFrame!.position.x-moveSize  , focusFrame!.position.y);
           if( shortCutType == TYPE_SHORTCUT_RIGHT ) focusFrame!.position = Point(focusFrame!.position.x+moveSize  , focusFrame!.position.y);
 
-
           framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
           framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
           frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
           setState(() { });
         }
+      },
+      onKeysUp: (_shortCutIndex){
+        if(
+          framePosXFocusNode.hasFocus || 
+          framePosYFocusNode.hasFocus || 
+          frameSizeRateFocusNode.hasFocus || 
+          downloadFocusNode.hasFocus || 
+          canvasSizeXFocusNode.hasFocus || 
+          canvasSizeYFocusNode.hasFocus
+        )  return;
 
+        focusFrame?.save();
       },
       child: _body
     );    
@@ -295,6 +325,7 @@ class EditPageState extends State<EditPage> {
                   (widget.project.canvasSize.width - (_frameImage.position.x + _frameImage.rotateSize.x * _frameImage.sizeRate)), 
                   _frameImage.position.y
                 );
+                _frameImage.save();
               }
               
               setState(() { });
@@ -553,7 +584,7 @@ class EditPageState extends State<EditPage> {
           ballDiameter: ballDiameter,
           onDragStart : (){ },
           onDragEnd   : (){
-            // TODO: 保存処理
+            widget.project.save();
           },
           onDrag      : (dragPos) {
             Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
@@ -572,8 +603,6 @@ class EditPageState extends State<EditPage> {
     for (FrameImage _frameImage in frameImageList) {
       bottomList.add( _frameImage.position.y + _frameImage.rotateSize.y * _frameImage.sizeRate );
     }
-
-    print( bottomList.reduce(math.max).toString() + " : " + widget.project.canvasSize.height.toString() );
 
     return Container(
       width : MediaQuery.of(context).size.width,
@@ -645,6 +674,7 @@ class EditPageState extends State<EditPage> {
               frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
             }
 
+            _frameData.save();
             setState(() { });
           },
         ),
@@ -676,6 +706,8 @@ class EditPageState extends State<EditPage> {
               framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
               frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
             }
+
+            _frameData.save();
 
             setState(() { });
           },
@@ -722,7 +754,10 @@ class EditPageState extends State<EditPage> {
             }
             for (FrameImage _depandFrame in focusFrameDependList) {
               _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y-diffY);
+              _depandFrame.save();
             }
+
+            _frameData.save();
 
             setState(() { });
           },
@@ -764,7 +799,10 @@ class EditPageState extends State<EditPage> {
             }
             for (FrameImage _depandFrame in focusFrameDependList) {
               _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y-diffY);
+              _depandFrame.save();
             }
+
+            _frameData.save();
 
             setState(() { });
           },
@@ -849,7 +887,10 @@ class EditPageState extends State<EditPage> {
         double diffY = prePosY - newPosY;
         for (FrameImage _depandFrame in focusFrameDependList) {
           _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y-diffY);
+          _depandFrame.save();
         }
+
+        draggingFrame?.save();
 
         draggingFrame = null;
         setState(() { });
@@ -1034,11 +1075,14 @@ class EditPageState extends State<EditPage> {
             // 枠を超えていた場合は、rateで枠内に収まるようにする
             if( targetFrame.rotateSize.x > defaultCanvasWidth ) targetFrame.sizeRate = targetFrame.rotateSize.x/defaultCanvasWidth;
 
+            targetFrame.save();
+
             currentHeight = targetFrame.position.y + targetFrame.rotateSize.y * targetFrame.sizeRate;
           });
         });
 
         widget.project.canvasSize = Size(defaultCanvasWidth, currentHeight + 100);
+        widget.project.save();
         setState(() { });
 
         //  ないなら、ファイルを作って保存処理＋自然配置
