@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
+import 'package:tateyomi_gigarizer/dialog/text_input_dialog.dart';
 import 'package:tateyomi_gigarizer/model/project.dart';
 import 'package:tateyomi_gigarizer/page/edit_page.dart';
 
@@ -144,27 +145,34 @@ class _LoginPageWidgetState extends State<LoginPageWidget> {
         ElevatedButton(
           child   : const Text('プロジェクトの新規作成'),
           onPressed: !isEnableLoginId ? null : () async { 
-            // TODO: 名前指定
+            showDialog( 
+              context: context, 
+              builder: (BuildContext context) => const TextInputDialog("")
+            ).then((_text){
+              if( _text == null ) return;
+              String _fixText = _text as String;
+              if( _fixText.isEmpty ) return;
 
-            Project _newProj = Project(
-              widget.dbInstance,
-              "",
-              "tempName",
-              "tempName",
-              Size.zero,
-              DateTime.now().millisecondsSinceEpoch,
-              DateTime.now().millisecondsSinceEpoch,
-            );
+              Project _newProj = Project(
+                widget.dbInstance,
+                "",
+                _fixText,
+                _fixText,
+                Size.zero,
+                DateTime.now().millisecondsSinceEpoch,
+                DateTime.now().millisecondsSinceEpoch,
+              );
+              _newProj.save();
 
-            Navigator.push( context,
-              PageRouteBuilder(
-                pageBuilder: (context, animation1, animation2) => EditPage(
-                  dbInstance  : widget.dbInstance,
-                  project     : _newProj,
-                )
-              ),
-            );
-
+              Navigator.push( context,
+                PageRouteBuilder(
+                  pageBuilder: (context, animation1, animation2) => EditPage(
+                    dbInstance  : widget.dbInstance,
+                    project     : _newProj,
+                  )
+                ),
+              );
+            });
           }
         ),
       ],
