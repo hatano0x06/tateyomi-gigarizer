@@ -56,7 +56,11 @@ class _ShortCutInfoDialogState extends State<ShortCutInfoDialog> {
       "特定のコマより下にあるコマも従属して動かす": 
         [
           "ctrlを押しながら操作（赤色に縁がつくコマが従属されます"
-        ]
+        ],
+      "拡大・縮小": 
+        [
+          "ブラウザ標準機能に準拠してます(ctrl+スクロールなど"
+        ],
 
       // "asdfasdfasdf": ["1111", "22222"]
     };
