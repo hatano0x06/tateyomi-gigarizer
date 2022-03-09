@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
-import 'package:tateyomi_gigarizer/page/edit_page.dart';
+import 'package:tateyomi_gigarizer/page/login_page.dart';
 import 'package:url_strategy/url_strategy.dart';
 
 void main() {
@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         scaffoldBackgroundColor: Colors.grey,
       ),
-      home: EditPage(dbInstance: DbImpl(),),
+      home: LoginPageWidget(dbInstance: DbImpl(),),
     );
   }
 }

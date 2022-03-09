@@ -932,17 +932,18 @@ class EditPageState extends State<EditPage> {
             frameImage.byteData = _file.bytes;
             frameImage.size = Point(_image.width.toDouble(), _image.height.toDouble());
           } catch(e){
-            frameImageList.add(
-              FrameImage(
-                dbInstance  : widget.dbInstance,
-                byteData    : _file.bytes, 
-                name        : _file.name,
-                angle       : 0,
-                sizeRate    : -1.0,
-                position    : const Point<double>(0,0),
-                size        : Point(_image.width.toDouble(), _image.height.toDouble())
-              )
-            );
+            // TODO: asdf
+            // frameImageList.add(
+            //   FrameImage(
+            //     dbInstance  : widget.dbInstance,
+            //     byteData    : _file.bytes, 
+            //     name        : _file.name,
+            //     angle       : 0,
+            //     sizeRate    : -1.0,
+            //     position    : const Point<double>(0,0),
+            //     size        : Point(_image.width.toDouble(), _image.height.toDouble())
+            //   )
+            // );
           }
 
           setState(() { });

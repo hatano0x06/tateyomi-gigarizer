@@ -5,21 +5,27 @@ import 'dart:typed_data';
 import 'dart:convert';
 
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
+import 'package:tateyomi_gigarizer/model/project.dart';
 
 class FrameImage{
-   late DbImpl dbInstance;
-   late String name; // indexを兼ねるので、index変数なし
+  late Project project;
+  late DbImpl dbInstance;
 
-   late double sizeRate;
-   late Point<double> position;
-   late int angle;
+  late String dbIndex;
+  late String name;
 
-   late Uint8List? byteData;  // こいつは保存しない
-   late Point<double> size;   // こいつは保存しない
+  late double sizeRate;
+  late Point<double> position;
+  late int angle;
+
+  late Uint8List? byteData;  // こいつは保存しない
+  late Point<double> size;   // こいつは保存しない
 
   FrameImage(
     {
       required this.dbInstance, 
+      required this.project, 
+      required this.dbIndex, 
       required this.name, 
       required this.sizeRate, 
       required this.position, 
@@ -51,7 +57,10 @@ class FrameImage{
   }
 
   void save(){
-    _insertSave();
+    if( dbIndex.isEmpty ){
+      _insertSave();
+      return;
+    }
     _updateSave();
   }
 
