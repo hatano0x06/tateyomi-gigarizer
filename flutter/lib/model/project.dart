@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:tateyomi_gigarizer/db/db_impl.dart';
 
 class Project{
+  late DbImpl dbInstance;
+
   late String dbIndex;
   late String name;
   late Size canvasSize;
@@ -8,6 +11,7 @@ class Project{
   late int createTime;
 
   Project(
+    this.dbInstance,
     this.dbIndex,
     this.name,
     this.canvasSize,
