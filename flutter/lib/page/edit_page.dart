@@ -299,7 +299,7 @@ class EditPageState extends State<EditPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title   : const Text( "編集ページ" ),
+        title   : Text( "編集ページ ： " + widget.project.name ),
         actions : !isImageLoaded() ? [] : [
             IconButton(
             icon    : const Icon(Icons.swap_horiz_outlined),
