@@ -9,10 +9,13 @@ class DbImpl{
   Future<List<Project>> getProjectList() async {
     return [
       Project(
-        this, "aaa", "test1", const Size(200, 200), DateTime.now().millisecondsSinceEpoch, DateTime.now().millisecondsSinceEpoch
+        this, "aaa", "test1", "test1", const Size(200, 200), DateTime.now().millisecondsSinceEpoch, DateTime.now().millisecondsSinceEpoch
       ),
       Project(
-        this, "bbb", "test2", const Size(300, 300), DateTime.now().millisecondsSinceEpoch, DateTime.now().millisecondsSinceEpoch
+        this, "bbb", "test2", "test1", const Size(300, 300), DateTime.now().millisecondsSinceEpoch, DateTime.now().millisecondsSinceEpoch
+      ),
+      Project(
+        this, "aaa", "test1", "test1", const Size(200, 200), DateTime.now().millisecondsSinceEpoch, DateTime.now().millisecondsSinceEpoch
       ),
 
     ];

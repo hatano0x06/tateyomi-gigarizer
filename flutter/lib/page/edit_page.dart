@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
 import 'package:tateyomi_gigarizer/model/frame_image.dart';
 import 'package:tateyomi_gigarizer/model/keyboard.dart';
+import 'package:tateyomi_gigarizer/model/project.dart';
 import 'package:tateyomi_gigarizer/page/corner_ball.dart';
 import 'package:tateyomi_gigarizer/download/canvas_to_image.dart';
 import 'package:tateyomi_gigarizer/dialog/shortcuts_info_dialog.dart';
@@ -21,10 +22,12 @@ import 'dart:convert';
 
 class EditPage extends StatefulWidget {
   final DbImpl dbInstance;
+  final Project project;
 
   const EditPage({
     Key? key,
     required this.dbInstance, 
+    required this.project, 
   }):super(key:key);
   
   @override
@@ -154,6 +157,7 @@ class EditPageState extends State<EditPage> {
     });    
 
 
+    downloadController.value = downloadController.value.copyWith( text: widget.project.downloadName );
     downloadController.addListener(() {
       setState(() { });
     });

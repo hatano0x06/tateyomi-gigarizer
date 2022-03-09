@@ -1,6 +1,9 @@
+// ignore_for_file: avoid_print
+
 import 'package:flutter/material.dart';
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
 import 'package:tateyomi_gigarizer/model/project.dart';
+import 'package:tateyomi_gigarizer/page/edit_page.dart';
 
 class LoginPageWidget extends StatefulWidget {
   final DbImpl dbInstance;
@@ -65,9 +68,33 @@ class _LoginPageWidgetState extends State<LoginPageWidget> {
 
             return Card(
               color: Colors.grey[400],
-              child : ListTile(
-                title : Text(_proj.name, style: const TextStyle( fontWeight: FontWeight.bold),),
-                // subtitle  : Column(mainAxisSize: MainAxisSize.min, children: body,),
+              child : InkWell(
+                child : ListTile(
+                  title : Text(_proj.name, style: const TextStyle( fontWeight: FontWeight.bold),),
+                  subtitle  : Column(mainAxisSize: MainAxisSize.min, children: [
+                    Align(
+                      alignment : Alignment.centerLeft,
+                      child     : Text("作成日：" + DateTime.fromMillisecondsSinceEpoch(_proj.createTime).toIso8601String() ),
+                    ),
+                    Align(
+                      alignment : Alignment.centerLeft,
+                      child     : Text("更新日：" + DateTime.fromMillisecondsSinceEpoch(_proj.lastOpenTime).toIso8601String()),
+                    ),
+                  ],),
+                ),
+                onTap: (){
+                  _proj.lastOpenTime = DateTime.now().millisecondsSinceEpoch;
+                  _proj.save();
+
+                  Navigator.push( context,
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation1, animation2) => EditPage(
+                        dbInstance  : widget.dbInstance,
+                        project     : _proj,
+                      )
+                    ),
+                  );
+                },
               ),
             );
           },
@@ -117,7 +144,27 @@ class _LoginPageWidgetState extends State<LoginPageWidget> {
         ElevatedButton(
           child   : const Text('プロジェクトの新規作成'),
           onPressed: !isEnableLoginId ? null : () async { 
-            // TODO: asdf
+            // TODO: 名前指定
+
+            Project _newProj = Project(
+              widget.dbInstance,
+              "",
+              "tempName",
+              "tempName",
+              Size.zero,
+              DateTime.now().millisecondsSinceEpoch,
+              DateTime.now().millisecondsSinceEpoch,
+            );
+
+            Navigator.push( context,
+              PageRouteBuilder(
+                pageBuilder: (context, animation1, animation2) => EditPage(
+                  dbInstance  : widget.dbInstance,
+                  project     : _newProj,
+                )
+              ),
+            );
+
           }
         ),
       ],

@@ -6,6 +6,7 @@ class Project{
 
   late String dbIndex;
   late String name;
+  late String downloadName;
   late Size canvasSize;
   late int lastOpenTime;
   late int createTime;
@@ -14,6 +15,7 @@ class Project{
     this.dbInstance,
     this.dbIndex,
     this.name,
+    this.downloadName,
     this.canvasSize,
     this.lastOpenTime,
     this.createTime,
