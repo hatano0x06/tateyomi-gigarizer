@@ -80,7 +80,6 @@ class _ShortCutInfoDialogState extends State<ShortCutInfoDialog> {
           );
         });
 
-
         return Card(
           color: Colors.grey[400],
           child : ListTile(
@@ -90,7 +89,7 @@ class _ShortCutInfoDialogState extends State<ShortCutInfoDialog> {
         );
       },
       itemCount: bodyList.length,
-    );  
+    );
 
   }
 }

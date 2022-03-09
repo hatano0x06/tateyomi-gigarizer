@@ -45,12 +45,37 @@ class _LoginPageWidgetState extends State<LoginPageWidget> {
           mainAxisSize: MainAxisSize.min,
           children    : [
             loginUnit(),
-
+            existProjectList()
           ]
         ),
       ),
     );
   } 
+
+  Widget existProjectList(){
+    if(projectList.isEmpty) return Container();
+
+    return SizedBox(
+      height: MediaQuery.of(context).size.height/2,
+      child : SingleChildScrollView(
+        child: ListView.builder(
+          shrinkWrap  : true,
+          itemBuilder : (BuildContext context, int index) {
+            Project _proj = projectList[index];
+
+            return Card(
+              color: Colors.grey[400],
+              child : ListTile(
+                title : Text(_proj.name, style: const TextStyle( fontWeight: FontWeight.bold),),
+                // subtitle  : Column(mainAxisSize: MainAxisSize.min, children: body,),
+              ),
+            );
+          },
+          itemCount: projectList.length,
+        )
+      ),
+    );
+  }
 
 
   Widget loginUnit(){
@@ -80,10 +105,12 @@ class _LoginPageWidgetState extends State<LoginPageWidget> {
             widget.dbInstance.loginId = loginNameController.text;
 
             // caramelmama以外許さない（一旦
-            if( loginNameController.text != "caramelmama") return;
+            // TODO: asdf
+            // if( loginNameController.text != "caramelmama") return;
 
             projectList = await widget.dbInstance.getProjectList();
             isEnableLoginId = true;
+            setState(() { });
           }
         ),
         const SizedBox(width: 5,),
@@ -93,8 +120,8 @@ class _LoginPageWidgetState extends State<LoginPageWidget> {
             // TODO: asdf
           }
         ),
-
       ],
     );
+
   }
 }

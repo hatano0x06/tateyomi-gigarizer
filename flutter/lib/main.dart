@@ -30,12 +30,13 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       theme: ThemeData(
         fontFamily: "NotoSansJP",
+        primaryColor: Colors.white,
+        scaffoldBackgroundColor   : Colors.white,
         scrollbarTheme: ScrollbarThemeData(
           showTrackOnHover: true,
           thumbColor      : MaterialStateProperty.all<Color>(const Color.fromARGB(255, 88, 75, 66)),
         ),
         primarySwatch: Colors.blue,
-        scaffoldBackgroundColor: Colors.grey,
       ),
       home: LoginPageWidget(dbInstance: DbImpl(),),
     );
