@@ -1,13 +1,18 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 // ignore: unused_import
 import 'package:tateyomi_gigarizer/db/db_firebase.dart';
 // ignore: unused_import
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
+import 'package:tateyomi_gigarizer/firebase_options.dart';
 import 'package:tateyomi_gigarizer/page/login_page.dart';
 import 'package:url_strategy/url_strategy.dart';
 
-void main() {
+void main() async {
   setPathUrlStrategy();
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform,);
   runApp(const MyApp());
 }
 
@@ -41,6 +46,7 @@ class MyApp extends StatelessWidget {
         ),
         primarySwatch: Colors.blue,
       ),
+      navigatorObservers: [ FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance), ],
       home: LoginPageWidget(dbInstance: DbFireStore(),),
     );
   }

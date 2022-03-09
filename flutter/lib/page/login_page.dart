@@ -133,7 +133,8 @@ class _LoginPageWidgetState extends State<LoginPageWidget> {
             setState(() { });
             projectList.clear();
             isEnableLoginId = false;
-            widget.dbInstance.loginId = loginNameController.text;
+            widget.dbInstance.loginId = "caramelmama";
+            // widget.dbInstance.loginId = loginNameController.text;
 
             // caramelmama以外許さない（一旦
             // TODO: asdf
