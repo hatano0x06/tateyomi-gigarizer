@@ -31,7 +31,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         fontFamily: "NotoSansJP",
         primaryColor: Colors.white,
-        scaffoldBackgroundColor   : Colors.white,
+        scaffoldBackgroundColor   : Colors.grey,
         scrollbarTheme: ScrollbarThemeData(
           showTrackOnHover: true,
           thumbColor      : MaterialStateProperty.all<Color>(const Color.fromARGB(255, 88, 75, 66)),

@@ -43,14 +43,18 @@ class _LoginPageWidgetState extends State<LoginPageWidget> {
         title   : const Text( "ログインページ" ),
       ),
       body: Container(
-        margin  : const EdgeInsets.symmetric(vertical: 50, horizontal: 10),
-        width   : MediaQuery.of(context).size.width/2,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children    : [
-            loginUnit(),
-            existProjectList()
-          ]
+        width   : MediaQuery.of(context).size.width,
+        height  : MediaQuery.of(context).size.height - kToolbarHeight,
+        color   : Colors.white,
+        child : Container(
+          margin  : const EdgeInsets.symmetric(vertical: 50, horizontal: 10),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children    : [
+              loginUnit(),
+              existProjectList()
+            ]
+          ),
         ),
       ),
     );

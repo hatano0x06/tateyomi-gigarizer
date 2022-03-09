@@ -573,6 +573,8 @@ class EditPageState extends State<EditPage> {
       bottomList.add( _frameImage.position.y + _frameImage.rotateSize.y * _frameImage.sizeRate );
     }
 
+    print( bottomList.reduce(math.max).toString() + " : " + widget.project.canvasSize.height.toString() );
+
     return Container(
       width : MediaQuery.of(context).size.width,
       height: bottomList.reduce(math.max) + MediaQuery.of(context).size.height*3/4,
@@ -944,12 +946,12 @@ class EditPageState extends State<EditPage> {
       for (PlatformFile _file in result.files.where((_file) => _file.extension != null && _file.extension == "json").toList()) {
         if(_file.bytes == null) continue;
 
+        // map作成
         Map<int, Map<int, Map<String, int>>> frameStepMap = {};
 
         List<dynamic> jsonData = json.decode(utf8.decode(_file.bytes!)); 
         // List<List<Map<String, dynamic>>> jsonData = json.decode(utf8.decode(_file.bytes!)); 
         // print( jsonData );
-
         jsonData.asMap().forEach((_pageIndex, _pageValueJson) {
           if( !frameStepMap.containsKey(_pageIndex) ) frameStepMap[_pageIndex] = {};
 
@@ -959,23 +961,6 @@ class EditPageState extends State<EditPage> {
           _pageJson.asMap().forEach((_frameIndex, _frameValuejson) {
             Map<String, dynamic> _framejson  = _frameValuejson as Map<String, dynamic>;
             int frameNum = _framejson["FrameNumber"];
-
-            String _imageTitle(){
-              int pageNumCutLength = jsonData.length >= 100 ? -3:-2;
-              String fullPageNum = '00000' + (_pageIndex+1).toString();
-              String cutPageNum  = fullPageNum.substring(fullPageNum.length+pageNumCutLength);
-
-              int frameNumCutLength = _pageJson.length >= 100 ? -3:-2;
-              String fullFrameNum = '00000' + (frameNum+1).toString();
-              String cutFrameNum  = fullFrameNum.substring(fullFrameNum.length+frameNumCutLength);
-
-              return cutPageNum + "p_" + cutFrameNum + ".png";
-            }
-
-            // すでにwebに設定済みのデータがある（読み込み済み）なら、なにもせずに終了
-            int targetFrameIndex = frameImageList.indexWhere((_frameImage) => _frameImage.name == _imageTitle());
-            if( targetFrameIndex < 0 ) return;
-
             if( !frameStepMap[_pageIndex]!.containsKey(frameNum) ) frameStepMap[_pageIndex]![frameNum] = {};
 
             // {SpeakBlockList: [], CornerPoints: [{X: 0, Y: 0}, {X: 502, Y: 0}, {X: 505, Y: 259}, {X: 0, Y: 259}], FrameNumber: 0, StepData: {X: 0, Y: 0, StepNum: 0}}
@@ -1011,11 +996,50 @@ class EditPageState extends State<EditPage> {
           }
         }
         */
-        print( frameStepMap );
 
-        // frameImageList[targetFrameIndex].sizeRate = 1.0; // 仮
-        // frameImageList[targetFrameIndex].position = Point(0, temp * 300);
         // comico設定　https://tips.clip-studio.com/ja-jp/articles/2781#:~:text=%E8%A7%A3%E5%83%8F%E5%BA%A6%E3%81%AF%E5%8D%B0%E5%88%B7%E3%81%AE%E9%9A%9B,%E3%81%99%E3%82%8B%E3%81%93%E3%81%A8%E3%81%8C%E5%A4%9A%E3%81%84%E3%81%A7%E3%81%99%E3%80%82
+        const double defaultCanvasWidth = 690;
+
+        double currentHeight = 0;
+        frameStepMap.forEach((_pageIndex, _frameMap) {
+          _frameMap.forEach((_frameIndex, _frameStepData) {
+            String _imageTitle(){
+              int pageNumCutLength = frameStepMap.length >= 100 ? -3:-2;
+              String fullPageNum = '00000' + (_pageIndex+1).toString();
+              String cutPageNum  = fullPageNum.substring(fullPageNum.length+pageNumCutLength);
+
+              int frameNumCutLength = _frameMap.length >= 100 ? -3:-2;
+              String fullFrameNum = '00000' + (_frameIndex+1).toString();
+              String cutFrameNum  = fullFrameNum.substring(fullFrameNum.length+frameNumCutLength);
+
+              return cutPageNum + "p_" + cutFrameNum + ".png";
+            }
+
+            // すでにwebに設定済みのデータがある（読み込み済み）なら、なにもせずに終了
+            int targetFrameIndex = frameImageList.indexWhere((_frameImage) => _frameImage.name == _imageTitle());
+            if( targetFrameIndex < 0 ) return;
+
+            FrameImage targetFrame = frameImageList[targetFrameIndex];
+
+            // TODO: 配置に関してはこいつを良い感じにする
+            Point<double> calcPos(){
+              // ignore: prefer_const_constructors
+              if( currentHeight == 0 ) return Point(0,0);
+
+              // ignore: prefer_const_constructors
+              return Point(0, currentHeight + 100);
+            }
+            targetFrame.position = calcPos();
+
+            // 枠を超えていた場合は、rateで枠内に収まるようにする
+            if( targetFrame.rotateSize.x > defaultCanvasWidth ) targetFrame.sizeRate = targetFrame.rotateSize.x/defaultCanvasWidth;
+
+            currentHeight = targetFrame.position.y + targetFrame.rotateSize.y * targetFrame.sizeRate;
+          });
+        });
+
+        widget.project.canvasSize = Size(defaultCanvasWidth, currentHeight + 100);
+        setState(() { });
 
         //  ないなら、ファイルを作って保存処理＋自然配置
         continue;
