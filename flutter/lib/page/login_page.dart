@@ -60,7 +60,6 @@ class _LoginPageWidgetState extends State<LoginPageWidget> {
     if(projectList.isEmpty) return Container();
 
     return SizedBox(
-      height: MediaQuery.of(context).size.height/2,
       child : SingleChildScrollView(
         child: ListView.builder(
           shrinkWrap  : true,

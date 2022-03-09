@@ -6,7 +6,6 @@ import 'dart:typed_data';
 import 'package:adaptive_scrollbar/adaptive_scrollbar.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
 import 'package:tateyomi_gigarizer/model/frame_image.dart';
@@ -58,34 +57,22 @@ class EditPageState extends State<EditPage> {
   final TextEditingController downloadController = TextEditingController();
   final FocusNode downloadFocusNode = FocusNode();
 
-  Size canvasSize = Size.zero;
-
   bool showCanvasEdit = false;
 
   @override
   void initState(){
     super.initState();
 
-    SchedulerBinding.instance?.addPostFrameCallback((_){
+    setEditerEvent();
+    getFrameList();
+  }
 
-    // TODO: こいつも外部からの読み込みにする
-      // comico設定　https://tips.clip-studio.com/ja-jp/articles/2781#:~:text=%E8%A7%A3%E5%83%8F%E5%BA%A6%E3%81%AF%E5%8D%B0%E5%88%B7%E3%81%AE%E9%9A%9B,%E3%81%99%E3%82%8B%E3%81%93%E3%81%A8%E3%81%8C%E5%A4%9A%E3%81%84%E3%81%A7%E3%81%99%E3%80%82
-      canvasSize = const Size(
-        690, 2000
-        // 690, 20000
-      );
-      canvasSizeXController.value = canvasSizeXController.value.copyWith( text: canvasSize.width.toString() );
-      canvasSizeYController.value = canvasSizeYController.value.copyWith( text: canvasSize.height.toString() );
+  void setEditerEvent(){
+    canvasSizeXController.value = canvasSizeXController.value.copyWith( text: widget.project.canvasSize.width.toString() );
+    canvasSizeYController.value = canvasSizeYController.value.copyWith( text: widget.project.canvasSize.height.toString() );
 
-      setState(() { });
-    });
-
-    verticalScrollController.addListener(() {
-      setState(() { });
-    });
-    horizonScrollController.addListener(() {
-      setState(() { });
-    });
+    verticalScrollController.addListener(() { setState(() { }); });
+    horizonScrollController.addListener(() { setState(() { }); });
 
     framePosXController.addListener((){
       if(posStringValidate(framePosXController.text) != null ) return;
@@ -133,7 +120,7 @@ class EditPageState extends State<EditPage> {
     canvasSizeXController.addListener((){
       if(posStringValidate(canvasSizeXController.text) != null ) return;
 
-      double preCanvasWidth = canvasSize.width;
+      double preCanvasWidth = widget.project.canvasSize.width;
       double newCanvasWidth = double.parse(canvasSizeXController.text);
 
       if(newCanvasWidth < 100) return;
@@ -145,24 +132,20 @@ class EditPageState extends State<EditPage> {
         _frameImage.sizeRate = _frameImage.sizeRate * changeRate;
       }
 
-      canvasSize = Size(newCanvasWidth, canvasSize.height);
+      widget.project.canvasSize = Size(newCanvasWidth, widget.project.canvasSize.height);
       setState(() { });
     });    
 
     canvasSizeYController.addListener((){
       if(posStringValidate(canvasSizeYController.text) != null ) return;
 
-      canvasSize = Size(canvasSize.width, double.parse(canvasSizeYController.text));
+      widget.project.canvasSize = Size(widget.project.canvasSize.width, double.parse(canvasSizeYController.text));
       setState(() { });
     });    
 
 
     downloadController.value = downloadController.value.copyWith( text: widget.project.downloadName );
-    downloadController.addListener(() {
-      setState(() { });
-    });
-
-    getFrameList();
+    downloadController.addListener(() { setState(() { }); });
   }
 
   @override
@@ -212,7 +195,7 @@ class EditPageState extends State<EditPage> {
           child : outsideGraySpace(),
         ) : Container(),
         horizonScrollController.hasClients ? Positioned(
-          left  : -horizonScrollController.position.pixels + canvasSize.width + sideSpaceWidth(),
+          left  : -horizonScrollController.position.pixels + widget.project.canvasSize.width + sideSpaceWidth(),
           child : outsideGraySpace(),
         ) : Container(),
         focusDetailSettingBox(),
@@ -309,7 +292,7 @@ class EditPageState extends State<EditPage> {
 
               for (FrameImage _frameImage in frameImageList) {
                 _frameImage.position = Point(
-                  (canvasSize.width - (_frameImage.position.x + _frameImage.rotateSize.x * _frameImage.sizeRate)), 
+                  (widget.project.canvasSize.width - (_frameImage.position.x + _frameImage.rotateSize.x * _frameImage.sizeRate)), 
                   _frameImage.position.y
                 );
               }
@@ -354,7 +337,7 @@ class EditPageState extends State<EditPage> {
             onPressed: (){
               if( frameImageList.isEmpty ) return;
 
-              CanvasToImage(frameImageList, canvasSize).download(downloadController.text);
+              CanvasToImage(frameImageList, widget.project.canvasSize).download(downloadController.text);
             },
           ),
           IconButton(
@@ -391,7 +374,7 @@ class EditPageState extends State<EditPage> {
 
     return Positioned(
       top   : 20,
-      left  : sideSpaceWidth() + canvasSize.width - horizonScrollController.position.pixels + 20,
+      left  : sideSpaceWidth() + widget.project.canvasSize.width - horizonScrollController.position.pixels + 20,
       child: Container(
         width: 300,
         decoration: BoxDecoration(
@@ -442,7 +425,7 @@ class EditPageState extends State<EditPage> {
 
     return Positioned(
       top   : 20,
-      left  : sideSpaceWidth() + canvasSize.width - horizonScrollController.position.pixels + 20,
+      left  : sideSpaceWidth() + widget.project.canvasSize.width - horizonScrollController.position.pixels + 20,
       child: Container(
         width: 300,
         decoration: BoxDecoration(
@@ -478,7 +461,7 @@ class EditPageState extends State<EditPage> {
               Container(
                 padding   : const EdgeInsets.symmetric(vertical: 10),
                 alignment : Alignment.centerLeft,
-                child : Text("右端からの距離 : " + (canvasSize.width - (focusFrame!.position.x + focusFrame!.size.x * focusFrame!.sizeRate)).toString() ),
+                child : Text("右端からの距離 : " + (widget.project.canvasSize.width - (focusFrame!.position.x + focusFrame!.size.x * focusFrame!.sizeRate)).toString() ),
               ),
               Align(
                 alignment : Alignment.centerLeft,
@@ -503,6 +486,7 @@ class EditPageState extends State<EditPage> {
   }
 
   bool isImageLoaded(){
+    if( widget.project.canvasSize == Size.zero ) return false;
     return frameImageList.where((_frameImage) => _frameImage.byteData != null).isNotEmpty;
   }
 
@@ -514,10 +498,10 @@ class EditPageState extends State<EditPage> {
       );
 
 
-      return math.max( (realWindowSize.width - canvasSize.width)/2, 0);
+      return math.max( (realWindowSize.width - widget.project.canvasSize.width)/2, 0);
     }
 
-    return math.max( (MediaQuery.of(context).size.width - canvasSize.width)/2, 0);
+    return math.max( (MediaQuery.of(context).size.width - widget.project.canvasSize.width)/2, 0);
   }  
 
   List<Widget> _canvasBody(){
@@ -539,23 +523,23 @@ class EditPageState extends State<EditPage> {
           Container(
             color: Colors.grey,
             width : sideSpaceWidth(),
-            height: canvasSize.height,
+            height: widget.project.canvasSize.height,
           ),
           Container(
-            width : canvasSize.width,
-            height: canvasSize.height,
+            width : widget.project.canvasSize.width,
+            height: widget.project.canvasSize.height,
             color: Colors.white,
           ),
           Container(
             color: Colors.grey,
             width : sideSpaceWidth(),
-            height: canvasSize.height,
+            height: widget.project.canvasSize.height,
           ),
         ],
       ),
     );
 
-    Point<double> _dragPointPos = Point(canvasSize.width/2, canvasSize.height);
+    Point<double> _dragPointPos = Point(widget.project.canvasSize.width/2, widget.project.canvasSize.height);
 
     double ballDiameter = 20.0;
 
@@ -573,7 +557,7 @@ class EditPageState extends State<EditPage> {
           },
           onDrag      : (dragPos) {
             Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
-            canvasSize = Size(canvasSize.width, canvasDragPos.y);
+            widget.project.canvasSize = Size(widget.project.canvasSize.width, canvasDragPos.y);
             setState(() { });
           },
         ),
@@ -584,7 +568,7 @@ class EditPageState extends State<EditPage> {
   Widget _backGroundBody(){
     if( !isImageLoaded() ) return Container();
 
-    List<double> bottomList = [canvasSize.height];
+    List<double> bottomList = [widget.project.canvasSize.height];
     for (FrameImage _frameImage in frameImageList) {
       bottomList.add( _frameImage.position.y + _frameImage.rotateSize.y * _frameImage.sizeRate );
     }
@@ -918,8 +902,8 @@ class EditPageState extends State<EditPage> {
       if(result == null) return;
 
       // 画像読み込み
-      for (PlatformFile _file in result.files.where((_file) => _file.extension != null && _file.extension == "png").toList()) {
-        if(_file.bytes == null) continue;
+      await Future.forEach(result.files.where((_file) => _file.extension != null && _file.extension == "png").toList(), (PlatformFile _file) async {
+        if(_file.bytes == null) return;
 
         Future<ui.Image> _loadImage(Uint8List _charThumbImg) async {
           final Completer<ui.Image> completer = Completer();
@@ -937,40 +921,44 @@ class EditPageState extends State<EditPage> {
           frameImage.byteData = _file.bytes;
           frameImage.size = Point(_image.width.toDouble(), _image.height.toDouble());
         } catch(e){
-          // TODO: asdf
-          // frameImageList.add(
-          //   FrameImage(
-          //     dbInstance  : widget.dbInstance,
-          //     byteData    : _file.bytes, 
-          //     name        : _file.name,
-          //     angle       : 0,
-          //     sizeRate    : -1.0,
-          //     position    : const Point<double>(0,0),
-          //     size        : Point(_image.width.toDouble(), _image.height.toDouble())
-          //   )
-          // );
+          FrameImage newImage = FrameImage(
+            dbInstance  : widget.dbInstance,
+            project     : widget.project,
+            dbIndex     : "",
+            byteData    : _file.bytes, 
+            name        : _file.name,
+            angle       : 0,
+            sizeRate    : 1.0,
+            position    : const Point<double>(0,0),
+            size        : Point(_image.width.toDouble(), _image.height.toDouble())
+          );
+          newImage.save();
+
+          frameImageList.add( newImage );
         }
-
-        setState(() { });
-
-        continue;
-      }
+      });
+      
+      setState(() { });
 
       // 設定読み込み
       for (PlatformFile _file in result.files.where((_file) => _file.extension != null && _file.extension == "json").toList()) {
         if(_file.bytes == null) continue;
 
+        Map<int, Map<int, Map<String, int>>> frameStepMap = {};
+
         List<dynamic> jsonData = json.decode(utf8.decode(_file.bytes!)); 
         // List<List<Map<String, dynamic>>> jsonData = json.decode(utf8.decode(_file.bytes!)); 
         // print( jsonData );
 
-        // TODO: こいつできたら消す
-        int temp = 0;
         jsonData.asMap().forEach((_pageIndex, _pageValueJson) {
+          if( !frameStepMap.containsKey(_pageIndex) ) frameStepMap[_pageIndex] = {};
+
           List<dynamic> _pageJson  = _pageValueJson as List<dynamic>;
 
           // print( "frameNum in Page : $_pageIndex" );
           _pageJson.asMap().forEach((_frameIndex, _frameValuejson) {
+            Map<String, dynamic> _framejson  = _frameValuejson as Map<String, dynamic>;
+            int frameNum = _framejson["FrameNumber"];
 
             String _imageTitle(){
               int pageNumCutLength = jsonData.length >= 100 ? -3:-2;
@@ -978,7 +966,7 @@ class EditPageState extends State<EditPage> {
               String cutPageNum  = fullPageNum.substring(fullPageNum.length+pageNumCutLength);
 
               int frameNumCutLength = _pageJson.length >= 100 ? -3:-2;
-              String fullFrameNum = '00000' + (_frameIndex+1).toString();
+              String fullFrameNum = '00000' + (frameNum+1).toString();
               String cutFrameNum  = fullFrameNum.substring(fullFrameNum.length+frameNumCutLength);
 
               return cutPageNum + "p_" + cutFrameNum + ".png";
@@ -986,49 +974,54 @@ class EditPageState extends State<EditPage> {
 
             // すでにwebに設定済みのデータがある（読み込み済み）なら、なにもせずに終了
             int targetFrameIndex = frameImageList.indexWhere((_frameImage) => _frameImage.name == _imageTitle());
-
             if( targetFrameIndex < 0 ) return;
-            if( frameImageList[targetFrameIndex].sizeRate > 0 ) return;
-  
-            // TODO: canvas
-            frameImageList[targetFrameIndex].sizeRate = 1.0; // 仮
-            frameImageList[targetFrameIndex].position = Point(0, temp * 300);
 
-            temp++;
+            if( !frameStepMap[_pageIndex]!.containsKey(frameNum) ) frameStepMap[_pageIndex]![frameNum] = {};
+
+            // {SpeakBlockList: [], CornerPoints: [{X: 0, Y: 0}, {X: 502, Y: 0}, {X: 505, Y: 259}, {X: 0, Y: 259}], FrameNumber: 0, StepData: {X: 0, Y: 0, StepNum: 0}}
+            // print(_framejson);
+
+            frameStepMap[_pageIndex]![frameNum] = {
+              "x" :_framejson["StepData"]["X"],
+              "y" :_framejson["StepData"]["Y"],
+              "step" :_framejson["StepData"]["StepNum"],
+            };
+
             setState(() { });
 
-            // Map<String, dynamic> _framejson  = _frameValuejson as Map<String, dynamic>;
-            // frameImageList[targetFrameIndex].position
-            // frameImageList[targetFrameIndex].sizeRate
           });
         });
+
+        /*
+        {
+          0: {
+            0: {x: 0, y: 0, step: 0}, 
+            1: {x: 0, y: 0, step: 1}, 
+            2: {x: 0, y: 0, step: 2}, 
+            3: {x: 1, y: 0, step: 2}, 
+            4: {x: 2, y: 0, step: 2}
+          }, 
+          1: {
+            0: {x: 0, y: 0, step: 0}, 
+            1: {x: 0, y: 0, step: 1}, 
+            2: {x: 1, y: 0, step: 1}, 
+            3: {x: 0, y: 0, step: 2}, 
+            4: {x: 1, y: 0, step: 2}, 
+            5: {x: 2, y: 0, step: 2}
+          }
+        }
+        */
+        print( frameStepMap );
+
+        // frameImageList[targetFrameIndex].sizeRate = 1.0; // 仮
+        // frameImageList[targetFrameIndex].position = Point(0, temp * 300);
+        // comico設定　https://tips.clip-studio.com/ja-jp/articles/2781#:~:text=%E8%A7%A3%E5%83%8F%E5%BA%A6%E3%81%AF%E5%8D%B0%E5%88%B7%E3%81%AE%E9%9A%9B,%E3%81%99%E3%82%8B%E3%81%93%E3%81%A8%E3%81%8C%E5%A4%9A%E3%81%84%E3%81%A7%E3%81%99%E3%80%82
 
         //  ないなら、ファイルを作って保存処理＋自然配置
         continue;
       }
     });
   }  
-
-  // Widget inputFileButton(){
-  //   Widget button = ElevatedButton.icon(
-  //     icon    : const Icon(Icons.file_open),
-  //     label   : const Text('画像・ファイルの読み込み'),
-  //     onPressed: () async { 
-  //       FilePickerResult? result = await FilePicker.platform.pickFiles(
-  //         allowMultiple     : true,
-  //         type              : FileType.custom,
-  //         allowedExtensions : ['png', 'json'],
-  //       );
-
-  //       if(result == null) return; 
-
-
-
-  //   return Padding(
-  //     padding: const EdgeInsets.only(top: 200),
-  //     child : button,
-  //   );
-  // }
 
   Point<double> canvasToGlobalPos(Point<double> _pos){
     Offset _offsetSize = Offset(
