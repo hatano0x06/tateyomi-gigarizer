@@ -17,7 +17,6 @@ void main() async {
 }
 
 // TODO: 縦読みの機能（２１日まで
-//  - firebase連携
 //  - スマホ連携
 
 // TODO: オプション
