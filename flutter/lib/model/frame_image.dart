@@ -23,21 +23,35 @@ class FrameImage{
 
   FrameImage(
     {
+      // 保存周りに必要な奴
       required this.dbInstance, 
       required this.project, 
       required this.dbIndex, 
+
+      // 保存変数
       required this.name, 
       required this.sizeRate, 
       required this.position, 
       required this.angle, 
 
+      // ファイルから後でわかるやつ
       required this.byteData, 
       required this.size, 
     }
   );
 
-   Map<String, dynamic> toJson(){
-     return {
+  Map<String, dynamic> toDbJson(){
+    return {
+      'name'        : name,
+      'angle'       : angle,
+      'position_x'    : position.x,
+      'position_y'    : position.y,
+      'size_rate'    : sizeRate,
+    };
+  }
+
+  Map<String, dynamic> toDownloadJson(){
+    return {
       'angle'       : angle,
       'position'    : { "x" : position.x, "y" : position.y },
       'size'        : { "width" : size.x * sizeRate, "height" : size.y * sizeRate },

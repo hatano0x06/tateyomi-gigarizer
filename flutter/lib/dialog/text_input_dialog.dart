@@ -65,6 +65,8 @@ class _TextInputDialogState extends State<TextInputDialog> {
 
 
   Widget textInput(){
+
+    // TODO: "/"はダメ
     Widget inputField = TextFormField(
       controller: _textEditingController,
       autofocus: true,

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+// ignore: unused_import
+import 'package:tateyomi_gigarizer/db/db_firebase.dart';
+// ignore: unused_import
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
 import 'package:tateyomi_gigarizer/page/login_page.dart';
 import 'package:url_strategy/url_strategy.dart';
@@ -38,7 +41,7 @@ class MyApp extends StatelessWidget {
         ),
         primarySwatch: Colors.blue,
       ),
-      home: LoginPageWidget(dbInstance: DbImpl(),),
+      home: LoginPageWidget(dbInstance: DbFireStore(),),
     );
   }
 }

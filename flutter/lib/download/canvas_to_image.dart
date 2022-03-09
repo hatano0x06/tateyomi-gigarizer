@@ -20,7 +20,7 @@ class CanvasToImage{
     for (FrameImage _frameImage in frameImageList) {
       if( _frameImage.byteData == null )  continue;
       if(_frameImage.sizeRate <= 0.0)     continue;
-      frameImageJsonList.add(_frameImage.toJson());
+      frameImageJsonList.add(_frameImage.toDownloadJson());
     }
 
     javascript.context.callMethod('saveCanvas', [jsonEncode(frameImageJsonList), canvasSize.width, canvasSize.height,  fileName + ".png"]);  
