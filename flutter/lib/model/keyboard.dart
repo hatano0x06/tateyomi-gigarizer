@@ -18,7 +18,7 @@ class KeyBoardShortcuts extends StatefulWidget {
 
   /// Function when keys are pressed
   final Function(int shortCutIndex) onKeysPressed;
-  final Function(int shortCutIndex) onKeysUp;
+  final Function() onKeysUp;
 
   const KeyBoardShortcuts({
     required this.keysToPressList, 
@@ -88,10 +88,7 @@ class _KeyBoardShortcuts extends State<KeyBoardShortcuts> {
 
     Set<LogicalKeyboardKey> userKeysPressed = RawKeyboard.instance.keysPressed;
     if (v.runtimeType == RawKeyUpEvent) {
-      widget.keysToPressList.asMap().forEach((_keysToPressIndex, _commandKeysToPress) {
-        bool _isPressed = _pressedKey(userKeysPressed, _commandKeysToPress);
-        if( _isPressed ) widget.onKeysPressed(_keysToPressIndex);
-      });
+      widget.onKeysUp();
     }
 
     if (v.runtimeType == RawKeyDownEvent) {

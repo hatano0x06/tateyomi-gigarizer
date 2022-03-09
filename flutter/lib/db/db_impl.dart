@@ -1,4 +1,6 @@
 
+// ignore_for_file: dead_code
+
 // コマデータ
 import 'dart:math';
 
