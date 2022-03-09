@@ -9,7 +9,7 @@ void main() {
 }
 
 // TODO: 縦読みの機能（２１日まで
-//  - 保存機能（ログイン
+//  - firebase連携
 //  - スマホ連携
 //  - firebase反映
 

@@ -68,7 +68,7 @@ class _TextInputDialogState extends State<TextInputDialog> {
     Widget inputField = TextFormField(
       controller: _textEditingController,
       autofocus: true,
-      decoration: InputDecoration( labelText: "タイトル", ),
+      decoration: const InputDecoration( labelText: "タイトル", ),
     );
 
     return Padding(
