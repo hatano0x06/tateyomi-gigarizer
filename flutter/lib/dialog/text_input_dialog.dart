@@ -20,7 +20,10 @@ class _TextInputDialogState extends State<TextInputDialog> {
     super.initState(); 
 
     _textEditingController = TextEditingController(text: widget.defaultInput);
-    _textEditingController.addListener((){ _textEditingController.value = _textEditingController.value.copyWith( text: _textEditingController.text); });
+    _textEditingController.addListener((){ 
+      _textEditingController.value = _textEditingController.value.copyWith( text: _textEditingController.text);
+      setState(() { });
+    });
   }
 
   @override
@@ -48,7 +51,7 @@ class _TextInputDialogState extends State<TextInputDialog> {
         ),
         ElevatedButton(
           child: const Text("決定"),
-          onPressed: (){
+          onPressed: titleStringValidate(_textEditingController.text) != null ? null : (){
             Navigator.of(context, rootNavigator: true).pop(_textEditingController.text);
           },
         ),
@@ -65,12 +68,12 @@ class _TextInputDialogState extends State<TextInputDialog> {
 
 
   Widget textInput(){
-
-    // TODO: "/"はダメ
     Widget inputField = TextFormField(
-      controller: _textEditingController,
-      autofocus: true,
-      decoration: const InputDecoration( labelText: "タイトル", ),
+      autovalidateMode: AutovalidateMode.always,
+      controller      : _textEditingController,
+      autofocus       : true,
+      decoration      : const InputDecoration( labelText: "タイトル", ),
+      validator    : titleStringValidate,
     );
 
     return Padding(
@@ -80,4 +83,11 @@ class _TextInputDialogState extends State<TextInputDialog> {
   }
 
 
+  String? titleStringValidate(String? posString){
+    if(posString == null ) return null;
+    if(posString.isEmpty) return "何か入力して下さい";
+    if(posString.contains("/")) return "/ は許可されていません";
+
+    return null;
+  }
 }
