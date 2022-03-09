@@ -42,9 +42,11 @@ class Project{
   }
 
   Future<void> _insertSave() async {
+    dbInstance.insertProject(this);
   }
 
   Future<void> _updateSave() async {
+    dbInstance.updateProject(this);
   }
 
 }

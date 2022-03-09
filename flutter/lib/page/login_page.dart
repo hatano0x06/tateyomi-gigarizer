@@ -138,6 +138,7 @@ class _LoginPageWidgetState extends State<LoginPageWidget> {
 
             // caramelmama以外許さない（一旦
             // TODO: asdf
+            //  firebaseのセキュリティのほうでも制限かかっているので、注意
             // if( loginNameController.text != "caramelmama") return;
 
             projectList = await widget.dbInstance.getProjectList();

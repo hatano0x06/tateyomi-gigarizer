@@ -79,9 +79,11 @@ class FrameImage{
   }
 
   Future<void> _insertSave() async {
+    dbInstance.insertFrame(this);
   }
 
   Future<void> _updateSave() async {
+    dbInstance.updateFrame(this);
   }
 
 }

@@ -124,7 +124,7 @@ class DbFireStore implements DbImpl {
 
   @override
   Future<String> insertProject(Project _insertProj) async {
-    _insertProj.dbIndex = _getUniqueId(_insertProj.name);
+    _insertProj.dbIndex = _getUniqueId("project");
     baseProjRef().doc(_insertProj.dbIndex).set( _insertProj.toDbJson() );
     return _insertProj.dbIndex;
   }
@@ -237,10 +237,15 @@ class DbFireStore implements DbImpl {
 
   @override
   Future<String> insertFrame(FrameImage _insertFrame) async {
-    _insertFrame.dbIndex = DateTime.now().millisecondsSinceEpoch.toString() + "_frame";
+    _insertFrame.dbIndex = _getUniqueId("frame");
+    baseFrameRef(_insertFrame.project).doc(_insertFrame.dbIndex).set( _insertFrame.toDbJson() );
     return _insertFrame.dbIndex;
   }
 
   @override
-  Future<void> updateFrame(FrameImage _updateFrame) async { }
+  Future<void> updateFrame(FrameImage _updateFrame) async {
+    if( _updateFrame.dbIndex.isEmpty ) return;
+
+    baseFrameRef(_updateFrame.project).doc(_updateFrame.dbIndex).update( _updateFrame.toDbJson() );
+  }
 }
