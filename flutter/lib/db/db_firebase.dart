@@ -84,9 +84,6 @@ class DbFireStore implements DbImpl {
 
         // 追加
         if(_doc.type == DocumentChangeType.added){
-          int projIndex = _cachedProjectList[baseProjRef().path]!.indexWhere((_cacheProj) => _cacheProj.dbIndex == _changeProject.dbIndex );
-          if( projIndex >= 0 ) return;
-
           List<Project> storedProject = _cachedProjectList[baseProjRef().path]!.where( (_cacheProj){ return ( _cacheProj.dbIndex.isEmpty || _cacheProj.dbIndex == _changeProject.dbIndex ); } ).toList();
           if(storedProject.isNotEmpty) return;   // すでにある場合は、なにもしない
 
@@ -138,34 +135,104 @@ class DbFireStore implements DbImpl {
 
     baseProjRef().doc(_updateProj.dbIndex).update( _updateProj.toDbJson() );
   }
+  
+  static const String _frameCollection = 'frame';
+  CollectionReference baseFrameRef(Project _proj){ return baseProjRef().doc(_proj.dbIndex).collection(_frameCollection); }
+
+  final Map<Project, List<FrameImage>> _cachedFrameList = {};
 
   @override
   Future<List<FrameImage>> getFrameList(Project _proj) async {
-    return [
-      FrameImage(
-        dbIndex     : "aaaa",
-        project     : _proj,
-        dbInstance  : this,
-        name        : "01p_01.png",
-        angle       : 0,
-        sizeRate    : 1.0,
-        position    : const Point<double>(0,0),
-        size        : const Point(200,200),
-        byteData    : null, 
-      ),
-      FrameImage(
-        dbIndex     : "aaaa",
-        project     : _proj,
-        dbInstance  : this,
-        name        : "01p_02.png",
-        angle       : 1,
-        sizeRate    : 1.0,
-        position    : const Point<double>(100,100),
-        size        : const Point(200,200),
-        byteData    : null, 
-      ),
+    if(!_cachedFrameList.containsKey( _proj )) _cachedFrameList[_proj] = [];
 
-    ];
+    if(_cachedFrameList[_proj]!.isNotEmpty) return _cachedFrameList[_proj]!;
+
+    FrameImage createFrameModel(DocumentSnapshot _snapDoc, ){
+      Map<String, dynamic> snapData = (_snapDoc.data() as Map<String, dynamic>);
+
+      FrameImage addFrameImage = FrameImage(
+        dbInstance  : this,
+        project     : _proj,
+        dbIndex     : _snapDoc.id,
+        name        : snapData["name"] ?? "",
+        sizeRate    : snapData["size_rate"]  ?? 1.0,
+        position    : Point<double>( snapData["position_x"] ?? 0, snapData["position_y"] ?? 0, ),
+        angle       : snapData["angle"] ?? 0,
+        byteData    : null,
+        size        : const Point<double>(0,0),
+      );
+      return addFrameImage;
+    }
+
+    QuerySnapshot frameDocSnapShot = await baseFrameRef(_proj).get();
+
+    for (QueryDocumentSnapshot<Object?> frameDoc in frameDocSnapShot.docs) {
+      FrameImage  _addFrame = createFrameModel(frameDoc);
+
+      int frameIndex = _cachedFrameList[_proj]!.indexWhere((_cacheFrame) => _cacheFrame.dbIndex == _addFrame.dbIndex );
+      if( frameIndex >= 0 ) continue;
+
+      _cachedFrameList[_proj]!.add(_addFrame);
+    }
+
+    if(snapShotList.contains(baseFrameRef(_proj).path)) return _cachedFrameList[_proj]!;
+    snapShotList.add(baseFrameRef(_proj).path);
+
+    baseFrameRef(_proj).snapshots().listen((data){
+      // if(_cachedProjectList[_loginId]!.isNotEmpty) return _cachedProjectList[_loginId]!;
+
+      bool isUpdate = false;
+      for (DocumentChange<Object?> _doc in data.docChanges) {
+        FrameImage _changeFrame = createFrameModel(_doc.doc);
+
+        // // 削除
+        // if(_doc.type == DocumentChangeType.removed){
+          
+        //   return;
+        // }
+
+        // 追加
+        if(_doc.type == DocumentChangeType.added){
+          List<FrameImage> storedFrame = _cachedFrameList[_proj]!.where( (_cacheFrame){ return ( _cacheFrame.dbIndex.isEmpty || _cacheFrame.dbIndex == _changeFrame.dbIndex ); } ).toList();
+          if(storedFrame.isNotEmpty) return;   // すでにある場合は、なにもしない
+
+          _cachedFrameList[_proj]!.add(_changeFrame);
+
+          isUpdate = true;
+          return;
+        }        
+
+        // 更新
+        List<FrameImage> storedFrame = _cachedFrameList[_proj]!.where( (_cacheFrame){ return ( _cacheFrame.dbIndex == _changeFrame.dbIndex ); } ).toList();
+        if( storedFrame.isEmpty ) return;
+
+        FrameImage storedChangedFrame = storedFrame.first;
+
+        bool isChanged(dynamic a, dynamic b){
+          if( a != b) isUpdate = true;
+          return a != b;
+        }
+
+      // required this.name, 
+      // required this.sizeRate, 
+      // required this.position, 
+      // required this.angle, 
+
+        if( isChanged(storedChangedFrame.name, _changeFrame.name ) ) storedChangedFrame.name  = _changeFrame.name;
+        if( isChanged(storedChangedFrame.sizeRate, _changeFrame.sizeRate ) ) storedChangedFrame.sizeRate  = _changeFrame.sizeRate;
+        if( isChanged(storedChangedFrame.position.x, _changeFrame.position.x ) ) storedChangedFrame.position  = _changeFrame.position;
+        if( isChanged(storedChangedFrame.position.y, _changeFrame.position.y ) ) storedChangedFrame.position  = _changeFrame.position;
+        if( isChanged(storedChangedFrame.angle, _changeFrame.angle ) ) storedChangedFrame.angle  = _changeFrame.angle;
+      }
+
+      // TODO : asdf
+      if(isUpdate) print(" update frame ");
+      // if(isUpdate) reBuildMemolist(isUpdateImage);
+
+      return;
+    },);
+
+    return _cachedFrameList[_proj]!;
   }
 
   @override
