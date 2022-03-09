@@ -1,4 +1,4 @@
-
+import 'package:tateyomi_gigarizer/db/db_impl.dart';
 // コマデータ
 import 'dart:math';
 
@@ -6,12 +6,16 @@ import 'package:flutter/material.dart';
 import 'package:tateyomi_gigarizer/model/frame_image.dart';
 import 'package:tateyomi_gigarizer/model/project.dart';
 
-class DbImpl{
+class DbFireStore implements DbImpl {  
   static String _loginId = "";
 
+  @override
   String get loginId{ return _loginId; }
+
+  @override
   set loginId(_text){ _loginId = _text; }
 
+  @override
   Future<List<Project>> getProjectList() async {
     return [
       Project(
@@ -26,14 +30,18 @@ class DbImpl{
 
     ];
   }
+
+  @override
   Future<String> insertProject(Project _insertProj) async {
     _insertProj.dbIndex = DateTime.now().millisecondsSinceEpoch.toString() + "_proj";
     return _insertProj.dbIndex;
   }
+
+  @override
   Future<void> updateProject(Project _updateProj) async { }
 
 
-
+  @override
   Future<List<FrameImage>> getFrameList(Project _proj) async {
     return [
       FrameImage(
@@ -61,10 +69,13 @@ class DbImpl{
 
     ];
   }
+
+  @override
   Future<String> insertFrame(FrameImage _insertFrame) async {
     _insertFrame.dbIndex = DateTime.now().millisecondsSinceEpoch.toString() + "_frame";
     return _insertFrame.dbIndex;
   }
 
+  @override
   Future<void> updateFrame(FrameImage _updateFrame) async { }
 }
