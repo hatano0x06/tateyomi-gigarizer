@@ -134,12 +134,12 @@ class _LoginPageWidgetState extends State<LoginPageWidget> {
             projectList.clear();
             isEnableLoginId = false;
             widget.dbInstance.loginId = "caramelmama";
-            // widget.dbInstance.loginId = loginNameController.text;
 
             // caramelmama以外許さない（一旦
             // TODO: asdf
             //  firebaseのセキュリティのほうでも制限かかっているので、注意
             // if( loginNameController.text != "caramelmama") return;
+            // widget.dbInstance.loginId = loginNameController.text;
 
             projectList = await widget.dbInstance.getProjectList();
             isEnableLoginId = true;
