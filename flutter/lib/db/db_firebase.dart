@@ -254,4 +254,7 @@ class DbFireStore implements DbImpl {
 
     baseFrameRef(_updateFrame.project).doc(_updateFrame.dbIndex).update( _updateFrame.toDbJson() );
   }
+
+  @override
+  bool get isTest{ return false; }
 }

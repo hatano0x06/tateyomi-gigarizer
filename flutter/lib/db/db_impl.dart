@@ -80,4 +80,6 @@ class DbImpl{
   }
 
   Future<void> updateFrame(FrameImage _updateFrame) async { }
+
+  bool get isTest{ return true; }
 }
