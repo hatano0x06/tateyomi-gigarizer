@@ -646,7 +646,26 @@ class EditPageState extends State<EditPage> {
   Point<double> dragStartLeftTopPos = const Point(0,0);
   Point<double> dragStartRightBottomPos = const Point(0,0);
   List<Widget> _frameWidgetList(FrameImage _frameData){
-    if( draggingFrame != null ) return [ _frameDraggingWidget(_frameData) ];
+    Widget _frameColorWidget(Color _color){
+      return Positioned(
+        left  : canvasToGlobalPos(_frameData.position).x-2,
+        top   : canvasToGlobalPos(_frameData.position).y-2,
+        child : Container(
+          decoration: BoxDecoration(
+            color: Colors.transparent,
+            border: Border.all( color: _color.withAlpha(200), width: 4 )
+          ),
+          width   : _frameData.rotateSize.x * _frameData.sizeRate+4,
+          height  : _frameData.rotateSize.y * _frameData.sizeRate+4,
+        )
+      );
+    }
+
+
+    if( draggingFrame != null ){
+      if( draggingFrame == _frameData ) return [ _frameColorWidget(Colors.blue), _frameDraggingWidget(_frameData) ];
+      return [ _frameDraggingWidget(_frameData) ];
+    }
 
     void tempSavePos(){
       dragStartLeftTopPos     = _frameData.position;
@@ -835,20 +854,6 @@ class EditPageState extends State<EditPage> {
       ),
     ];
 
-    Widget _frameColorWidget(Color _color){
-      return Positioned(
-        left  : canvasToGlobalPos(_frameData.position).x-2,
-        top   : canvasToGlobalPos(_frameData.position).y-2,
-        child : Container(
-          decoration: BoxDecoration(
-            color: Colors.transparent,
-            border: Border.all( color: _color.withAlpha(200), width: 4 )
-          ),
-          width   : _frameData.rotateSize.x * _frameData.sizeRate+4,
-          height  : _frameData.rotateSize.y * _frameData.sizeRate+4,
-        )
-      );
-    }
 
     // focusしているときは、青い四角い枠をつける
     if( focusFrame == _frameData) _frameWidgetList.insert(0, _frameColorWidget(Colors.blue) );
@@ -889,7 +894,17 @@ class EditPageState extends State<EditPage> {
     }
 
     Point<double> stickyPosition(FrameImage frameImage, Point<double> diffPosition){
-      return initFramePosition + diffPosition;
+      double stricyArea = 10;
+      Point<double> newFramePos =  initFramePosition + diffPosition;
+
+      if( newFramePos.x.abs() < stricyArea ) newFramePos = Point(0, newFramePos.y);
+      if( newFramePos.y.abs() < stricyArea ) newFramePos = Point(newFramePos.x, 0);
+
+      Size frameWidth = Size( frameImage.rotateSize.x * frameImage.sizeRate, frameImage.rotateSize.y * frameImage.sizeRate);
+      if( (widget.project.canvasSize.width  -  (newFramePos.x + frameWidth.width) ).abs() < stricyArea ) newFramePos = Point(widget.project.canvasSize.width - frameWidth.width, newFramePos.y);
+      if( (widget.project.canvasSize.height -  (newFramePos.y + frameWidth.height)).abs() < stricyArea ) newFramePos = Point(newFramePos.x, widget.project.canvasSize.height - frameWidth.height, );
+
+      return newFramePos;
     }
     
 
@@ -898,14 +913,11 @@ class EditPageState extends State<EditPage> {
       child   : GestureDetector(
         child: frameWidgetUnit( draggingFrame == _frameData),
         onPanStart: (DragStartDetails _dragStart){
-          print( "pan start : " + _dragStart.globalPosition.toString() );
           // diffPos = Offset.zero; 
           // showDiffPos = Offset.zero;
 
           initFramePosition = _frameData.position;
           initDragFramePosition  = dragGlobalToCanvasPos(_dragStart.globalPosition);
-
-          print( "pan start : " + initFramePosition.toString() + " : " + initDragFramePosition.toString() );
 
           draggingFrame = _frameData;
 
@@ -932,8 +944,6 @@ class EditPageState extends State<EditPage> {
           draggingFrame!.position = stickyDiffPos;
           draggingFrame?.save();
 
-          print( stickyDiffPos.toString() + " : " + initDragFramePosition.toString() + " | " + (draggingFrame!.position - initDragFramePosition).toString() );
-
           for (FrameImage _depandFrame in focusFrameDependList) {
             _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y + (draggingFrame!.position - initFramePosition).y);
             _depandFrame.save();
@@ -946,8 +956,6 @@ class EditPageState extends State<EditPage> {
 
           draggingFrame = null;
           setState(() { });
-
-          // TODO: focusしたままにする
 
           // print( "pan end ");
         },
