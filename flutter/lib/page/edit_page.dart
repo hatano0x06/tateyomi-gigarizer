@@ -19,6 +19,9 @@ import 'dart:ui' as ui;
 import 'dart:math' as math;
 import 'dart:convert';
 
+// TODO: left, right, top, bottom
+// TODO: drag, sizeRate
+
 class EditPage extends StatefulWidget {
   final DbImpl dbInstance;
   final Project project;
@@ -858,6 +861,9 @@ class EditPageState extends State<EditPage> {
 
   // コマの表示（ドラッグ
   FrameImage? draggingFrame;
+  Point<double> initFramePosition     = const Point(0,0);
+  Point<double> initDragFramePosition = const Point(0,0);
+  Point<double> currentDragFramePosition = const Point(0,0);
   Widget _frameDraggingWidget(FrameImage _frameData){
     frameWidgetUnit(bool _isDragging){
       return RotatedBox(
@@ -875,57 +881,67 @@ class EditPageState extends State<EditPage> {
       );
     }
 
-    Widget draggableWidget = Draggable(
-      child             : frameWidgetUnit(false),
-      childWhenDragging : frameWidgetUnit(true),
-      feedback          : frameWidgetUnit(true),
-      onDragStarted: (){
-        draggingFrame = _frameData;
-
-        focusFrameDependList.clear();
-        if(RawKeyboard.instance.keysPressed.where((_pressd) => _pressd.keyLabel == LogicalKeyboardKey.controlLeft.keyLabel).isNotEmpty){
-          focusFrameDependList = frameImageList.where((_frame) => _frame.position.y > draggingFrame!.position.y ).toList();
-        }
-
-        setState(() { });
-      },
-      onDraggableCanceled: (_, _offset){
-
-        double prePosY = draggingFrame!.position.y;
-        double preSizeRate = draggingFrame!.sizeRate;
-
-        draggingFrame!.position = Point<double>(
-          globalToCanvasPos(Point<double>(_offset.dx, _offset.dy)).x, 
-          globalToCanvasPos(Point<double>(_offset.dx, _offset.dy)).y - kToolbarHeight
-        );
-
-        if( focusFrame == draggingFrame){
-          framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
-          framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
-          frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
-        }
-
-        double preBottomPosY = prePosY + draggingFrame!.rotateSize.y * preSizeRate;
-        double newBottomPosY = draggingFrame!.position.y + draggingFrame!.rotateSize.y * draggingFrame!.sizeRate;
-
-        double diffY = preBottomPosY - newBottomPosY;
-
-        for (FrameImage _depandFrame in focusFrameDependList) {
-          _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y-diffY);
-          _depandFrame.save();
-        }
-
-        draggingFrame?.save();
-
-        draggingFrame = null;
-        setState(() { });
-      },      
-    );
+    Point<double> dragGlobalToCanvasPos(Offset _globalPos){
+      return Point<double>(
+        globalToCanvasPos(Point<double>(_globalPos.dx, _globalPos.dy)).x, 
+        globalToCanvasPos(Point<double>(_globalPos.dx, _globalPos.dy)).y - kToolbarHeight
+      );
+    }
+    
 
     Widget dragging = MouseRegion(
       cursor  : SystemMouseCursors.click,
       child   : GestureDetector(
-        child   : draggableWidget,
+        child: frameWidgetUnit( draggingFrame == _frameData),
+        onPanStart: (DragStartDetails _dragStart){
+          print( "pan start : " + _dragStart.globalPosition.toString() );
+          // diffPos = Offset.zero; 
+          // showDiffPos = Offset.zero;
+
+          initFramePosition = _frameData.position;
+
+          initDragFramePosition  = dragGlobalToCanvasPos(_dragStart.globalPosition);
+          draggingFrame = _frameData;
+
+          focusFrameDependList.clear();
+          if(RawKeyboard.instance.keysPressed.where((_pressd) => _pressd.keyLabel == LogicalKeyboardKey.controlLeft.keyLabel).isNotEmpty){
+            focusFrameDependList = frameImageList.where((_frame) => _frame.position.y > draggingFrame!.position.y ).toList();
+          }
+
+          setState(() { });
+        },
+        onPanUpdate: (DragUpdateDetails _dragUpdate){
+          currentDragFramePosition = dragGlobalToCanvasPos(_dragUpdate.globalPosition);
+
+          Point<double> diffFromInitPos = currentDragFramePosition - initDragFramePosition;
+          draggingFrame!.position = initFramePosition + diffFromInitPos;
+
+          setState(() { });
+
+          print( "pan update : " + _dragUpdate.globalPosition.toString());
+        },
+        onPanEnd: (DragEndDetails _dragEnd){
+          Point<double> diffFromInitPos = currentDragFramePosition - initDragFramePosition;
+          draggingFrame!.position = initFramePosition + diffFromInitPos;
+
+          if( focusFrame == draggingFrame){
+            framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
+            framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
+            frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
+          }
+
+          for (FrameImage _depandFrame in focusFrameDependList) {
+            _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y + diffFromInitPos.y);
+            _depandFrame.save();
+          }
+
+          draggingFrame?.save();
+
+          draggingFrame = null;
+          setState(() { });
+
+          print( "pan end ");
+        },
         onTapUp : (_){
           setState(() { });
 

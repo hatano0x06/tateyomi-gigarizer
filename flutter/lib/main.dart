@@ -17,8 +17,8 @@ void main() async {
 }
 
 // TODO: 縦読みの機能（２１日まで
-//  - 背景レイヤー
 //  - スティッカー（縁に吸い付くやつ
+//  - 背景レイヤー
 //  - スマホ連携
 
 // TODO: オプション
@@ -47,8 +47,8 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       navigatorObservers: [ FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance), ],
-      // home: LoginPageWidget(dbInstance: DbImpl(),), // test用
-      home: LoginPageWidget(dbInstance: DbFireStore(),),
+      home: LoginPageWidget(dbInstance: DbImpl(),), // test用
+      // home: LoginPageWidget(dbInstance: DbFireStore(),),
     );
   }
 }
