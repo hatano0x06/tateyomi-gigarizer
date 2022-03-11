@@ -887,6 +887,10 @@ class EditPageState extends State<EditPage> {
         globalToCanvasPos(Point<double>(_globalPos.dx, _globalPos.dy)).y - kToolbarHeight
       );
     }
+
+    Point<double> stickyPosition(FrameImage frameImage, Point<double> diffPosition){
+      return initFramePosition + diffPosition;
+    }
     
 
     Widget dragging = MouseRegion(
@@ -899,8 +903,10 @@ class EditPageState extends State<EditPage> {
           // showDiffPos = Offset.zero;
 
           initFramePosition = _frameData.position;
-
           initDragFramePosition  = dragGlobalToCanvasPos(_dragStart.globalPosition);
+
+          print( "pan start : " + initFramePosition.toString() + " : " + initDragFramePosition.toString() );
+
           draggingFrame = _frameData;
 
           focusFrameDependList.clear();
@@ -911,36 +917,39 @@ class EditPageState extends State<EditPage> {
           setState(() { });
         },
         onPanUpdate: (DragUpdateDetails _dragUpdate){
+          // print( dragGlobalToCanvasPos(_dragUpdate.globalPosition) );
           currentDragFramePosition = dragGlobalToCanvasPos(_dragUpdate.globalPosition);
 
-          Point<double> diffFromInitPos = currentDragFramePosition - initDragFramePosition;
-          draggingFrame!.position = initFramePosition + diffFromInitPos;
+          draggingFrame!.position = stickyPosition( draggingFrame!, currentDragFramePosition - initDragFramePosition);
 
           setState(() { });
 
-          print( "pan update : " + _dragUpdate.globalPosition.toString());
+          // print( "pan update : " + _dragUpdate.globalPosition.toString());
         },
         onPanEnd: (DragEndDetails _dragEnd){
-          Point<double> diffFromInitPos = currentDragFramePosition - initDragFramePosition;
-          draggingFrame!.position = initFramePosition + diffFromInitPos;
+          Point<double> stickyDiffPos = stickyPosition( draggingFrame!, currentDragFramePosition - initDragFramePosition);
+          
+          draggingFrame!.position = stickyDiffPos;
+          draggingFrame?.save();
 
-          if( focusFrame == draggingFrame){
-            framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
-            framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
-            frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
-          }
+          print( stickyDiffPos.toString() + " : " + initDragFramePosition.toString() + " | " + (draggingFrame!.position - initDragFramePosition).toString() );
 
           for (FrameImage _depandFrame in focusFrameDependList) {
-            _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y + diffFromInitPos.y);
+            _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y + (draggingFrame!.position - initFramePosition).y);
             _depandFrame.save();
           }
 
-          draggingFrame?.save();
+          focusFrame = draggingFrame;
+          framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
+          framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
+          frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
 
           draggingFrame = null;
           setState(() { });
 
-          print( "pan end ");
+          // TODO: focusしたままにする
+
+          // print( "pan end ");
         },
         onTapUp : (_){
           setState(() { });

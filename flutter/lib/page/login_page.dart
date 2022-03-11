@@ -149,36 +149,59 @@ class _LoginPageWidgetState extends State<LoginPageWidget> {
         const SizedBox(width: 5,),
         ElevatedButton(
           child   : const Text('プロジェクトの新規作成'),
-          onPressed: !isEnableLoginId ? null : () async { 
-            showDialog( 
-              context: context, 
-              builder: (BuildContext context) => const TextInputDialog("")
-            ).then((_text){
-              if( _text == null ) return;
-              String _fixText = _text as String;
-              if( _fixText.isEmpty ) return;
+          onPressed: () async { 
+            Project _newProj = Project(
+              widget.dbInstance,
+              "",
+              "_fixText",
+              "_fixText",
+              Size.zero,
+              DateTime.now().millisecondsSinceEpoch,
+              DateTime.now().millisecondsSinceEpoch,
+            );
+            _newProj.save();
 
-              Project _newProj = Project(
-                widget.dbInstance,
-                "",
-                _fixText,
-                _fixText,
-                Size.zero,
-                DateTime.now().millisecondsSinceEpoch,
-                DateTime.now().millisecondsSinceEpoch,
-              );
-              _newProj.save();
+            Navigator.push( context,
+              PageRouteBuilder(
+                pageBuilder: (context, animation1, animation2) => EditPage(
+                  dbInstance  : widget.dbInstance,
+                  project     : _newProj,
+                )
+              ),
+            );
 
-              Navigator.push( context,
-                PageRouteBuilder(
-                  pageBuilder: (context, animation1, animation2) => EditPage(
-                    dbInstance  : widget.dbInstance,
-                    project     : _newProj,
-                  )
-                ),
-              );
-            });
-          }
+          },
+
+          // onPressed: !isEnableLoginId ? null : () async { 
+          //   showDialog( 
+          //     context: context, 
+          //     builder: (BuildContext context) => const TextInputDialog("")
+          //   ).then((_text){
+          //     if( _text == null ) return;
+          //     String _fixText = _text as String;
+          //     if( _fixText.isEmpty ) return;
+
+          //     Project _newProj = Project(
+          //       widget.dbInstance,
+          //       "",
+          //       _fixText,
+          //       _fixText,
+          //       Size.zero,
+          //       DateTime.now().millisecondsSinceEpoch,
+          //       DateTime.now().millisecondsSinceEpoch,
+          //     );
+          //     _newProj.save();
+
+          //     Navigator.push( context,
+          //       PageRouteBuilder(
+          //         pageBuilder: (context, animation1, animation2) => EditPage(
+          //           dbInstance  : widget.dbInstance,
+          //           project     : _newProj,
+          //         )
+          //       ),
+          //     );
+          //   });
+          // }
         ),
       ],
     );
