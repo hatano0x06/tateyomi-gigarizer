@@ -24,7 +24,7 @@ void main() async {
 //  - 配置を良い感じにする
 //  - 横に全体像が見れるやつ
 //  - クラッシュログ
-//  - ctrlz機能
+//  - ctrl+z機能
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);

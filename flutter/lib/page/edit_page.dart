@@ -224,77 +224,6 @@ class EditPageState extends State<EditPage> {
     );
     
 
-    const String TYPE_SHORTCUT_UP     = "up";
-    const String TYPE_SHORTCUT_LEFT   = "left";
-    const String TYPE_SHORTCUT_DOWN   = "down";
-    const String TYPE_SHORTCUT_RIGHT  = "right";
-    Map<Set<LogicalKeyboardKey>, String> _shortCutKeyMap = {
-      {LogicalKeyboardKey.keyW}       : TYPE_SHORTCUT_UP,
-      {LogicalKeyboardKey.keyA}       : TYPE_SHORTCUT_LEFT,
-      {LogicalKeyboardKey.keyS}       : TYPE_SHORTCUT_DOWN,
-      {LogicalKeyboardKey.keyD}       : TYPE_SHORTCUT_RIGHT,
-    };
-
-    // shortCuts
-    _body = KeyBoardShortcuts(
-      keysToPressList: _shortCutKeyMap.keys.toList(),
-      onKeysPressed: (int _shortCutIndex){
-        if (!mounted)       return;
-        if( ModalRoute.of(context) == null ) return;
-        if( !ModalRoute.of(context)!.isCurrent ) return;
-
-        String shortCutType = _shortCutKeyMap.values.toList()[_shortCutIndex];
-
-        if(
-          framePosXFocusNode.hasFocus || 
-          framePosYFocusNode.hasFocus || 
-          frameSizeRateFocusNode.hasFocus || 
-          downloadFocusNode.hasFocus || 
-          canvasSizeXFocusNode.hasFocus || 
-          canvasSizeYFocusNode.hasFocus
-        )  return;
-
-        if( focusFrame != null ){
-          
-          double moveSize = 0.1;
-          if( shortCutType == TYPE_SHORTCUT_UP    ){
-            focusFrame!.position = Point(focusFrame!.position.x, focusFrame!.position.y-moveSize);
-            for (FrameImage _depandFrame in focusFrameDependList) {
-              _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y-moveSize);
-            }
-          }
-          if( shortCutType == TYPE_SHORTCUT_DOWN  ){
-            focusFrame!.position = Point(focusFrame!.position.x, focusFrame!.position.y+moveSize);
-            for (FrameImage _depandFrame in focusFrameDependList) {
-              _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y+moveSize);
-            }
-          }
-
-          if( shortCutType == TYPE_SHORTCUT_LEFT  ) focusFrame!.position = Point(focusFrame!.position.x-moveSize  , focusFrame!.position.y);
-          if( shortCutType == TYPE_SHORTCUT_RIGHT ) focusFrame!.position = Point(focusFrame!.position.x+moveSize  , focusFrame!.position.y);
-          setState(() { });
-        }
-      },
-      onKeysUp: (){
-        if(
-          framePosXFocusNode.hasFocus || 
-          framePosYFocusNode.hasFocus || 
-          frameSizeRateFocusNode.hasFocus || 
-          downloadFocusNode.hasFocus || 
-          canvasSizeXFocusNode.hasFocus || 
-          canvasSizeYFocusNode.hasFocus
-        )  return;
-
-        if( focusFrame != null ){
-          focusFrame?.save();
-          framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
-          framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
-          frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
-        }
-      },
-      child: _body
-    );    
-
     // scrollbar
     double scrollbarSize = 15.0;
     _body = AdaptiveScrollbar(
@@ -309,16 +238,8 @@ class EditPageState extends State<EditPage> {
       )
     );
 
-    // gfesture focus
-    _body = GestureDetector(
-      child     : _body,
-      onTapUp   : (_){
-        focusFrame = null;
-        focusFrameDependList.clear();
-        
-        setState(() { });
-      },
-    );
+    _body = shortCutsWidget(_body);
+    _body = gestureWidget(_body); 
 
     return Scaffold(
       appBar: AppBar(
@@ -395,6 +316,201 @@ class EditPageState extends State<EditPage> {
       ),
 
       body : _body,
+    );
+  }
+
+  FrameImage? draggingFrame;
+  Point<double> initFramePosition     = const Point(0,0);
+  Point<double> initDragFramePosition = const Point(0,0);
+  Point<double> currentDragFramePosition = const Point(0,0);
+  Widget gestureWidget(Widget _body){
+    Point<double> dragGlobalToCanvasPos(Offset _globalPos){
+      return Point<double>(
+        globalToCanvasPos(Point<double>(_globalPos.dx, _globalPos.dy)).x, 
+        globalToCanvasPos(Point<double>(_globalPos.dx, _globalPos.dy)).y - kToolbarHeight
+      );
+    }
+
+    Point<double> stickyPosition(FrameImage frameImage, Point<double> diffPosition){
+      Point<double> newFramePos =  initFramePosition + diffPosition;
+
+      if( newFramePos.x.abs() < stricyArea ) newFramePos = Point(0, newFramePos.y);
+      if( newFramePos.y.abs() < stricyArea ) newFramePos = Point(newFramePos.x, 0);
+
+      Size frameWidth = Size( frameImage.rotateSize.x * frameImage.sizeRate, frameImage.rotateSize.y * frameImage.sizeRate);
+      if( (widget.project.canvasSize.width  -  (newFramePos.x + frameWidth.width) ).abs() < stricyArea ) newFramePos = Point(widget.project.canvasSize.width - frameWidth.width, newFramePos.y);
+      if( (widget.project.canvasSize.height -  (newFramePos.y + frameWidth.height)).abs() < stricyArea ) newFramePos = Point(newFramePos.x, widget.project.canvasSize.height - frameWidth.height, );
+
+      return newFramePos;
+    }
+
+    FrameImage? targetFrameImage(Offset _tapPos){
+      Point<double> canvasTapPos = dragGlobalToCanvasPos(_tapPos);
+
+      for (FrameImage _frameImage in frameImageList) {
+        if( canvasTapPos.x < _frameImage.position.x ) continue;
+        if( canvasTapPos.y < _frameImage.position.y ) continue;
+
+        if( _frameImage.position.x + _frameImage.rotateSize.x * _frameImage.sizeRate < canvasTapPos.x ) continue;
+        if( _frameImage.position.y + _frameImage.rotateSize.y * _frameImage.sizeRate < canvasTapPos.y ) continue;
+
+        return _frameImage;
+      }
+
+      return null;
+    }
+
+    return GestureDetector(
+      child     : _body,
+      onTapUp   : (TapUpDetails _tapUp){
+        setState(() { });
+
+        FrameImage? targetFrame = targetFrameImage(_tapUp.globalPosition);
+        if( focusFrame == targetFrame || targetFrame == null){
+          focusFrame = null;
+          focusFrameDependList.clear();
+          return;
+        }
+        focusFrame = targetFrame;
+        showCanvasEdit = false;
+
+        focusFrameDependList.clear();
+
+        // ctrlを押しながらやると、従属して動く
+        if(RawKeyboard.instance.keysPressed.where((_pressd) => _pressd.keyLabel == LogicalKeyboardKey.controlLeft.keyLabel).isNotEmpty){
+          focusFrameDependList = frameImageList.where((_frame) => _frame.position.y > focusFrame!.position.y ).toList();
+        }
+
+        framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
+        framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
+        frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );        
+      },
+      onPanStart: (DragStartDetails _dragStart){
+        // diffPos = Offset.zero; 
+        // showDiffPos = Offset.zero;
+        draggingFrame = targetFrameImage(_dragStart.globalPosition);
+        if( draggingFrame == null ) return;
+
+        initFramePosition = draggingFrame!.position;
+        initDragFramePosition  = dragGlobalToCanvasPos(_dragStart.globalPosition);
+
+        focusFrameDependList.clear();
+        if(RawKeyboard.instance.keysPressed.where((_pressd) => _pressd.keyLabel == LogicalKeyboardKey.controlLeft.keyLabel).isNotEmpty){
+          focusFrameDependList = frameImageList.where((_frame) => _frame.position.y > draggingFrame!.position.y ).toList();
+        }
+
+        setState(() { });
+      },
+      onPanUpdate: (DragUpdateDetails _dragUpdate){
+        if( draggingFrame == null ) return;
+
+        // print( dragGlobalToCanvasPos(_dragUpdate.globalPosition) );
+        currentDragFramePosition = dragGlobalToCanvasPos(_dragUpdate.globalPosition);
+
+        draggingFrame!.position = stickyPosition( draggingFrame!, currentDragFramePosition - initDragFramePosition);
+
+        setState(() { });
+
+        // print( "pan update : " + _dragUpdate.globalPosition.toString());
+      },
+      onPanEnd: (DragEndDetails _dragEnd){
+        if( draggingFrame == null ) return;
+
+        Point<double> stickyDiffPos = stickyPosition( draggingFrame!, currentDragFramePosition - initDragFramePosition);
+        
+        draggingFrame!.position = stickyDiffPos;
+        draggingFrame?.save();
+
+        for (FrameImage _depandFrame in focusFrameDependList) {
+          _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y + (draggingFrame!.position - initFramePosition).y);
+          _depandFrame.save();
+        }
+
+        focusFrame = draggingFrame;
+        framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
+        framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
+        frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
+
+        draggingFrame = null;
+        setState(() { });
+
+        // print( "pan end ");
+      },
+    );
+
+  }
+
+
+  Widget shortCutsWidget(Widget _body){
+    const String TYPE_SHORTCUT_UP     = "up";
+    const String TYPE_SHORTCUT_LEFT   = "left";
+    const String TYPE_SHORTCUT_DOWN   = "down";
+    const String TYPE_SHORTCUT_RIGHT  = "right";
+    Map<Set<LogicalKeyboardKey>, String> _shortCutKeyMap = {
+      {LogicalKeyboardKey.keyW}       : TYPE_SHORTCUT_UP,
+      {LogicalKeyboardKey.keyA}       : TYPE_SHORTCUT_LEFT,
+      {LogicalKeyboardKey.keyS}       : TYPE_SHORTCUT_DOWN,
+      {LogicalKeyboardKey.keyD}       : TYPE_SHORTCUT_RIGHT,
+    };
+
+    // shortCuts
+    return KeyBoardShortcuts(
+      keysToPressList: _shortCutKeyMap.keys.toList(),
+      onKeysPressed: (int _shortCutIndex){
+        if (!mounted)       return;
+        if( ModalRoute.of(context) == null ) return;
+        if( !ModalRoute.of(context)!.isCurrent ) return;
+
+        String shortCutType = _shortCutKeyMap.values.toList()[_shortCutIndex];
+
+        if(
+          framePosXFocusNode.hasFocus || 
+          framePosYFocusNode.hasFocus || 
+          frameSizeRateFocusNode.hasFocus || 
+          downloadFocusNode.hasFocus || 
+          canvasSizeXFocusNode.hasFocus || 
+          canvasSizeYFocusNode.hasFocus
+        )  return;
+
+        if( focusFrame != null ){
+          
+          double moveSize = 0.1;
+          if( shortCutType == TYPE_SHORTCUT_UP    ){
+            focusFrame!.position = Point(focusFrame!.position.x, focusFrame!.position.y-moveSize);
+            for (FrameImage _depandFrame in focusFrameDependList) {
+              _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y-moveSize);
+            }
+          }
+          if( shortCutType == TYPE_SHORTCUT_DOWN  ){
+            focusFrame!.position = Point(focusFrame!.position.x, focusFrame!.position.y+moveSize);
+            for (FrameImage _depandFrame in focusFrameDependList) {
+              _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y+moveSize);
+            }
+          }
+
+          if( shortCutType == TYPE_SHORTCUT_LEFT  ) focusFrame!.position = Point(focusFrame!.position.x-moveSize  , focusFrame!.position.y);
+          if( shortCutType == TYPE_SHORTCUT_RIGHT ) focusFrame!.position = Point(focusFrame!.position.x+moveSize  , focusFrame!.position.y);
+          setState(() { });
+        }
+      },
+      onKeysUp: (){
+        if(
+          framePosXFocusNode.hasFocus || 
+          framePosYFocusNode.hasFocus || 
+          frameSizeRateFocusNode.hasFocus || 
+          downloadFocusNode.hasFocus || 
+          canvasSizeXFocusNode.hasFocus || 
+          canvasSizeYFocusNode.hasFocus
+        )  return;
+
+        if( focusFrame != null ){
+          focusFrame?.save();
+          framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
+          framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
+          frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
+        }
+      },
+      child: _body
     );
   }
 
@@ -882,17 +998,14 @@ class EditPageState extends State<EditPage> {
     return _frameWidgetList;
   }
 
-  // コマの表示（ドラッグ
-  FrameImage? draggingFrame;
-  Point<double> initFramePosition     = const Point(0,0);
-  Point<double> initDragFramePosition = const Point(0,0);
-  Point<double> currentDragFramePosition = const Point(0,0);
+  // コマの表示
   Widget _frameDraggingWidget(FrameImage _frameData){
-    frameWidgetUnit(bool _isDragging){
-      return RotatedBox(
+    Widget dragging = MouseRegion(
+      cursor  : SystemMouseCursors.click,
+      child   : RotatedBox(
         quarterTurns: _frameData.angle,
         child : Opacity(
-          opacity: _isDragging ? 0.5 : 1.0,
+          opacity: _frameData == draggingFrame ? 0.5 : 1.0,
           child: Image.memory(
             _frameData.byteData!, 
             width: _frameData.size.x * _frameData.sizeRate, 
@@ -901,103 +1014,6 @@ class EditPageState extends State<EditPage> {
             filterQuality: FilterQuality.high,
           )
         )
-      );
-    }
-
-    Point<double> dragGlobalToCanvasPos(Offset _globalPos){
-      return Point<double>(
-        globalToCanvasPos(Point<double>(_globalPos.dx, _globalPos.dy)).x, 
-        globalToCanvasPos(Point<double>(_globalPos.dx, _globalPos.dy)).y - kToolbarHeight
-      );
-    }
-
-    Point<double> stickyPosition(FrameImage frameImage, Point<double> diffPosition){
-      Point<double> newFramePos =  initFramePosition + diffPosition;
-
-      if( newFramePos.x.abs() < stricyArea ) newFramePos = Point(0, newFramePos.y);
-      if( newFramePos.y.abs() < stricyArea ) newFramePos = Point(newFramePos.x, 0);
-
-      Size frameWidth = Size( frameImage.rotateSize.x * frameImage.sizeRate, frameImage.rotateSize.y * frameImage.sizeRate);
-      if( (widget.project.canvasSize.width  -  (newFramePos.x + frameWidth.width) ).abs() < stricyArea ) newFramePos = Point(widget.project.canvasSize.width - frameWidth.width, newFramePos.y);
-      if( (widget.project.canvasSize.height -  (newFramePos.y + frameWidth.height)).abs() < stricyArea ) newFramePos = Point(newFramePos.x, widget.project.canvasSize.height - frameWidth.height, );
-
-      return newFramePos;
-    }
-    
-
-    Widget dragging = MouseRegion(
-      cursor  : SystemMouseCursors.click,
-      child   : GestureDetector(
-        child: frameWidgetUnit( draggingFrame == _frameData),
-        onPanStart: (DragStartDetails _dragStart){
-          // diffPos = Offset.zero; 
-          // showDiffPos = Offset.zero;
-
-          initFramePosition = _frameData.position;
-          initDragFramePosition  = dragGlobalToCanvasPos(_dragStart.globalPosition);
-
-          draggingFrame = _frameData;
-
-          focusFrameDependList.clear();
-          if(RawKeyboard.instance.keysPressed.where((_pressd) => _pressd.keyLabel == LogicalKeyboardKey.controlLeft.keyLabel).isNotEmpty){
-            focusFrameDependList = frameImageList.where((_frame) => _frame.position.y > draggingFrame!.position.y ).toList();
-          }
-
-          setState(() { });
-        },
-        onPanUpdate: (DragUpdateDetails _dragUpdate){
-          // print( dragGlobalToCanvasPos(_dragUpdate.globalPosition) );
-          currentDragFramePosition = dragGlobalToCanvasPos(_dragUpdate.globalPosition);
-
-          draggingFrame!.position = stickyPosition( draggingFrame!, currentDragFramePosition - initDragFramePosition);
-
-          setState(() { });
-
-          // print( "pan update : " + _dragUpdate.globalPosition.toString());
-        },
-        onPanEnd: (DragEndDetails _dragEnd){
-          Point<double> stickyDiffPos = stickyPosition( draggingFrame!, currentDragFramePosition - initDragFramePosition);
-          
-          draggingFrame!.position = stickyDiffPos;
-          draggingFrame?.save();
-
-          for (FrameImage _depandFrame in focusFrameDependList) {
-            _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y + (draggingFrame!.position - initFramePosition).y);
-            _depandFrame.save();
-          }
-
-          focusFrame = draggingFrame;
-          framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
-          framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
-          frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
-
-          draggingFrame = null;
-          setState(() { });
-
-          // print( "pan end ");
-        },
-        onTapUp : (_){
-          setState(() { });
-
-          if( focusFrame == _frameData){
-            focusFrame = null;
-            focusFrameDependList.clear();
-            return;
-          }
-          focusFrame = _frameData;
-          showCanvasEdit = false;
-
-          focusFrameDependList.clear();
-
-          // ctrlを押しながらやると、従属して動く
-          if(RawKeyboard.instance.keysPressed.where((_pressd) => _pressd.keyLabel == LogicalKeyboardKey.controlLeft.keyLabel).isNotEmpty){
-            focusFrameDependList = frameImageList.where((_frame) => _frame.position.y > focusFrame!.position.y ).toList();
-          }
-
-          framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
-          framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
-          frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
-        },
       ),
     );
 
