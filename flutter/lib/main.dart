@@ -17,14 +17,15 @@ void main() async {
 }
 
 // TODO: 縦読みの機能（２１日まで
+//  - 背景レイヤー
+//  - スティッカー（縁に吸い付くやつ
 //  - スマホ連携
 
 // TODO: オプション
 //  - 配置を良い感じにする
-//  - 背景レイヤー
 //  - 横に全体像が見れるやつ
 //  - クラッシュログ
-//  - スティッカー（縁に吸い付くやつ
+//  - ctrlz機能
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -34,7 +35,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      title: '縦読みツール',
       theme: ThemeData(
         fontFamily: "NotoSansJP",
         primaryColor: Colors.white,

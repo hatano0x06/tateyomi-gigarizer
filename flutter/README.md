@@ -8,8 +8,9 @@ Example Flutter project.
 $ flutter run -d chrome --web-port=5000 --web-renderer=html
 $ flutter build web --web-renderer html --release;
 $ firebase hosting:channel:deploy --expires 1h ui-check1
-$ firebase deploy --only hosting --project tateyomi-gigarizer
+$ firebase deploy --only hosting
 
+https://tateyomi-gigarizer.web.app/
 # android
 
 $ flutter test; flutter build appbundle

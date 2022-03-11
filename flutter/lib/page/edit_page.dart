@@ -340,6 +340,9 @@ class EditPageState extends State<EditPage> {
             tooltip : "キャンパスのサイズ変更",
             onPressed: (){
               FocusScope.of(context).unfocus();
+              canvasSizeXController.value = canvasSizeXController.value.copyWith( text: widget.project.canvasSize.width.toString() );
+              canvasSizeYController.value = canvasSizeYController.value.copyWith( text: widget.project.canvasSize.height.toString() );
+
               focusFrame = null;
               showCanvasEdit = true;
               setState(() { });
@@ -588,6 +591,9 @@ class EditPageState extends State<EditPage> {
           ballDiameter: ballDiameter,
           onDragStart : (){ },
           onDragEnd   : (){
+            canvasSizeXController.value = canvasSizeXController.value.copyWith( text: widget.project.canvasSize.width.toString() );
+            canvasSizeYController.value = canvasSizeYController.value.copyWith( text: widget.project.canvasSize.height.toString() );
+
             widget.project.save();
           },
           onDrag      : (dragPos) {
@@ -1101,6 +1107,9 @@ class EditPageState extends State<EditPage> {
         });
 
         widget.project.canvasSize = Size(defaultCanvasWidth, currentHeight + 100);
+        canvasSizeXController.value = canvasSizeXController.value.copyWith( text: widget.project.canvasSize.width.toString() );
+        canvasSizeYController.value = canvasSizeYController.value.copyWith( text: widget.project.canvasSize.height.toString() );
+
         widget.project.save();
         setState(() { });
 
