@@ -19,9 +19,6 @@ import 'dart:ui' as ui;
 import 'dart:math' as math;
 import 'dart:convert';
 
-// TODO: left, right, top, bottom
-// TODO: sizeRate
-
 class EditPage extends StatefulWidget {
   final DbImpl dbInstance;
   final Project project;
