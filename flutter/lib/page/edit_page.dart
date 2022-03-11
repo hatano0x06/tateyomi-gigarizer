@@ -836,12 +836,26 @@ class EditPageState extends State<EditPage> {
           onDrag      : (dragPos) {
             Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
 
+            // sticy対応で仮計算する
+            double tempSizeRate = math.max(
+              (canvasDragPos.x - dragStartLeftTopPos.x).abs()/_frameData.rotateSize.x, 
+              (canvasDragPos.y - dragStartLeftTopPos.y).abs()/_frameData.rotateSize.y, 
+            );
+            Point<double> newRightBottomPoint = Point(
+              dragStartLeftTopPos.x + _frameData.rotateSize.x * tempSizeRate,
+              dragStartLeftTopPos.y + _frameData.rotateSize.y * tempSizeRate,
+            );
+
+            if( (widget.project.canvasSize.width  - newRightBottomPoint.x).abs() < stricyArea) newRightBottomPoint = Point(widget.project.canvasSize.width, newRightBottomPoint.y);
+            if( (widget.project.canvasSize.height - newRightBottomPoint.y).abs() < stricyArea) newRightBottomPoint = Point(newRightBottomPoint.x, widget.project.canvasSize.height);
+
+            // 反映
             Point<double> prePos = _frameData.position;
             double preSizeRate = _frameData.sizeRate;
 
             _frameData.sizeRate = math.max(
-              (canvasDragPos.x - dragStartLeftTopPos.x).abs()/_frameData.rotateSize.x, 
-              (canvasDragPos.y - dragStartLeftTopPos.y).abs()/_frameData.rotateSize.y, 
+              (newRightBottomPoint.x - dragStartLeftTopPos.x).abs()/_frameData.rotateSize.x, 
+              (newRightBottomPoint.y - dragStartLeftTopPos.y).abs()/_frameData.rotateSize.y, 
             );
 
             double prePosY = prePos.y + _frameData.rotateSize.y * preSizeRate;
