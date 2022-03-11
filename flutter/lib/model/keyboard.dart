@@ -87,11 +87,11 @@ class _KeyBoardShortcuts extends State<KeyBoardShortcuts> {
     if (!mounted) return;
 
     Set<LogicalKeyboardKey> userKeysPressed = RawKeyboard.instance.keysPressed;
-    if (v.runtimeType == RawKeyUpEvent) {
+    if (v is RawKeyUpEvent) {
       widget.onKeysUp();
     }
 
-    if (v.runtimeType == RawKeyDownEvent) {
+    if (v is RawKeyDownEvent) {
       widget.keysToPressList.asMap().forEach((_keysToPressIndex, _commandKeysToPress) {
         bool _isPressed = _pressedKey(userKeysPressed, _commandKeysToPress);
         if( _isPressed ) widget.onKeysPressed(_keysToPressIndex);

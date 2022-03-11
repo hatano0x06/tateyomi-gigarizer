@@ -86,7 +86,6 @@ class _TextInputDialogState extends State<TextInputDialog> {
   String? titleStringValidate(String? posString){
     if(posString == null ) return null;
     if(posString.isEmpty) return "何か入力して下さい";
-    if(posString.contains("/")) return "/ は許可されていません";
 
     return null;
   }

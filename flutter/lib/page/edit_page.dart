@@ -282,10 +282,12 @@ class EditPageState extends State<EditPage> {
           canvasSizeYFocusNode.hasFocus
         )  return;
 
-        focusFrame?.save();
-        framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
-        framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
-        frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
+        if( focusFrame != null ){
+          focusFrame?.save();
+          framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
+          framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
+          frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
+        }
       },
       child: _body
     );    
