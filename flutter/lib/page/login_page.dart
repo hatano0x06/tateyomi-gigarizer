@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
+// ignore: unused_import
 import 'package:tateyomi_gigarizer/dialog/text_input_dialog.dart';
 import 'package:tateyomi_gigarizer/model/project.dart';
 import 'package:tateyomi_gigarizer/page/edit_page.dart';
@@ -150,6 +151,7 @@ class _LoginPageWidgetState extends State<LoginPageWidget> {
         ElevatedButton(
           child   : const Text('プロジェクトの新規作成'),
           onPressed: () async { 
+            // TODO: asdf
             Project _newProj = Project(
               widget.dbInstance,
               "",

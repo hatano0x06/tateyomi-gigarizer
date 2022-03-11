@@ -20,7 +20,7 @@ import 'dart:math' as math;
 import 'dart:convert';
 
 // TODO: left, right, top, bottom
-// TODO: drag, sizeRate
+// TODO: sizeRate
 
 class EditPage extends StatefulWidget {
   final DbImpl dbInstance;
@@ -61,6 +61,9 @@ class EditPageState extends State<EditPage> {
   final FocusNode downloadFocusNode = FocusNode();
 
   bool showCanvasEdit = false;
+
+  double stricyArea = 10;
+
 
   @override
   void initState(){
@@ -673,10 +676,24 @@ class EditPageState extends State<EditPage> {
         _frameData.position.x + _frameData.rotateSize.x * _frameData.sizeRate,
         _frameData.position.y + _frameData.rotateSize.y * _frameData.sizeRate,
       );
+
+      if(RawKeyboard.instance.keysPressed.where((_pressd) => _pressd.keyLabel == LogicalKeyboardKey.controlLeft.keyLabel).isNotEmpty){
+        focusFrameDependList = frameImageList.where((_frame) => _frame.position.y > _frameData.position.y ).toList();
+      }
+    }
+
+    void saveAfterDrag(){
+      _frameData.save();
+      if( focusFrame != null){
+        framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
+        framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
+        frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
+      }
+
+      for (FrameImage _depandFrame in focusFrameDependList) { _depandFrame.save(); }
     }
 
     double ballDiameter = 10.0;
-
     List<Widget> _frameWidgetList = [
       _frameDraggingWidget(_frameData),
 
@@ -688,25 +705,29 @@ class EditPageState extends State<EditPage> {
           cursor      : SystemMouseCursors.resizeUpLeftDownRight,
           ballDiameter: ballDiameter,
           onDragStart : (){ tempSavePos(); },
-          onDragEnd   : (){
-            _frameData.save();
-            if( focusFrame == _frameData){
-              framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
-              framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
-              frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
-            }
-          },
+          onDragEnd   : (){ saveAfterDrag(); },
           onDrag      : (dragPos) {
-
             Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
 
+            // sticy対応で仮計算する
+            double tempSizeRate = math.max(
+              (canvasDragPos.x - dragStartRightBottomPos.x).abs()/_frameData.rotateSize.x, 
+              (canvasDragPos.y - dragStartRightBottomPos.y).abs()/_frameData.rotateSize.y, 
+            );
+            Point<double> newLeftTopPos = Point(
+              dragStartRightBottomPos.x - _frameData.rotateSize.x * tempSizeRate,
+              dragStartRightBottomPos.y - _frameData.rotateSize.y * tempSizeRate,
+            );
+            if( newLeftTopPos.x.abs() < stricyArea) newLeftTopPos = Point(0, newLeftTopPos.y);
+            if( newLeftTopPos.y.abs() < stricyArea) newLeftTopPos = Point(newLeftTopPos.x, 0);
+
             _frameData.sizeRate = math.max(
-              (canvasDragPos.x - dragStartRightBottomPos.x).abs()/_frameData.size.x, 
-              (canvasDragPos.y - dragStartRightBottomPos.y).abs()/_frameData.size.y, 
+              (newLeftTopPos.x - dragStartRightBottomPos.x).abs()/_frameData.rotateSize.x, 
+              (newLeftTopPos.y - dragStartRightBottomPos.y).abs()/_frameData.rotateSize.y, 
             );
             _frameData.position = Point(
-              dragStartRightBottomPos.x - _frameData.size.x * _frameData.sizeRate,
-              dragStartRightBottomPos.y - _frameData.size.y * _frameData.sizeRate,
+              dragStartRightBottomPos.x - _frameData.rotateSize.x * _frameData.sizeRate,
+              dragStartRightBottomPos.y - _frameData.rotateSize.y * _frameData.sizeRate,
             );
 
             setState(() { });
@@ -722,20 +743,26 @@ class EditPageState extends State<EditPage> {
           cursor      : SystemMouseCursors.resizeUpRightDownLeft,
           ballDiameter: ballDiameter,
           onDragStart : (){ tempSavePos(); },
-          onDragEnd   : (){ 
-            if( focusFrame == _frameData){
-              framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
-              framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
-              frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
-            }            
-            _frameData.save();
-          },
+          onDragEnd   : (){ saveAfterDrag(); },
           onDrag      : (dragPos) {
             Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
 
-            _frameData.sizeRate = math.max(
+            // sticy対応で仮計算する
+            double tempSizeRate = math.max(
               (canvasDragPos.x - dragStartLeftTopPos.x).abs()/_frameData.rotateSize.x, 
               (canvasDragPos.y - dragStartRightBottomPos.y).abs()/_frameData.rotateSize.y, 
+            );
+            Point<double> newRightTopPos = Point(
+              dragStartLeftTopPos.x     + _frameData.rotateSize.x * tempSizeRate,
+              dragStartRightBottomPos.y - _frameData.rotateSize.y * tempSizeRate,
+            );
+
+            if( (widget.project.canvasSize.width - newRightTopPos.x).abs() < stricyArea) newRightTopPos = Point(widget.project.canvasSize.width, newRightTopPos.y);
+            if( newRightTopPos.y.abs() < stricyArea) newRightTopPos = Point(newRightTopPos.x, 0);
+
+            _frameData.sizeRate = math.max(
+              (newRightTopPos.x - dragStartLeftTopPos.x).abs()/_frameData.rotateSize.x, 
+              (newRightTopPos.y - dragStartRightBottomPos.y).abs()/_frameData.rotateSize.y, 
             );
             _frameData.position = Point(
               _frameData.position.x,
@@ -755,30 +782,30 @@ class EditPageState extends State<EditPage> {
           cursor      : SystemMouseCursors.resizeUpRightDownLeft,
           ballDiameter: ballDiameter,
           onDragStart : (){ tempSavePos(); },
-          onDragEnd   : (){ 
-            if( focusFrame == _frameData){
-              framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
-              framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
-              frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
-            }
-
-            _frameData.save();
-            
-            focusFrameDependList.clear();
-            if(RawKeyboard.instance.keysPressed.where((_pressd) => _pressd.keyLabel == LogicalKeyboardKey.controlLeft.keyLabel).isNotEmpty){
-              focusFrameDependList = frameImageList.where((_frame) => _frame.position.y > _frameData.position.y ).toList();
-            }
-            for (FrameImage _depandFrame in focusFrameDependList) { _depandFrame.save(); }
-          },
+          onDragEnd   : (){ saveAfterDrag(); },
           onDrag      : (dragPos) {
             Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
 
+            // sticy対応で仮計算する
+            double tempSizeRate = math.max(
+              (canvasDragPos.x - dragStartRightBottomPos.x).abs()/_frameData.rotateSize.x, 
+              (canvasDragPos.y - dragStartLeftTopPos.y).abs()/_frameData.rotateSize.y, 
+            );
+            Point<double> newLeftBottomPoint = Point(
+              dragStartRightBottomPos.x - _frameData.rotateSize.x * tempSizeRate,
+              dragStartLeftTopPos.y     + _frameData.rotateSize.y * tempSizeRate,
+            );
+
+            if( newLeftBottomPoint.x.abs() < stricyArea) newLeftBottomPoint = Point(0, newLeftBottomPoint.y);
+            if( (widget.project.canvasSize.height - newLeftBottomPoint.y).abs() < stricyArea) newLeftBottomPoint = Point(newLeftBottomPoint.x, widget.project.canvasSize.height);
+
+            // 反映
             Point<double> prePos = _frameData.position;
             double preSizeRate = _frameData.sizeRate;
 
             _frameData.sizeRate = math.max(
-              (canvasDragPos.x - dragStartRightBottomPos.x).abs()/_frameData.rotateSize.x, 
-              (canvasDragPos.y - dragStartLeftTopPos.y).abs()/_frameData.rotateSize.y, 
+              (newLeftBottomPoint.x - dragStartRightBottomPos.x).abs()/_frameData.rotateSize.x, 
+              (newLeftBottomPoint.y - dragStartLeftTopPos.y).abs()/_frameData.rotateSize.y, 
             );
             _frameData.position = Point(
               dragStartRightBottomPos.x - _frameData.rotateSize.x * _frameData.sizeRate,
@@ -787,16 +814,11 @@ class EditPageState extends State<EditPage> {
 
             double prePosY = prePos.y + _frameData.rotateSize.y * preSizeRate;
             double newPosY = _frameData.position.y + _frameData.rotateSize.y * _frameData.sizeRate;
-
             double diffY = prePosY - newPosY;
 
-            if(RawKeyboard.instance.keysPressed.where((_pressd) => _pressd.keyLabel == LogicalKeyboardKey.controlLeft.keyLabel).isNotEmpty){
-              focusFrameDependList = frameImageList.where((_frame) => _frame.position.y > _frameData.position.y ).toList();
-            }
             for (FrameImage _depandFrame in focusFrameDependList) {
               _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y-diffY);
             }
-
             setState(() { });
           },
         ),
@@ -810,22 +832,7 @@ class EditPageState extends State<EditPage> {
           cursor      : SystemMouseCursors.resizeUpLeftDownRight,
           ballDiameter: ballDiameter,
           onDragStart : (){ tempSavePos(); },
-          onDragEnd   : (){ 
-            _frameData.save();
-            
-            focusFrameDependList.clear();
-            if(RawKeyboard.instance.keysPressed.where((_pressd) => _pressd.keyLabel == LogicalKeyboardKey.controlLeft.keyLabel).isNotEmpty){
-              focusFrameDependList = frameImageList.where((_frame) => _frame.position.y > _frameData.position.y ).toList();
-            }
-            for (FrameImage _depandFrame in focusFrameDependList) { _depandFrame.save(); }
-
-            if( focusFrame == _frameData){
-              framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
-              framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
-              frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
-            }
-
-          },
+          onDragEnd   : (){ saveAfterDrag(); },
           onDrag      : (dragPos) {
             Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
 
@@ -894,7 +901,6 @@ class EditPageState extends State<EditPage> {
     }
 
     Point<double> stickyPosition(FrameImage frameImage, Point<double> diffPosition){
-      double stricyArea = 10;
       Point<double> newFramePos =  initFramePosition + diffPosition;
 
       if( newFramePos.x.abs() < stricyArea ) newFramePos = Point(0, newFramePos.y);
