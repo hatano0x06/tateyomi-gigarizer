@@ -8,6 +8,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
+import 'package:tateyomi_gigarizer/model/background_color_change.dart';
 import 'package:tateyomi_gigarizer/model/frame_image.dart';
 import 'package:tateyomi_gigarizer/model/keyboard.dart';
 import 'package:tateyomi_gigarizer/model/project.dart';
@@ -35,6 +36,7 @@ class EditPage extends StatefulWidget {
 
 class EditPageState extends State<EditPage> {
   List<FrameImage> frameImageList = [];
+  List<BackGroundColorChange> backGroundColorChangeList = [];
 
   FrameImage? focusFrame;
   List<FrameImage> focusFrameDependList = [];
@@ -61,11 +63,18 @@ class EditPageState extends State<EditPage> {
 
   double stricyArea = 10;
 
+  // TOOD: 背景
+  //  背景の追加
+  //  背景の変更
+  //  背景の大きさの変更（ドラッグ
+  //  背景の削除
+  //  DB(クラウド)
+  //  ダウンロード
+
 
   @override
   void initState(){
     super.initState();
-
     widget.dbInstance.reBuildCanvasBody = (){
       setState(() { });
     };
@@ -194,7 +203,7 @@ class EditPageState extends State<EditPage> {
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> showWidgetList = [_backGroundBody(), ..._canvasBody(), ..._frameBodyList()];
+    List<Widget> showWidgetList = [_backGroundBody(), ..._canvasBody(), ..._backGroundWidgetList(), ..._frameBodyList()];
 
     Widget outsideGraySpace(){
       return Container(
@@ -749,6 +758,100 @@ class EditPageState extends State<EditPage> {
     );
   }  
 
+  // TODO: asdf
+  List<Widget> _backGroundWidgetList(){
+
+    const int offsetSize = 10;
+    List<Widget> showWidgetList = [];
+    
+    backGroundColorChangeList.sort((BackGroundColorChange a, BackGroundColorChange b){ return a.pos.compareTo(b.pos); });
+
+    // 一番最初
+    if( backGroundColorChangeList.isNotEmpty ) {
+
+      // 先頭のグラデーションまでの色埋め
+      if( backGroundColorChangeList.first.pos >= 0 ){
+        showWidgetList.add(
+          Positioned(
+            left  : canvasToGlobalPos(const Point(0,0)).x,
+            top   : canvasToGlobalPos(const Point(0,0)).y,
+            child : Container(
+              color : Colors.white,
+              height: backGroundColorChangeList.first.pos + offsetSize,
+              width : widget.project.canvasSize.width,
+            )
+          )
+        );
+      }
+
+      // 一番後ろグラデーション以降の色埋め
+      showWidgetList.add(
+        Positioned(
+          left  : canvasToGlobalPos(Point(0, backGroundColorChangeList.last.pos + backGroundColorChangeList.last.size)).x,
+          top   : canvasToGlobalPos(Point(0, backGroundColorChangeList.last.pos + backGroundColorChangeList.last.size - offsetSize)).y,
+          child : Container(
+            color : backGroundColorChangeList.last.targetColor,
+            height: widget.project.canvasSize.height - (backGroundColorChangeList.last.pos + backGroundColorChangeList.last.size) + offsetSize,
+            width : widget.project.canvasSize.width,
+          )
+        )
+      );
+    }
+
+    // グラデーション間の穴埋め
+    for (BackGroundColorChange _background in backGroundColorChangeList) {
+      int backGroundIndex = backGroundColorChangeList.indexOf(_background);
+      if( backGroundIndex == 0 ) continue;
+      
+      BackGroundColorChange preBackGround = backGroundColorChangeList[backGroundIndex-1];
+
+      showWidgetList.add(
+        Positioned(
+          left  : canvasToGlobalPos(Point(0, preBackGround.pos + preBackGround.size)).x,
+          top   : canvasToGlobalPos(Point(0, preBackGround.pos + preBackGround.size - offsetSize)).y,
+          child : Container(
+            color : backGroundColorChangeList[backGroundIndex-1].targetColor,
+            height: _background.pos - (preBackGround.pos + preBackGround.size) + offsetSize*2,
+            width : widget.project.canvasSize.width,
+          )
+        )
+      );
+    }
+
+
+    // グラデーション
+    for (BackGroundColorChange _background in backGroundColorChangeList) {
+
+      int backGroundIndex = backGroundColorChangeList.indexOf(_background);
+      Color preColor = (backGroundIndex == 0 ? Colors.white : backGroundColorChangeList[backGroundIndex-1].targetColor);
+
+      showWidgetList.add(
+        Positioned(
+          left  : canvasToGlobalPos(Point(0,_background.pos)).x,
+          top   : canvasToGlobalPos(Point(0,_background.pos)).y,
+          child : Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin : FractionalOffset.topCenter,
+                end   : FractionalOffset.bottomCenter,
+                colors: [ preColor, _background.targetColor ],
+                stops: const [
+                  0.0,
+                  1.0,
+                ],
+              ),
+            ),
+            height: _background.size,
+            width : widget.project.canvasSize.width,
+          )
+        )
+      );
+    }
+
+
+    return showWidgetList;
+  }
+
   List<Widget> _frameBodyList(){
     List<Widget> showWidgetList = [];
 
@@ -1043,6 +1146,12 @@ class EditPageState extends State<EditPage> {
       );
 
       if(result == null) return;
+      
+      // TODO: asdf
+      backGroundColorChangeList.addAll([
+        BackGroundColorChange(widget.dbInstance, "asdfasdf", Colors.black, 200, 200, ),
+        BackGroundColorChange(widget.dbInstance, "asdfasdf", Colors.blue, 1200, 400, ),
+      ]);
 
       // 画像読み込み
       await Future.forEach(result.files.where((_file) => _file.extension != null && _file.extension == "png").toList(), (PlatformFile _file) async {

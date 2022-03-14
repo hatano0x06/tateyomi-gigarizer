@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
 
-class Project{
+class BackGroundColorChange{
   late DbImpl dbInstance;
   late String dbIndex;
   late Color targetColor;
-  late int posY;
+  late double pos;
+  late double size;
 
-  Project(
+  BackGroundColorChange(
       // 保存周りに必要な奴
     this.dbInstance,
     this.dbIndex,
 
     // 保存変数
     this.targetColor,
-    this.posY,
+    this.pos,
+    this.size,
   );
 
   Map<String, dynamic> toDbJson(){
