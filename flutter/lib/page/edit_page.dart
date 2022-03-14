@@ -246,6 +246,13 @@ class EditPageState extends State<EditPage> {
         title   : Text( "編集ページ ： " + widget.project.name ),
         actions : !isImageLoaded() ? [] : [
             IconButton(
+              icon    : const Icon(Icons.gradient),
+              tooltip : "背景の追加",
+              onPressed: (){
+                
+              }
+            ),
+            IconButton(
             icon    : const Icon(Icons.swap_horiz_outlined),
             tooltip : "左右反転",
             onPressed: (){
