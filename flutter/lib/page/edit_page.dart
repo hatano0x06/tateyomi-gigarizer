@@ -66,10 +66,10 @@ class EditPageState extends State<EditPage> {
   double stricyArea = 10;
 
   // TODO: 背景
-  //  背景の追加
-  //  背景の変更
   //  背景の大きさの変更（ドラッグ
+  //  背景の変更
   //  背景の削除
+  //  canvasの設定で色の設定の追加
   //  DB(クラウド)
   //  ダウンロード
 
@@ -271,11 +271,13 @@ class EditPageState extends State<EditPage> {
                   BackGroundColorChange _tmpColor = BackGroundColorChange(
                     widget.dbInstance, "", 
                     setColor, 
-                    // TODO: asdf
                     verticalScrollController.position.pixels + MediaQuery.of(context).size.height*windowZoomSize()/2 - 150, 
                     300, 
                   );
                   _tmpColor.save();
+
+                  focusFrame = null;
+                  showCanvasEdit = false;
                   focusBackGroundColorChange = _tmpColor;
 
                   backGroundColorChangeList.add( _tmpColor );
@@ -468,6 +470,7 @@ class EditPageState extends State<EditPage> {
         }
 
         focusFrame = draggingFrame;
+        focusBackGroundColorChange = null;
         framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
         framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
         frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
@@ -871,6 +874,59 @@ class EditPageState extends State<EditPage> {
           )
         )
       );
+    }
+
+    if( focusBackGroundColorChange != null ){
+      double ballDiameter = 15.0;
+
+      showWidgetList.addAll([
+        Positioned(
+          left  : canvasToGlobalPos(Point(0,focusBackGroundColorChange!.pos)).x,
+          top   : canvasToGlobalPos(Point(0,focusBackGroundColorChange!.pos)).y,
+          child : Container(
+            decoration: BoxDecoration(
+              color: Colors.transparent,
+              border: Border.all( color: Colors.blue.withAlpha(200), width: 4 )
+            ),
+            width   : widget.project.canvasSize.width,
+            height  : focusBackGroundColorChange!.size,
+          )
+        ),
+        Positioned(
+          left  : canvasToGlobalPos(Point(widget.project.canvasSize.width/2, focusBackGroundColorChange!.pos)).x - ballDiameter / 2,
+          top   : canvasToGlobalPos(Point(widget.project.canvasSize.width/2, focusBackGroundColorChange!.pos)).y - ballDiameter / 2,
+          child: CornerBallWidget(
+            cursor      : SystemMouseCursors.resizeUpDown,
+            ballDiameter: ballDiameter,
+            onDragStart : (){ },
+            onDragEnd   : (){ focusBackGroundColorChange!.save(); },
+            onDrag      : (dragPos) {
+              double finishPos  = focusBackGroundColorChange!.pos + focusBackGroundColorChange!.size;
+              
+              Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
+              focusBackGroundColorChange!.size  = finishPos - canvasDragPos.y;
+              focusBackGroundColorChange!.pos   = canvasDragPos.y;
+
+              setState(() { });
+            },
+          ),
+        ),
+        Positioned(
+          left  : canvasToGlobalPos(Point(widget.project.canvasSize.width/2, focusBackGroundColorChange!.pos)).x - ballDiameter / 2,
+          top   : canvasToGlobalPos(Point(widget.project.canvasSize.width/2, focusBackGroundColorChange!.pos + focusBackGroundColorChange!.size)).y - ballDiameter / 2,
+          child: CornerBallWidget(
+            cursor      : SystemMouseCursors.resizeUpDown,
+            ballDiameter: ballDiameter,
+            onDragStart : (){ },
+            onDragEnd   : (){ focusBackGroundColorChange!.save(); },
+            onDrag      : (dragPos) {
+              focusBackGroundColorChange!.size = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy)).y - focusBackGroundColorChange!.pos;
+              setState(() { });
+            },
+          ),
+        ),
+
+      ]);
     }
 
 
