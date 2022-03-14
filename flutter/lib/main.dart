@@ -21,10 +21,10 @@ void main() async {
 //  - ダウンロード時にいろいろ横幅でできるようにする
 
 // TODO: オプション
+//  - ctrl+z機能
 //  - 配置を良い感じにする
 //  - 横に全体像が見れるやつ
 //  - クラッシュログ
-//  - ctrl+z機能
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
