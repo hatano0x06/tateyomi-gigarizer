@@ -8,6 +8,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
+import 'package:tateyomi_gigarizer/dialog/color_picker.dart';
 import 'package:tateyomi_gigarizer/model/background_color_change.dart';
 import 'package:tateyomi_gigarizer/model/frame_image.dart';
 import 'package:tateyomi_gigarizer/model/keyboard.dart';
@@ -39,6 +40,7 @@ class EditPageState extends State<EditPage> {
   List<BackGroundColorChange> backGroundColorChangeList = [];
 
   FrameImage? focusFrame;
+  BackGroundColorChange? focusBackGroundColorChange;
   List<FrameImage> focusFrameDependList = [];
 
   final ScrollController verticalScrollController = ScrollController();
@@ -63,7 +65,7 @@ class EditPageState extends State<EditPage> {
 
   double stricyArea = 10;
 
-  // TOOD: 背景
+  // TODO: 背景
   //  背景の追加
   //  背景の変更
   //  背景の大きさの変更（ドラッグ
@@ -258,6 +260,29 @@ class EditPageState extends State<EditPage> {
               icon    : const Icon(Icons.gradient),
               tooltip : "背景の追加",
               onPressed: (){
+                showDialog(
+                  context: context, 
+                  builder: (BuildContext context) => const ColorPickerDialog( )
+                ).then((_color){
+                  if( _color == null ) return;
+
+                  Color setColor = _color as Color;
+
+                  BackGroundColorChange _tmpColor = BackGroundColorChange(
+                    widget.dbInstance, "", 
+                    setColor, 
+                    // TODO: asdf
+                    verticalScrollController.position.pixels + MediaQuery.of(context).size.height*windowZoomSize()/2 - 150, 
+                    300, 
+                  );
+                  _tmpColor.save();
+                  focusBackGroundColorChange = _tmpColor;
+
+                  backGroundColorChangeList.add( _tmpColor );
+
+                  setState(() { });
+                });
+
                 
               }
             ),
@@ -1150,7 +1175,7 @@ class EditPageState extends State<EditPage> {
       // TODO: asdf
       backGroundColorChangeList.addAll([
         BackGroundColorChange(widget.dbInstance, "asdfasdf", Colors.black, 200, 200, ),
-        BackGroundColorChange(widget.dbInstance, "asdfasdf", Colors.blue, 1200, 400, ),
+        // BackGroundColorChange(widget.dbInstance, "asdfasdf", Colors.blue, 1200, 400, ),
       ]);
 
       // 画像読み込み
