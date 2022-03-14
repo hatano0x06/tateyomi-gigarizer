@@ -46,4 +46,8 @@ class BackGroundColorChange{
     // dbInstance.updateProject(this);
   }
 
+  void delete(){
+    // dbInstance.updateProject(this);
+  }
+
 }

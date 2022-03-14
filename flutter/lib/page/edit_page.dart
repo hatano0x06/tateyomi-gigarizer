@@ -66,7 +66,6 @@ class EditPageState extends State<EditPage> {
   double stricyArea = 10;
 
   // TODO: 背景
-  //  背景の大きさの変更（移動
   //  背景の変更（フォーカス
   //  背景の削除
   //  かぶったときのエラー対応
