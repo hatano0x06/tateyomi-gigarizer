@@ -66,13 +66,13 @@ class EditPageState extends State<EditPage> {
   double stricyArea = 10;
 
   // TODO: 背景
-  //  背景の大きさの変更（ドラッグ
-  //  背景の変更
+  //  背景の大きさの変更（移動
+  //  背景の変更（フォーカス
   //  背景の削除
+  //  かぶったときのエラー対応
   //  canvasの設定で色の設定の追加
   //  DB(クラウド)
   //  ダウンロード
-
 
   @override
   void initState(){
@@ -363,7 +363,8 @@ class EditPageState extends State<EditPage> {
   }
 
   FrameImage? draggingFrame;
-  Point<double> initFramePosition     = const Point(0,0);
+  BackGroundColorChange? draggingBackGroundColorChange;
+  Point<double> initDragPosition     = const Point(0,0);
   Point<double> initDragFramePosition = const Point(0,0);
   Point<double> currentDragFramePosition = const Point(0,0);
   Widget gestureWidget(Widget _body){
@@ -375,7 +376,7 @@ class EditPageState extends State<EditPage> {
     }
 
     Point<double> stickyPosition(FrameImage frameImage, Point<double> diffPosition){
-      Point<double> newFramePos =  initFramePosition + diffPosition;
+      Point<double> newFramePos =  initDragPosition + diffPosition;
 
       if( newFramePos.x.abs() < stricyArea ) newFramePos = Point(0, newFramePos.y);
       if( newFramePos.y.abs() < stricyArea ) newFramePos = Point(newFramePos.x, 0);
@@ -403,82 +404,141 @@ class EditPageState extends State<EditPage> {
       return null;
     }
 
+    BackGroundColorChange? targetBackGroundColor(Offset _tapPos){
+      Point<double> canvasTapPos = dragGlobalToCanvasPos(_tapPos);
+
+      for (BackGroundColorChange _backGroundColor in backGroundColorChangeList) {
+        if( canvasTapPos.y < _backGroundColor.pos ) continue;
+        if( canvasTapPos.x < 0 ) continue;
+        if( _backGroundColor.pos +_backGroundColor.size < canvasTapPos.y ) continue;
+        if( widget.project.canvasSize.width < canvasTapPos.x ) continue;
+
+        return _backGroundColor;
+      }
+
+      return null;
+    }
+
     return GestureDetector(
       child     : _body,
       onTapUp   : (TapUpDetails _tapUp){
         setState(() { });
 
-        FrameImage? targetFrame = targetFrameImage(_tapUp.globalPosition);
-        if( focusFrame == targetFrame || targetFrame == null){
-          focusFrame = null;
+        void frameFunc(){
+          FrameImage? targetFrame = targetFrameImage(_tapUp.globalPosition);
+          if( focusFrame == targetFrame || targetFrame == null){
+            focusBackGroundColorChange = null;
+            focusFrame = null;
+            focusFrameDependList.clear();
+            return;
+          }
+          focusFrame = targetFrame;
+          showCanvasEdit = false;
+
           focusFrameDependList.clear();
+
+          // ctrlを押しながらやると、従属して動く
+          if(RawKeyboard.instance.keysPressed.where((_pressd) => _pressd.keyLabel == LogicalKeyboardKey.controlLeft.keyLabel).isNotEmpty){
+            focusFrameDependList = frameImageList.where((_frame) => _frame.position.y > focusFrame!.position.y ).toList();
+          }
+
+          framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
+          framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
+          frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );  
+
           return;
         }
-        focusFrame = targetFrame;
-        showCanvasEdit = false;
 
-        focusFrameDependList.clear();
+        frameFunc();
 
-        // ctrlを押しながらやると、従属して動く
-        if(RawKeyboard.instance.keysPressed.where((_pressd) => _pressd.keyLabel == LogicalKeyboardKey.controlLeft.keyLabel).isNotEmpty){
-          focusFrameDependList = frameImageList.where((_frame) => _frame.position.y > focusFrame!.position.y ).toList();
+        void backgroundFunc(){
+          BackGroundColorChange? targetBackGround = targetBackGroundColor(_tapUp.globalPosition);
+          if( focusBackGroundColorChange == targetBackGround || targetBackGround == null){
+            focusBackGroundColorChange = null;
+            focusFrame = null;
+            focusFrameDependList.clear();
+            return;
+          }
+          
+          focusBackGroundColorChange = targetBackGround;
         }
 
-        framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
-        framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
-        frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );        
+        backgroundFunc();
       },
       onPanStart: (DragStartDetails _dragStart){
-        // diffPos = Offset.zero; 
-        // showDiffPos = Offset.zero;
-        draggingFrame = targetFrameImage(_dragStart.globalPosition);
-        if( draggingFrame == null ) return;
-
-        initFramePosition = draggingFrame!.position;
+        setState(() { });
         initDragFramePosition  = dragGlobalToCanvasPos(_dragStart.globalPosition);
+        draggingBackGroundColorChange = null;
+        draggingFrame = null;
 
-        focusFrameDependList.clear();
-        if(RawKeyboard.instance.keysPressed.where((_pressd) => _pressd.keyLabel == LogicalKeyboardKey.controlLeft.keyLabel).isNotEmpty){
-          focusFrameDependList = frameImageList.where((_frame) => _frame.position.y > draggingFrame!.position.y ).toList();
+        draggingFrame = targetFrameImage(_dragStart.globalPosition);
+        if( draggingFrame != null ){
+          initDragPosition = draggingFrame!.position;
+          focusFrameDependList.clear();
+          if(RawKeyboard.instance.keysPressed.where((_pressd) => _pressd.keyLabel == LogicalKeyboardKey.controlLeft.keyLabel).isNotEmpty){
+            focusFrameDependList = frameImageList.where((_frame) => _frame.position.y > draggingFrame!.position.y ).toList();
+          }
+          return;
         }
 
-        setState(() { });
+        draggingBackGroundColorChange = targetBackGroundColor(_dragStart.globalPosition);
+        if( draggingBackGroundColorChange != null ){
+          focusBackGroundColorChange = draggingBackGroundColorChange;
+          initDragPosition = Point(0, draggingBackGroundColorChange!.pos);
+        }
+
       },
       onPanUpdate: (DragUpdateDetails _dragUpdate){
-        if( draggingFrame == null ) return;
+        setState(() { });
 
-        // print( dragGlobalToCanvasPos(_dragUpdate.globalPosition) );
         currentDragFramePosition = dragGlobalToCanvasPos(_dragUpdate.globalPosition);
 
-        draggingFrame!.position = stickyPosition( draggingFrame!, currentDragFramePosition - initDragFramePosition);
+        void _draggingFrame(){
+          if( draggingFrame == null ) return;
+          draggingFrame!.position = stickyPosition( draggingFrame!, currentDragFramePosition - initDragFramePosition);
+        }
+        _draggingFrame();
 
-        setState(() { });
-
-        // print( "pan update : " + _dragUpdate.globalPosition.toString());
+        void _draggingBackGround(){
+          if( draggingBackGroundColorChange == null ) return;
+          draggingBackGroundColorChange!.pos =  initDragPosition.y + (currentDragFramePosition - initDragFramePosition).y;
+        }
+        _draggingBackGround();
       },
       onPanEnd: (DragEndDetails _dragEnd){
-        if( draggingFrame == null ) return;
-
-        Point<double> stickyDiffPos = stickyPosition( draggingFrame!, currentDragFramePosition - initDragFramePosition);
-        
-        draggingFrame!.position = stickyDiffPos;
-        draggingFrame?.save();
-
-        for (FrameImage _depandFrame in focusFrameDependList) {
-          _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y + (draggingFrame!.position - initFramePosition).y);
-          _depandFrame.save();
-        }
-
-        focusFrame = draggingFrame;
-        focusBackGroundColorChange = null;
-        framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
-        framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
-        frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
-
-        draggingFrame = null;
         setState(() { });
 
-        // print( "pan end ");
+        void dragFrame(){
+          if( draggingFrame == null ) return;
+
+          Point<double> stickyDiffPos = stickyPosition( draggingFrame!, currentDragFramePosition - initDragFramePosition);
+          
+          draggingFrame!.position = stickyDiffPos;
+          draggingFrame?.save();
+
+          for (FrameImage _depandFrame in focusFrameDependList) {
+            _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y + (draggingFrame!.position - initDragPosition).y);
+            _depandFrame.save();
+          }
+
+          focusFrame = draggingFrame;
+          focusBackGroundColorChange = null;
+          framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
+          framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
+          frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
+
+          draggingFrame = null;
+        }
+
+        dragFrame();
+
+        void _draggingBackGround(){
+          if( draggingBackGroundColorChange == null ) return;
+          draggingBackGroundColorChange?.save();
+
+          draggingBackGroundColorChange = null;
+        }
+        _draggingBackGround();
       },
     );
 
@@ -845,7 +905,6 @@ class EditPageState extends State<EditPage> {
         )
       );
     }
-
 
     // グラデーション
     for (BackGroundColorChange _background in backGroundColorChangeList) {
