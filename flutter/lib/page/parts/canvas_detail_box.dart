@@ -20,10 +20,10 @@ class CanvasDetailWidget extends StatefulWidget {
 
 
   @override
-  CanvasDetailWidgettState createState() => CanvasDetailWidgettState();
+  CanvasDetailWidgetState createState() => CanvasDetailWidgetState();
 }
 
-class CanvasDetailWidgettState extends State<CanvasDetailWidget> {
+class CanvasDetailWidgetState extends State<CanvasDetailWidget> {
   final TextEditingController canvasSizeXController = TextEditingController();
   final TextEditingController canvasSizeYController = TextEditingController();
   final FocusNode canvasSizeXFocusNode = FocusNode();
