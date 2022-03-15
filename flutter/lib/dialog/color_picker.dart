@@ -40,7 +40,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
         child: Column(
           children: [
             ColorPicker(
-              pickerColor   : pickerColor ?? Colors.white,
+              pickerColor   : pickerColor ?? Colors.black,
               onColorChanged: changeColor,
               enableAlpha   : false,
               hexInputController: textController,
@@ -87,7 +87,7 @@ class _ColorPickerDialogState extends State<ColorPickerDialog> {
         ElevatedButton(
           child: const Text('決定'),
           onPressed: () {
-            Navigator.of(context).pop(pickerColor ?? Colors.white);
+            Navigator.of(context).pop(pickerColor ?? Colors.black);
           },
         ),
       ],

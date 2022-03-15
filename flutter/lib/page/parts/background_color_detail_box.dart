@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:tateyomi_gigarizer/model/background_color_change.dart';
 
@@ -20,16 +21,27 @@ class BackGroundColorDetailWidget extends StatefulWidget {
 }
 
 class BackGroundColorDetailWidgetState extends State<BackGroundColorDetailWidget> {
+  late TextEditingController textController;
+
   @override
   void initState(){
     super.initState();
+
+    String hexColorString(){
+      return '${widget.backGroundColorChange.targetColor.red.toRadixString(16).padLeft(2, '0')}'
+      '${widget.backGroundColorChange.targetColor.green.toRadixString(16).padLeft(2, '0')}'
+      '${widget.backGroundColorChange.targetColor.blue.toRadixString(16).padLeft(2, '0')}';
+    }
+
+    textController = TextEditingController(text: hexColorString());
   }
 
   @override
   void dispose(){
+    widget.backGroundColorChange.save();
+    textController.dispose();
     super.dispose();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -52,13 +64,19 @@ class BackGroundColorDetailWidgetState extends State<BackGroundColorDetailWidget
               onColorChanged: (Color color) {
                 widget.mainBuild();
                 widget.backGroundColorChange.targetColor = color;
-                print("asdfasdfdsf");
-                widget.backGroundColorChange.save();
               },
               portraitOnly: true,
               enableAlpha   : false,
-              // TODO: asdf
-              // hexInputController: textController,
+              hexInputController: textController,
+            ),
+            TextField(
+              controller: textController,
+              maxLength: 6,
+              decoration      : const InputDecoration( hintText: "Hex Color( #なしで入力）", ),
+              inputFormatters: [
+                UpperCaseTextFormatter(),
+                FilteringTextInputFormatter.allow(RegExp(kValidHexPattern)),
+              ],
             ),
             Align(
               alignment : Alignment.centerLeft,

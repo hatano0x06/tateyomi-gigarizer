@@ -61,6 +61,7 @@ class EditPageState extends State<EditPage> {
 
   // TODO: 背景
   //  DB(クラウド)
+  //  db時にcanvasidも一緒に入れる
 
   @override
   void initState(){
@@ -166,8 +167,8 @@ class EditPageState extends State<EditPage> {
                   BackGroundColorChange _tmpColor = BackGroundColorChange(
                     widget.dbInstance, widget.project, "", 
                     setColor, 
-                    verticalScrollController.position.pixels + MediaQuery.of(context).size.height*windowZoomSize()/2 - 150, 
-                    300, 
+                    verticalScrollController.position.pixels + MediaQuery.of(context).size.height*windowZoomSize()/2 - 50, 
+                    100, 
                   );
                   _tmpColor.save();
 
@@ -256,13 +257,17 @@ class EditPageState extends State<EditPage> {
     focusFrame = targetFrameImage;
     if( focusFrame == null ) focusFrameDependList.clear();
     
+    if( focusBackGroundColorChange != null ) focusBackGroundColorChange?.save();
     focusBackGroundColorChange = null;
     showCanvasEdit = false;
     setState(() { });
   }
 
   void setFocusBackGround(BackGroundColorChange? targetBackgroundColor){
+
+    if( focusBackGroundColorChange != null ) focusBackGroundColorChange?.save();
     focusBackGroundColorChange = targetBackgroundColor;
+
     focusFrame = null;
     focusFrameDependList.clear();
     showCanvasEdit = false;
@@ -273,7 +278,10 @@ class EditPageState extends State<EditPage> {
     showCanvasEdit = status;
     focusFrame = null;
     focusFrameDependList.clear();
+
+    if( focusBackGroundColorChange != null ) focusBackGroundColorChange?.save();
     focusBackGroundColorChange = null;
+
     setState(() { });
   }
 
@@ -680,7 +688,6 @@ class EditPageState extends State<EditPage> {
 
   /* -----  背景 ----- */
 
-  // TODO: asdf
   List<Widget> _backGroundWidgetList(){
 
     const int offsetSize = 10;
