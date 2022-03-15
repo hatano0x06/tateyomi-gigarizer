@@ -7,6 +7,7 @@ import 'package:adaptive_scrollbar/adaptive_scrollbar.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
 import 'package:tateyomi_gigarizer/dialog/color_picker.dart';
 import 'package:tateyomi_gigarizer/model/background_color_change.dart';
@@ -229,7 +230,8 @@ class EditPageState extends State<EditPage> {
           child : outsideGraySpace(),
         ) : Container(),
         focusDetailSettingBox(),
-        canvasSizeSettingBox()
+        canvasSizeSettingBox(),
+        focusBackGroundDetailSettingBox(),
       ],
     );
     
@@ -619,8 +621,10 @@ class EditPageState extends State<EditPage> {
 
 
 
+  // TODO: こいつリファクタ対象
   Widget canvasSizeSettingBox(){
     if(focusFrame != null ) return Container();
+    if(focusBackGroundColorChange != null ) return Container();
     if(!showCanvasEdit) return Container();
 
     Widget textFormWidget(TextEditingController editController, FocusNode focusNode, String labeltext, List<TextInputFormatter> formatList, String? Function(String?)? validatorFunc){
@@ -670,7 +674,7 @@ class EditPageState extends State<EditPage> {
     );
   }
 
-
+  // TODO: こいつリファクタ対象
   Widget focusDetailSettingBox(){
     if(focusFrame == null ) return Container();
 
@@ -742,6 +746,57 @@ class EditPageState extends State<EditPage> {
       ),
     );
   }
+
+
+  Widget focusBackGroundDetailSettingBox(){
+    if(focusFrame != null ) return Container();
+    if(focusBackGroundColorChange == null ) return Container();
+    if(showCanvasEdit) return Container();
+
+    return Positioned(
+      top   : 20,
+      left  : sideSpaceWidth() + widget.project.canvasSize.width - horizonScrollController.position.pixels + 20,
+      child: Container(
+        width: 400,
+        decoration: BoxDecoration(
+          color: Colors.grey[100],
+          border: Border.all( color: Colors.black, )
+        ),
+        child: Padding(
+          padding : const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+          child   : Column(
+            children: [
+              const Align(
+                alignment: Alignment.centerLeft,
+                child :  Text("背景の編集", style: TextStyle( fontWeight: FontWeight.bold), ),
+              ),
+              ColorPicker(
+                pickerColor   : focusBackGroundColorChange!.targetColor,
+                onColorChanged: (Color color) {
+                  setState(() => focusBackGroundColorChange!.targetColor = color);
+                },
+                portraitOnly: true,
+                enableAlpha   : false,
+                // TODO: asdf
+                // hexInputController: textController,
+              ),
+              Align(
+                alignment : Alignment.centerLeft,
+                child     : IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: (){
+                    backGroundColorChangeList.remove(focusBackGroundColorChange!);
+                    focusBackGroundColorChange?.delete();
+                    setState(() { });
+                  }, 
+                )
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }  
 
   double windowZoomSize(){
     return window.devicePixelRatio/1.25;
