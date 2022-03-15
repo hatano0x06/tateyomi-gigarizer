@@ -60,7 +60,6 @@ class EditPageState extends State<EditPage> {
   double stricyArea = 10;
 
   // TODO: 背景
-  //  canvasの設定で色の設定の追加
   //  DB(クラウド)
 
   @override
