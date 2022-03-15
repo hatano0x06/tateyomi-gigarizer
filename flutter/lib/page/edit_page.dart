@@ -14,7 +14,7 @@ import 'package:tateyomi_gigarizer/model/background_color_change.dart';
 import 'package:tateyomi_gigarizer/model/frame_image.dart';
 import 'package:tateyomi_gigarizer/model/keyboard.dart';
 import 'package:tateyomi_gigarizer/model/project.dart';
-import 'package:tateyomi_gigarizer/page/corner_ball.dart';
+import 'package:tateyomi_gigarizer/page/parts/corner_ball.dart';
 import 'package:tateyomi_gigarizer/download/canvas_to_image.dart';
 import 'package:tateyomi_gigarizer/dialog/shortcuts_info_dialog.dart';
 import 'package:universal_html/html.dart';
@@ -67,8 +67,6 @@ class EditPageState extends State<EditPage> {
   double stricyArea = 10;
 
   // TODO: 背景
-  //  背景の変更（フォーカス
-  //  背景の削除
   //  かぶったときのエラー対応
   //  canvasの設定で色の設定の追加
   //  DB(クラウド)
