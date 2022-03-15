@@ -22,6 +22,8 @@ import 'dart:ui' as ui;
 import 'dart:math' as math;
 import 'dart:convert';
 
+import 'parts/frame_detail_box.dart';
+
 class EditPage extends StatefulWidget {
   final DbImpl dbInstance;
   final Project project;
@@ -44,15 +46,10 @@ class EditPageState extends State<EditPage> {
   BackGroundColorChange? focusBackGroundColorChange;
   List<FrameImage> focusFrameDependList = [];
 
+  final GlobalKey<FrameDetailWidgetState> _frameDetailKey = GlobalKey<FrameDetailWidgetState>();
+
   final ScrollController verticalScrollController = ScrollController();
   final ScrollController horizonScrollController  = ScrollController();
-
-  final TextEditingController framePosXController = TextEditingController();
-  final TextEditingController framePosYController = TextEditingController();
-  final TextEditingController frameSizeRateController = TextEditingController();
-  final FocusNode framePosXFocusNode = FocusNode();
-  final FocusNode framePosYFocusNode = FocusNode();
-  final FocusNode frameSizeRateFocusNode = FocusNode();
 
   final TextEditingController canvasSizeXController = TextEditingController();
   final TextEditingController canvasSizeYController = TextEditingController();
@@ -89,53 +86,6 @@ class EditPageState extends State<EditPage> {
 
     verticalScrollController.addListener(() { setState(() { }); });
     horizonScrollController.addListener(() { setState(() { }); });
-
-    framePosXController.addListener((){
-      if(posStringValidate(framePosXController.text) != null ) return;
-
-      focusFrame!.position = Point<double>(double.parse(framePosXController.text), focusFrame!.position.y);
-      focusFrame?.save();
-      setState(() { });
-    });    
-
-    framePosYController.addListener((){
-      if(posStringValidate(framePosYController.text) != null ) return;
-
-      double prePosY = focusFrame!.position.y;
-      double newPosY = double.parse(framePosYController.text);
-
-      focusFrame!.position = Point<double>(focusFrame!.position.x, newPosY);
-      focusFrame?.save();
-
-      double diffY = prePosY - newPosY;
-      for (FrameImage _depandFrame in focusFrameDependList) {
-        _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y-diffY);
-        _depandFrame.save();
-      }
-
-      setState(() { });
-    });    
-
-    frameSizeRateController.addListener((){
-      if(rateStringValidate(frameSizeRateController.text) != null ) return;
-
-      double _rate = double.parse(frameSizeRateController.text);
-      _rate = math.max(_rate, 0.01);
-
-      double preBottom = focusFrame!.rotateSize.y * focusFrame!.sizeRate;
-      double newBottom = focusFrame!.rotateSize.y * _rate;
-
-      focusFrame!.sizeRate = _rate;
-      focusFrame?.save();
-
-      double diffY = preBottom - newBottom;
-      for (FrameImage _depandFrame in focusFrameDependList) {
-        _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y-diffY);
-        _depandFrame.save();
-      }
-
-      setState(() { });
-    });
 
 
     canvasSizeXController.addListener((){
@@ -182,14 +132,6 @@ class EditPageState extends State<EditPage> {
     verticalScrollController.dispose();
     horizonScrollController.dispose();
     
-    framePosXController.dispose();
-    framePosYController.dispose();
-    frameSizeRateController.dispose();
-
-    framePosXFocusNode.dispose();
-    framePosYFocusNode.dispose();
-    frameSizeRateFocusNode.dispose();
-
     canvasSizeXController.dispose();
     canvasSizeYController.dispose();
     canvasSizeXFocusNode.dispose();
@@ -423,10 +365,11 @@ class EditPageState extends State<EditPage> {
       onTapUp   : (TapUpDetails _tapUp){
         setState(() { });
 
+        FrameImage? targetFrame = targetFrameImage(_tapUp.globalPosition);
         void frameFunc(){
-          FrameImage? targetFrame = targetFrameImage(_tapUp.globalPosition);
+          if(targetFrame != null) focusBackGroundColorChange = null;
+          
           if( focusFrame == targetFrame || targetFrame == null){
-            focusBackGroundColorChange = null;
             focusFrame = null;
             focusFrameDependList.clear();
             return;
@@ -441,14 +384,13 @@ class EditPageState extends State<EditPage> {
             focusFrameDependList = frameImageList.where((_frame) => _frame.position.y > focusFrame!.position.y ).toList();
           }
 
-          framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
-          framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
-          frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );  
+          _frameDetailKey.currentState?.updateTextField();
 
           return;
         }
-
         frameFunc();
+
+        if(targetFrame != null) return;
 
         void backgroundFunc(){
           BackGroundColorChange? targetBackGround = targetBackGroundColor(_tapUp.globalPosition);
@@ -522,9 +464,8 @@ class EditPageState extends State<EditPage> {
 
           focusFrame = draggingFrame;
           focusBackGroundColorChange = null;
-          framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
-          framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
-          frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
+
+          _frameDetailKey.currentState?.updateTextField();
 
           draggingFrame = null;
         }
@@ -567,9 +508,7 @@ class EditPageState extends State<EditPage> {
         String shortCutType = _shortCutKeyMap.values.toList()[_shortCutIndex];
 
         if(
-          framePosXFocusNode.hasFocus || 
-          framePosYFocusNode.hasFocus || 
-          frameSizeRateFocusNode.hasFocus || 
+          (_frameDetailKey.currentState?.isFocus() ?? false) || 
           downloadFocusNode.hasFocus || 
           canvasSizeXFocusNode.hasFocus || 
           canvasSizeYFocusNode.hasFocus
@@ -598,9 +537,7 @@ class EditPageState extends State<EditPage> {
       },
       onKeysUp: (){
         if(
-          framePosXFocusNode.hasFocus || 
-          framePosYFocusNode.hasFocus || 
-          frameSizeRateFocusNode.hasFocus || 
+          (_frameDetailKey.currentState?.isFocus() ?? false) || 
           downloadFocusNode.hasFocus || 
           canvasSizeXFocusNode.hasFocus || 
           canvasSizeYFocusNode.hasFocus
@@ -608,9 +545,7 @@ class EditPageState extends State<EditPage> {
 
         if( focusFrame != null ){
           focusFrame?.save();
-          framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
-          framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
-          frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
+          _frameDetailKey.currentState?.updateTextField();
         }
       },
       child: _body
@@ -674,78 +609,24 @@ class EditPageState extends State<EditPage> {
 
   // TODO: こいつリファクタ対象
   Widget focusDetailSettingBox(){
+    // TODO: こいつの設定関数を作る
     if(focusFrame == null ) return Container();
-
-    Widget textFormWidget(TextEditingController editController, FocusNode focusNode, String labeltext, List<TextInputFormatter> formatList, String? Function(String?)? validatorFunc){
-      return TextFormField(
-        autovalidateMode: AutovalidateMode.always,
-        controller  : editController,
-        focusNode   : focusNode,
-        decoration      : InputDecoration( labelText: labeltext, ),
-        inputFormatters : formatList,
-        validator    : validatorFunc,
-      );
-    }
 
     return Positioned(
       top   : 20,
       left  : sideSpaceWidth() + widget.project.canvasSize.width - horizonScrollController.position.pixels + 20,
-      child: Container(
-        width: 300,
-        decoration: BoxDecoration(
-          color: Colors.grey[100],
-          border: Border.all( color: Colors.black, )
-        ),
-        child: Padding(
-          padding : const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-          child   : Column(
-            children: [
-              const Align(
-                alignment: Alignment.centerLeft,
-                child :  Text("コマの編集", style: TextStyle( fontWeight: FontWeight.bold), ),
-              ),
-              textFormWidget(framePosXController, framePosXFocusNode, "X位置", [FilteringTextInputFormatter.allow(RegExp('[0123456789.-]'))], 
-                (String? value){
-                  if( value == null ) return null;
-                  return posStringValidate(value);
-                }
-              ),
-              textFormWidget(framePosYController, framePosYFocusNode, "Y位置", [FilteringTextInputFormatter.allow(RegExp('[0123456789.-]'))], 
-                (String? value){
-                  if( value == null ) return null;
-                  return posStringValidate(value);
-                }
-              ),
-              textFormWidget(frameSizeRateController, frameSizeRateFocusNode, "大きさ倍率", [FilteringTextInputFormatter.allow(RegExp('[0123456789.]'))], 
-                (String? value){
-                  if( value == null ) return null;
-                  return rateStringValidate(value);
-                }
-              ),
-              Container(
-                padding   : const EdgeInsets.symmetric(vertical: 10),
-                alignment : Alignment.centerLeft,
-                child : Text("右端からの距離 : " + (widget.project.canvasSize.width - (focusFrame!.position.x + focusFrame!.size.x * focusFrame!.sizeRate)).toString() ),
-              ),
-              Align(
-                alignment : Alignment.centerLeft,
-                child     : IconButton(
-                  icon: const Icon(Icons.rotate_right_outlined),
-                  onPressed: (){
-                    focusFrame!.angle += 1;
-                    focusFrame!.angle = focusFrame!.angle%4;
-                    setState(() { });
-                  }, 
-                )
-              )
-            ],
-          ),
-        ),
-      ),
+      child : FrameDetailWidget(
+        key       : _frameDetailKey,
+        project   : widget.project,
+        focusFrame: focusFrame!,
+        focusFrameDependList: focusFrameDependList,
+        mainBuild: (){ setState(() { });},
+      )
     );
   }
 
 
+  // TODO: こいつリファクタ対象
   Widget focusBackGroundDetailSettingBox(){
     if(focusFrame != null ) return Container();
     if(focusBackGroundColorChange == null ) return Container();
@@ -1099,11 +980,7 @@ class EditPageState extends State<EditPage> {
 
     void saveAfterDrag(){
       _frameData.save();
-      if( focusFrame != null){
-        framePosXController.value = framePosXController.value.copyWith( text: focusFrame!.position.x.toString() );
-        framePosYController.value = framePosYController.value.copyWith( text: focusFrame!.position.y.toString() );
-        frameSizeRateController.value = frameSizeRateController.value.copyWith( text: focusFrame!.sizeRate.toString() );
-      }
+      _frameDetailKey.currentState?.updateTextField();
 
       for (FrameImage _depandFrame in focusFrameDependList) { _depandFrame.save(); }
     }
