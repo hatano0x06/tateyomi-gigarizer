@@ -45,6 +45,7 @@ class EditPageState extends State<EditPage> {
 
   FrameImage? focusFrame;
   BackGroundColorChange? focusBackGroundColorChange;
+  bool showCanvasEdit = false;
   List<FrameImage> focusFrameDependList = [];
 
   final GlobalKey<FrameDetailWidgetState> _frameDetailKey = GlobalKey<FrameDetailWidgetState>();
@@ -56,15 +57,12 @@ class EditPageState extends State<EditPage> {
   final TextEditingController downloadController = TextEditingController();
   final FocusNode downloadFocusNode = FocusNode();
 
-  bool showCanvasEdit = false;
-
   double stricyArea = 10;
 
   // TODO: 背景
   //  かぶったときのエラー対応
   //  canvasの設定で色の設定の追加
   //  DB(クラウド)
-  //  ダウンロード
 
   @override
   void initState(){
@@ -175,10 +173,7 @@ class EditPageState extends State<EditPage> {
                   );
                   _tmpColor.save();
 
-                  focusFrame = null;
-                  showCanvasEdit = false;
-                  focusBackGroundColorChange = _tmpColor;
-
+                  setFocusBackGround(_tmpColor);
                   backGroundColorChangeList.add( _tmpColor );
 
                   setState(() { });
@@ -210,8 +205,7 @@ class EditPageState extends State<EditPage> {
               FocusScope.of(context).unfocus();
               _canvasDetailKey.currentState?.updateTextField();
 
-              focusFrame = null;
-              showCanvasEdit = true;
+              setCanvasEdit(showCanvasEdit);
               setState(() { });
             },
           ),
@@ -259,6 +253,32 @@ class EditPageState extends State<EditPage> {
       body : _body,
     );
   }
+
+  void setFocusFrame(FrameImage? targetFrameImage){
+    focusFrame = targetFrameImage;
+    if( focusFrame == null ) focusFrameDependList.clear();
+    
+    focusBackGroundColorChange = null;
+    showCanvasEdit = false;
+    setState(() { });
+  }
+
+  void setFocusBackGround(BackGroundColorChange? targetBackgroundColor){
+    focusBackGroundColorChange = targetBackgroundColor;
+    focusFrame = null;
+    focusFrameDependList.clear();
+    showCanvasEdit = false;
+    setState(() { });
+  }  
+
+  void setCanvasEdit(bool status){
+    showCanvasEdit = status;
+    focusFrame = null;
+    focusFrameDependList.clear();
+    focusBackGroundColorChange = null;
+    setState(() { });
+  }
+
 
   FrameImage? draggingFrame;
   BackGroundColorChange? draggingBackGroundColorChange;
@@ -327,13 +347,11 @@ class EditPageState extends State<EditPage> {
           if(targetFrame != null) focusBackGroundColorChange = null;
 
           if( focusFrame == targetFrame || targetFrame == null){
-            focusFrame = null;
+            setFocusFrame(null);
             focusFrameDependList.clear();
             return;
           }
-          focusFrame = targetFrame;
-          showCanvasEdit = false;
-
+          setFocusFrame(targetFrame);
           focusFrameDependList.clear();
 
           // ctrlを押しながらやると、従属して動く
@@ -352,13 +370,11 @@ class EditPageState extends State<EditPage> {
         void backgroundFunc(){
           BackGroundColorChange? targetBackGround = targetBackGroundColor(_tapUp.globalPosition);
           if( focusBackGroundColorChange == targetBackGround || targetBackGround == null){
-            focusBackGroundColorChange = null;
-            focusFrame = null;
-            focusFrameDependList.clear();
+            setFocusBackGround(null);
             return;
           }
-          
-          focusBackGroundColorChange = targetBackGround;
+
+          setFocusBackGround(targetBackGround);
         }
 
         backgroundFunc();
@@ -381,7 +397,7 @@ class EditPageState extends State<EditPage> {
 
         draggingBackGroundColorChange = targetBackGroundColor(_dragStart.globalPosition);
         if( draggingBackGroundColorChange != null ){
-          focusBackGroundColorChange = draggingBackGroundColorChange;
+          setFocusBackGround(draggingBackGroundColorChange);
           initDragPosition = Point(0, draggingBackGroundColorChange!.pos);
         }
 
@@ -419,9 +435,7 @@ class EditPageState extends State<EditPage> {
             _depandFrame.save();
           }
 
-          focusFrame = draggingFrame;
-          focusBackGroundColorChange = null;
-
+          setFocusFrame(draggingFrame);
           _frameDetailKey.currentState?.updateTextField();
 
           draggingFrame = null;
@@ -507,6 +521,11 @@ class EditPageState extends State<EditPage> {
     );
   }
 
+
+
+
+  /* -----  設定周り ----- */
+
   Widget canvasSizeSettingBox(){
     if(!showCanvasEdit) return Container();
 
@@ -577,6 +596,10 @@ class EditPageState extends State<EditPage> {
 
     return math.max( (MediaQuery.of(context).size.width - widget.project.canvasSize.width)/2, 0);
   }  
+
+
+
+  /* -----  キャンパス設定 ----- */
 
   List<Widget> _canvasBody(){
     if( !isImageLoaded() ) {
@@ -654,6 +677,11 @@ class EditPageState extends State<EditPage> {
       color: Colors.transparent,
     );
   }  
+
+
+
+
+  /* -----  背景 ----- */
 
   // TODO: asdf
   List<Widget> _backGroundWidgetList(){
@@ -800,6 +828,10 @@ class EditPageState extends State<EditPage> {
 
     return showWidgetList;
   }
+
+
+
+  /* -----  コマ周り ----- */
 
   List<Widget> _frameBodyList(){
     List<Widget> showWidgetList = [];
