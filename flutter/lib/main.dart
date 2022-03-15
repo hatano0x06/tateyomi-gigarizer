@@ -17,14 +17,15 @@ void main() async {
 }
 
 // TODO: 縦読みの機能（２１日まで
-//  - 拡大縮小がうまくいかないので、windowsにする & 背景ダウンロード & ダウンロード時にいろいろ横幅でできるようにする
+//  - スマホ連携
+//  - 背景ダウンロード & ダウンロード時にいろいろ横幅でできるようにする
 
 // TODO: オプション
-//  - スマホ連携
-//  - ctrl+z機能
 //  - 配置を良い感じにする
+//  - ctrl+z機能
 //  - 横に全体像が見れるやつ
 //  - クラッシュログ
+//  - windowsダメだった
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);

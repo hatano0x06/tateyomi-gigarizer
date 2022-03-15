@@ -1,12 +1,13 @@
 // ignore_for_file: avoid_print
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
 // ignore: unused_import
 import 'package:tateyomi_gigarizer/dialog/text_input_dialog.dart';
+import 'package:tateyomi_gigarizer/model/common.dart';
 import 'package:tateyomi_gigarizer/model/project.dart';
 import 'package:tateyomi_gigarizer/page/edit_page.dart';
+import 'package:tateyomi_gigarizer/page/viewer.dart';
 
 class LoginPageWidget extends StatefulWidget {
   final DbImpl dbInstance;
@@ -42,7 +43,7 @@ class _LoginPageWidgetState extends State<LoginPageWidget> {
   Widget build(BuildContext context) {
 
     List<Widget> widgetList = [];
-    if( kIsWeb ){
+    if( isDeskTop() ){
       widgetList.add(
         Row(children: [
           Expanded(child: loginIdWidget()),
@@ -111,14 +112,19 @@ class _LoginPageWidgetState extends State<LoginPageWidget> {
                   _proj.lastOpenTime = DateTime.now().millisecondsSinceEpoch;
                   _proj.save();
 
-                  Navigator.push( context,
-                    PageRouteBuilder(
-                      pageBuilder: (context, animation1, animation2) => EditPage(
-                        dbInstance  : widget.dbInstance,
-                        project     : _proj,
-                      )
-                    ),
+                  // TODO: asdf
+
+                  Widget openPage = isDeskTop() ?
+                  EditPage(
+                    dbInstance  : widget.dbInstance,
+                    project     : _proj,
+                  ) :
+                  ViewerPage(
+                    dbInstance  : widget.dbInstance,
+                    project     : _proj,
                   );
+
+                  Navigator.push( context, PageRouteBuilder( pageBuilder: (context, animation1, animation2) => openPage ), );
                 },
               ),
             );
