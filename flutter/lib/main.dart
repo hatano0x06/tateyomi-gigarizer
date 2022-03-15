@@ -1,6 +1,5 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 // ignore: unused_import
 import 'package:tateyomi_gigarizer/db/db_firebase.dart';
@@ -8,7 +7,6 @@ import 'package:tateyomi_gigarizer/db/db_firebase.dart';
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
 import 'package:tateyomi_gigarizer/firebase_options.dart';
 import 'package:tateyomi_gigarizer/page/login_page.dart';
-import 'package:tateyomi_gigarizer/spPage/login_sp.dart';
 import 'package:url_strategy/url_strategy.dart';
 
 void main() async {
@@ -49,8 +47,8 @@ class MyApp extends StatelessWidget {
       ),
       navigatorObservers: [ FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance), ],
       // // test用
-      home: kIsWeb ? LoginPageWidget(dbInstance: DbImpl(),) : SpLoginPageWidget(dbInstance: DbImpl()),
-      // home: kIsWeb ? LoginPageWidget(dbInstance: DbFireStore(),) : SpLoginPageWidget(dbInstance: DbFireStore()),
+      home: LoginPageWidget(dbInstance: DbImpl(),)
+      // home: LoginPageWidget(dbInstance: DbFireStore(),),
     );
   }
 }

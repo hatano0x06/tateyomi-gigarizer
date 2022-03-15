@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
 // ignore: unused_import
@@ -39,6 +40,28 @@ class _LoginPageWidgetState extends State<LoginPageWidget> {
 
   @override
   Widget build(BuildContext context) {
+
+    List<Widget> widgetList = [];
+    if( kIsWeb ){
+      widgetList.add(
+        Row(children: [
+          Expanded(child: loginIdWidget()),
+          const SizedBox(width: 5,),
+          loginButton(),
+          const SizedBox(width: 5,),
+          newProjectButton()
+        ],)
+      );
+    } else {
+      widgetList.addAll([
+        loginIdWidget(),
+        loginButton(),
+      ]);
+    }
+
+    widgetList.add(existProjectList());
+
+
     return Scaffold(
       appBar: AppBar(
         title   : const Text( "ログインページ" ),
@@ -51,10 +74,7 @@ class _LoginPageWidgetState extends State<LoginPageWidget> {
           margin  : const EdgeInsets.symmetric(vertical: 50, horizontal: 10),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            children    : [
-              loginUnit(),
-              existProjectList()
-            ]
+            children    : widgetList
           ),
         ),
       ),
@@ -109,90 +129,86 @@ class _LoginPageWidgetState extends State<LoginPageWidget> {
     );
   }
 
-
-  Widget loginUnit(){
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Expanded(
-          child : TextFormField(
-            autofocus: true,
-            autovalidateMode: AutovalidateMode.always,
-            controller  : loginNameController,
-            decoration      : const InputDecoration( labelText: "id名", ),
-            validator    : (String? _value){
-              if(_value == null ) return null;
-              if(_value.isEmpty) return "id名を入力してください";
-              return null;
-            },
-          ),
-        ),
-        const SizedBox(width: 5,),
-        ElevatedButton(
-          child   : const Text('このidでデータの取得'),
-          onPressed: () async { 
-            setState(() { });
-            projectList.clear();
-            isEnableLoginId = false;
-            widget.dbInstance.loginId = "caramelmama";
-
-            // caramelmama以外許さない（一旦
-            // TODO: asdf
-            //  firebaseのセキュリティのほうでも制限かかっているので、注意
-            // if( loginNameController.text != "caramelmama") return;
-            // widget.dbInstance.loginId = loginNameController.text;
-
-            projectList = await widget.dbInstance.getProjectList();
-            isEnableLoginId = true;
-            setState(() { });
-          }
-        ),
-        const SizedBox(width: 5,),
-        ElevatedButton(
-          child   : const Text('プロジェクトの新規作成'),
-          onPressed: !isEnableLoginId && !widget.dbInstance.isTest ? null : () async { 
-            void moveToProj(String _text){
-              Project _newProj = Project(
-                widget.dbInstance,
-                "",
-                _text,
-                _text,
-                Size.zero,
-                DateTime.now().millisecondsSinceEpoch,
-                DateTime.now().millisecondsSinceEpoch,
-              );
-              _newProj.save();
-
-              Navigator.push( context,
-                PageRouteBuilder(
-                  pageBuilder: (context, animation1, animation2) => EditPage(
-                    dbInstance  : widget.dbInstance,
-                    project     : _newProj,
-                  )
-                ),
-              );
-            }
-
-            if( widget.dbInstance.isTest ){
-              moveToProj("");
-              return;
-            }
-
-            showDialog( 
-              context: context, 
-              builder: (BuildContext context) => const TextInputDialog("")
-            ).then((_text){
-              if( _text == null ) return;
-              String _fixText = _text as String;
-              if( _fixText.isEmpty ) return;
-
-              moveToProj(_fixText);
-              return;
-            });
-          },
-        ),
-      ],
+  Widget loginIdWidget(){
+    return TextFormField(
+      autofocus: true,
+      autovalidateMode: AutovalidateMode.always,
+      controller  : loginNameController,
+      decoration      : const InputDecoration( labelText: "id名", ),
+      validator    : (String? _value){
+        if(_value == null ) return null;
+        if(_value.isEmpty) return "id名を入力してください";
+        return null;
+      },
     );
-
   }
+
+  Widget loginButton(){
+    return ElevatedButton(
+      child   : const Text('このidでデータの取得'),
+      onPressed: () async { 
+        setState(() { });
+        projectList.clear();
+        isEnableLoginId = false;
+        widget.dbInstance.loginId = "caramelmama";
+
+        // caramelmama以外許さない（一旦
+        // TODO: asdf
+        //  firebaseのセキュリティのほうでも制限かかっているので、注意
+        // if( loginNameController.text != "caramelmama") return;
+        // widget.dbInstance.loginId = loginNameController.text;
+
+        projectList = await widget.dbInstance.getProjectList();
+        isEnableLoginId = true;
+        setState(() { });
+      }
+    );
+  }
+
+  Widget newProjectButton(){
+    return ElevatedButton(
+      child   : const Text('プロジェクトの新規作成'),
+      onPressed: !isEnableLoginId && !widget.dbInstance.isTest ? null : () async { 
+        void moveToProj(String _text){
+          Project _newProj = Project(
+            widget.dbInstance,
+            "",
+            _text,
+            _text,
+            Size.zero,
+            DateTime.now().millisecondsSinceEpoch,
+            DateTime.now().millisecondsSinceEpoch,
+          );
+          _newProj.save();
+
+          Navigator.push( context,
+            PageRouteBuilder(
+              pageBuilder: (context, animation1, animation2) => EditPage(
+                dbInstance  : widget.dbInstance,
+                project     : _newProj,
+              )
+            ),
+          );
+        }
+
+        if( widget.dbInstance.isTest ){
+          moveToProj("");
+          return;
+        }
+
+        showDialog( 
+          context: context, 
+          builder: (BuildContext context) => const TextInputDialog("")
+        ).then((_text){
+          if( _text == null ) return;
+          String _fixText = _text as String;
+          if( _fixText.isEmpty ) return;
+
+          moveToProj(_fixText);
+          return;
+        });
+      },
+    );
+  }
+
 }
