@@ -60,7 +60,6 @@ class EditPageState extends State<EditPage> {
   double stricyArea = 10;
 
   // TODO: 背景
-  //  かぶったときのエラー対応
   //  canvasの設定で色の設定の追加
   //  DB(クラウド)
 
@@ -543,7 +542,6 @@ class EditPageState extends State<EditPage> {
   }
 
   Widget focusDetailSettingBox(){
-    // TODO: こいつの設定関数を作る
     if(focusFrame == null ) return Container();
 
     return Positioned(
@@ -702,7 +700,7 @@ class EditPageState extends State<EditPage> {
             top   : canvasToGlobalPos(const Point(0,0)).y,
             child : Container(
               color : Colors.white,
-              height: backGroundColorChangeList.first.pos + offsetSize,
+              height: math.max(0, backGroundColorChangeList.first.pos + offsetSize),
               width : widget.project.canvasSize.width,
             )
           )
@@ -710,17 +708,19 @@ class EditPageState extends State<EditPage> {
       }
 
       // 一番後ろグラデーション以降の色埋め
-      showWidgetList.add(
-        Positioned(
-          left  : canvasToGlobalPos(Point(0, backGroundColorChangeList.last.pos + backGroundColorChangeList.last.size)).x,
-          top   : canvasToGlobalPos(Point(0, backGroundColorChangeList.last.pos + backGroundColorChangeList.last.size - offsetSize)).y,
-          child : Container(
-            color : backGroundColorChangeList.last.targetColor,
-            height: widget.project.canvasSize.height - (backGroundColorChangeList.last.pos + backGroundColorChangeList.last.size) + offsetSize,
-            width : widget.project.canvasSize.width,
+      if( widget.project.canvasSize.height - (backGroundColorChangeList.last.pos + backGroundColorChangeList.last.size) >= 0 ){
+        showWidgetList.add(
+          Positioned(
+            left  : canvasToGlobalPos(Point(0, backGroundColorChangeList.last.pos + backGroundColorChangeList.last.size)).x,
+            top   : canvasToGlobalPos(Point(0, backGroundColorChangeList.last.pos + backGroundColorChangeList.last.size - offsetSize)).y,
+            child : Container(
+              color : backGroundColorChangeList.last.targetColor,
+              height: widget.project.canvasSize.height - (backGroundColorChangeList.last.pos + backGroundColorChangeList.last.size) + offsetSize,
+              width : widget.project.canvasSize.width,
+            )
           )
-        )
-      );
+        );
+      }
     }
 
     // グラデーション間の穴埋め
@@ -736,7 +736,7 @@ class EditPageState extends State<EditPage> {
           top   : canvasToGlobalPos(Point(0, preBackGround.pos + preBackGround.size - offsetSize)).y,
           child : Container(
             color : backGroundColorChangeList[backGroundIndex-1].targetColor,
-            height: _background.pos - (preBackGround.pos + preBackGround.size) + offsetSize*2,
+            height: math.max(0, (_background.pos - (preBackGround.pos + preBackGround.size) + offsetSize*2)),
             width : widget.project.canvasSize.width,
           )
         )
