@@ -7,12 +7,14 @@ class BackGroundColorDetailWidget extends StatefulWidget {
   final BackGroundColorChange backGroundColorChange; 
   final List<BackGroundColorChange> backGroundColorChangeList; 
   final void Function() mainBuild;
+  final void Function() unfocusBackGround;
 
   const BackGroundColorDetailWidget({
     Key? key, 
     required this.backGroundColorChange,
     required this.backGroundColorChangeList,
     required this.mainBuild, 
+    required this.unfocusBackGround, 
   }):super(key:key);
 
 
@@ -38,7 +40,7 @@ class BackGroundColorDetailWidgetState extends State<BackGroundColorDetailWidget
 
   @override
   void dispose(){
-    widget.backGroundColorChange.save();
+    if(widget.backGroundColorChange.dbIndex.isNotEmpty) widget.backGroundColorChange.save();
     textController.dispose();
     super.dispose();
   }
@@ -85,8 +87,9 @@ class BackGroundColorDetailWidgetState extends State<BackGroundColorDetailWidget
                 onPressed: (){
                   widget.backGroundColorChangeList.remove(widget.backGroundColorChange);
                   widget.backGroundColorChange.delete();
+                  widget.backGroundColorChange.dbIndex = "";
 
-                  widget.mainBuild();
+                  widget.unfocusBackGround();
                 }, 
               )
             )

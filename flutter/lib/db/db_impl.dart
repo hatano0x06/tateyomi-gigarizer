@@ -84,8 +84,6 @@ class DbImpl{
 
 
   Future<List<BackGroundColorChange>> getBackGroundColorList(Project proj) async {
-    return [];
-
     return [
       BackGroundColorChange(this, proj, "asdfasdf", Colors.black, 200, 200, ),
     ];

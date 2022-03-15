@@ -31,7 +31,6 @@ class BackGroundColorChange{
   }
 
   void save(){
-    print("asdfasdfasdf save ");
     if( dbIndex.isEmpty ){
       _insertSave();
       return;

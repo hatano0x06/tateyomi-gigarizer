@@ -575,6 +575,10 @@ class EditPageState extends State<EditPage> {
         backGroundColorChange: focusBackGroundColorChange!,
         backGroundColorChangeList: backGroundColorChangeList,
         mainBuild: (){ setState(() { });},
+        unfocusBackGround: (){
+          focusBackGroundColorChange = null;
+          setState(() { });
+        }
       )
     );
   }  
