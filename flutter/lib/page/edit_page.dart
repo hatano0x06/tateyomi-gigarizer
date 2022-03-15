@@ -99,7 +99,7 @@ class EditPageState extends State<EditPage> {
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> showWidgetList = [_backGroundBody(), ..._canvasBody(), ..._backGroundWidgetList(), ..._frameBodyList()];
+    List<Widget> showWidgetList = [_backGroundBody(), ..._canvasBody(), ..._backGroundWidgetList(), ..._frameBodyList(), ..._focusBackGroundWidgetList()];
 
     Widget outsideGraySpace(){
       return Container(
@@ -771,61 +771,62 @@ class EditPageState extends State<EditPage> {
       );
     }
 
-    if( focusBackGroundColorChange != null ){
-      double ballDiameter = 15.0;
-
-      showWidgetList.addAll([
-        Positioned(
-          left  : canvasToGlobalPos(Point(0,focusBackGroundColorChange!.pos)).x,
-          top   : canvasToGlobalPos(Point(0,focusBackGroundColorChange!.pos)).y,
-          child : Container(
-            decoration: BoxDecoration(
-              color: Colors.transparent,
-              border: Border.all( color: Colors.blue.withAlpha(200), width: 4 )
-            ),
-            width   : widget.project.canvasSize.width,
-            height  : focusBackGroundColorChange!.size,
-          )
-        ),
-        Positioned(
-          left  : canvasToGlobalPos(Point(widget.project.canvasSize.width/2, focusBackGroundColorChange!.pos)).x - ballDiameter / 2,
-          top   : canvasToGlobalPos(Point(widget.project.canvasSize.width/2, focusBackGroundColorChange!.pos)).y - ballDiameter / 2,
-          child: CornerBallWidget(
-            cursor      : SystemMouseCursors.resizeUpDown,
-            ballDiameter: ballDiameter,
-            onDragStart : (){ },
-            onDragEnd   : (){ focusBackGroundColorChange!.save(); },
-            onDrag      : (dragPos) {
-              double finishPos  = focusBackGroundColorChange!.pos + focusBackGroundColorChange!.size;
-              
-              Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
-              focusBackGroundColorChange!.size  = finishPos - canvasDragPos.y;
-              focusBackGroundColorChange!.pos   = canvasDragPos.y;
-
-              setState(() { });
-            },
-          ),
-        ),
-        Positioned(
-          left  : canvasToGlobalPos(Point(widget.project.canvasSize.width/2, focusBackGroundColorChange!.pos)).x - ballDiameter / 2,
-          top   : canvasToGlobalPos(Point(widget.project.canvasSize.width/2, focusBackGroundColorChange!.pos + focusBackGroundColorChange!.size)).y - ballDiameter / 2,
-          child: CornerBallWidget(
-            cursor      : SystemMouseCursors.resizeUpDown,
-            ballDiameter: ballDiameter,
-            onDragStart : (){ },
-            onDragEnd   : (){ focusBackGroundColorChange!.save(); },
-            onDrag      : (dragPos) {
-              focusBackGroundColorChange!.size = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy)).y - focusBackGroundColorChange!.pos;
-              setState(() { });
-            },
-          ),
-        ),
-
-      ]);
-    }
-
-
     return showWidgetList;
+  }
+
+  List<Widget> _focusBackGroundWidgetList(){
+    if( focusBackGroundColorChange == null ) return [];
+
+    double ballDiameter = 15.0;
+
+    return [
+      Positioned(
+        left  : canvasToGlobalPos(Point(0,focusBackGroundColorChange!.pos)).x,
+        top   : canvasToGlobalPos(Point(0,focusBackGroundColorChange!.pos)).y,
+        child : Container(
+          decoration: BoxDecoration(
+            color: Colors.transparent,
+            border: Border.all( color: Colors.blue.withAlpha(200), width: 4 )
+          ),
+          width   : widget.project.canvasSize.width,
+          height  : focusBackGroundColorChange!.size,
+        )
+      ),
+      Positioned(
+        left  : canvasToGlobalPos(Point(widget.project.canvasSize.width/2, focusBackGroundColorChange!.pos)).x - ballDiameter / 2,
+        top   : canvasToGlobalPos(Point(widget.project.canvasSize.width/2, focusBackGroundColorChange!.pos)).y - ballDiameter / 2,
+        child: CornerBallWidget(
+          cursor      : SystemMouseCursors.resizeUpDown,
+          ballDiameter: ballDiameter,
+          onDragStart : (){ },
+          onDragEnd   : (){ focusBackGroundColorChange!.save(); },
+          onDrag      : (dragPos) {
+            double finishPos  = focusBackGroundColorChange!.pos + focusBackGroundColorChange!.size;
+            
+            Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
+            focusBackGroundColorChange!.size  = finishPos - canvasDragPos.y;
+            focusBackGroundColorChange!.pos   = canvasDragPos.y;
+
+            setState(() { });
+          },
+        ),
+      ),
+      Positioned(
+        left  : canvasToGlobalPos(Point(widget.project.canvasSize.width/2, focusBackGroundColorChange!.pos)).x - ballDiameter / 2,
+        top   : canvasToGlobalPos(Point(widget.project.canvasSize.width/2, focusBackGroundColorChange!.pos + focusBackGroundColorChange!.size)).y - ballDiameter / 2,
+        child: CornerBallWidget(
+          cursor      : SystemMouseCursors.resizeUpDown,
+          ballDiameter: ballDiameter,
+          onDragStart : (){ },
+          onDragEnd   : (){ focusBackGroundColorChange!.save(); },
+          onDrag      : (dragPos) {
+            focusBackGroundColorChange!.size = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy)).y - focusBackGroundColorChange!.pos;
+            setState(() { });
+          },
+        ),
+      ),
+
+    ];
   }
 
 
