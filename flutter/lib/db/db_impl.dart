@@ -23,8 +23,6 @@ class DbImpl{
   }
 
   Future<List<Project>> getProjectList() async {
-    return [];
-
     return [
       Project(
         this, "aaa", "test1", "test1", const Size(200, 200), DateTime.now().millisecondsSinceEpoch, DateTime.now().millisecondsSinceEpoch

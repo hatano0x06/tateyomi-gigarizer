@@ -1,5 +1,6 @@
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 // ignore: unused_import
 import 'package:tateyomi_gigarizer/db/db_firebase.dart';
@@ -7,6 +8,7 @@ import 'package:tateyomi_gigarizer/db/db_firebase.dart';
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
 import 'package:tateyomi_gigarizer/firebase_options.dart';
 import 'package:tateyomi_gigarizer/page/login_page.dart';
+import 'package:tateyomi_gigarizer/spPage/login_sp.dart';
 import 'package:url_strategy/url_strategy.dart';
 
 void main() async {
@@ -18,10 +20,9 @@ void main() async {
 
 // TODO: 縦読みの機能（２１日まで
 //  - スマホ連携
-//  - ダウンロード時にいろいろ横幅でできるようにする
 
 // TODO: オプション
-//  - 拡大縮小がうまくいかないので、windowsにする & 背景ダウンロード
+//  - 拡大縮小がうまくいかないので、windowsにする & 背景ダウンロード & ダウンロード時にいろいろ横幅でできるようにする
 //  - ctrl+z機能
 //  - 配置を良い感じにする
 //  - 横に全体像が見れるやつ
@@ -47,8 +48,9 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       navigatorObservers: [ FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance), ],
-      // home: LoginPageWidget(dbInstance: DbImpl(),), // test用
-      home: LoginPageWidget(dbInstance: DbFireStore(),),
+      // // test用
+      home: kIsWeb ? LoginPageWidget(dbInstance: DbImpl(),) : SpLoginPageWidget(dbInstance: DbImpl()),
+      // home: kIsWeb ? LoginPageWidget(dbInstance: DbFireStore(),) : SpLoginPageWidget(dbInstance: DbFireStore()),
     );
   }
 }

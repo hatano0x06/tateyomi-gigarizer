@@ -18,8 +18,8 @@ import 'package:tateyomi_gigarizer/page/parts/canvas_detail_box.dart';
 import 'package:tateyomi_gigarizer/page/parts/corner_ball.dart';
 import 'package:tateyomi_gigarizer/download/canvas_to_image.dart';
 import 'package:tateyomi_gigarizer/dialog/shortcuts_info_dialog.dart';
-import 'package:universal_html/html.dart';
 import 'dart:ui' as ui;
+import 'package:universal_html/html.dart' as html;
 import 'dart:math' as math;
 import 'dart:convert';
 
@@ -183,7 +183,7 @@ class EditPageState extends State<EditPage> {
             onPressed: (){
 
               for (FrameImage _frameImage in frameImageList) {
-                _frameImage.position = Point(
+                _frameImage.position = math.Point(
                   (widget.project.canvasSize.width - (_frameImage.position.x + _frameImage.rotateSize.x * _frameImage.sizeRate)), 
                   _frameImage.position.y
                 );
@@ -284,32 +284,32 @@ class EditPageState extends State<EditPage> {
 
   FrameImage? draggingFrame;
   BackGroundColorChange? draggingBackGroundColorChange;
-  Point<double> initDragPosition     = const Point(0,0);
-  Point<double> initDragFramePosition = const Point(0,0);
-  Point<double> currentDragFramePosition = const Point(0,0);
+  math.Point<double> initDragPosition     = const math.Point(0,0);
+  math.Point<double> initDragFramePosition = const math.Point(0,0);
+  math.Point<double> currentDragFramePosition = const math.Point(0,0);
   Widget gestureWidget(Widget _body){
-    Point<double> dragGlobalToCanvasPos(Offset _globalPos){
-      return Point<double>(
-        globalToCanvasPos(Point<double>(_globalPos.dx, _globalPos.dy)).x, 
-        globalToCanvasPos(Point<double>(_globalPos.dx, _globalPos.dy)).y - kToolbarHeight
+    math.Point<double> dragGlobalToCanvasPos(Offset _globalPos){
+      return math.Point<double>(
+        globalToCanvasPos(math.Point<double>(_globalPos.dx, _globalPos.dy)).x, 
+        globalToCanvasPos(math.Point<double>(_globalPos.dx, _globalPos.dy)).y - kToolbarHeight
       );
     }
 
-    Point<double> stickyPosition(FrameImage frameImage, Point<double> diffPosition){
-      Point<double> newFramePos =  initDragPosition + diffPosition;
+    math.Point<double> stickyPosition(FrameImage frameImage, math.Point<double> diffPosition){
+      math.Point<double> newFramePos =  initDragPosition + diffPosition;
 
-      if( newFramePos.x.abs() < stricyArea ) newFramePos = Point(0, newFramePos.y);
-      if( newFramePos.y.abs() < stricyArea ) newFramePos = Point(newFramePos.x, 0);
+      if( newFramePos.x.abs() < stricyArea ) newFramePos = math.Point(0, newFramePos.y);
+      if( newFramePos.y.abs() < stricyArea ) newFramePos = math.Point(newFramePos.x, 0);
 
       Size frameWidth = Size( frameImage.rotateSize.x * frameImage.sizeRate, frameImage.rotateSize.y * frameImage.sizeRate);
-      if( (widget.project.canvasSize.width  -  (newFramePos.x + frameWidth.width) ).abs() < stricyArea ) newFramePos = Point(widget.project.canvasSize.width - frameWidth.width, newFramePos.y);
-      if( (widget.project.canvasSize.height -  (newFramePos.y + frameWidth.height)).abs() < stricyArea ) newFramePos = Point(newFramePos.x, widget.project.canvasSize.height - frameWidth.height, );
+      if( (widget.project.canvasSize.width  -  (newFramePos.x + frameWidth.width) ).abs() < stricyArea ) newFramePos = math.Point(widget.project.canvasSize.width - frameWidth.width, newFramePos.y);
+      if( (widget.project.canvasSize.height -  (newFramePos.y + frameWidth.height)).abs() < stricyArea ) newFramePos = math.Point(newFramePos.x, widget.project.canvasSize.height - frameWidth.height, );
 
       return newFramePos;
     }
 
     FrameImage? targetFrameImage(Offset _tapPos){
-      Point<double> canvasTapPos = dragGlobalToCanvasPos(_tapPos);
+      math.Point<double> canvasTapPos = dragGlobalToCanvasPos(_tapPos);
 
       for (FrameImage _frameImage in frameImageList) {
         if( canvasTapPos.x < _frameImage.position.x ) continue;
@@ -325,7 +325,7 @@ class EditPageState extends State<EditPage> {
     }
 
     BackGroundColorChange? targetBackGroundColor(Offset _tapPos){
-      Point<double> canvasTapPos = dragGlobalToCanvasPos(_tapPos);
+      math.Point<double> canvasTapPos = dragGlobalToCanvasPos(_tapPos);
 
       for (BackGroundColorChange _backGroundColor in backGroundColorChangeList) {
         if( canvasTapPos.y < _backGroundColor.pos ) continue;
@@ -400,7 +400,7 @@ class EditPageState extends State<EditPage> {
         draggingBackGroundColorChange = targetBackGroundColor(_dragStart.globalPosition);
         if( draggingBackGroundColorChange != null ){
           setFocusBackGround(draggingBackGroundColorChange);
-          initDragPosition = Point(0, draggingBackGroundColorChange!.pos);
+          initDragPosition = math.Point(0, draggingBackGroundColorChange!.pos);
         }
 
       },
@@ -427,13 +427,13 @@ class EditPageState extends State<EditPage> {
         void dragFrame(){
           if( draggingFrame == null ) return;
 
-          Point<double> stickyDiffPos = stickyPosition( draggingFrame!, currentDragFramePosition - initDragFramePosition);
+          math.Point<double> stickyDiffPos = stickyPosition( draggingFrame!, currentDragFramePosition - initDragFramePosition);
           
           draggingFrame!.position = stickyDiffPos;
           draggingFrame?.save();
 
           for (FrameImage _depandFrame in focusFrameDependList) {
-            _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y + (draggingFrame!.position - initDragPosition).y);
+            _depandFrame.position = math.Point(_depandFrame.position.x, _depandFrame.position.y + (draggingFrame!.position - initDragPosition).y);
             _depandFrame.save();
           }
 
@@ -490,20 +490,20 @@ class EditPageState extends State<EditPage> {
           
           double moveSize = 0.1;
           if( shortCutType == TYPE_SHORTCUT_UP    ){
-            focusFrame!.position = Point(focusFrame!.position.x, focusFrame!.position.y-moveSize);
+            focusFrame!.position = math.Point(focusFrame!.position.x, focusFrame!.position.y-moveSize);
             for (FrameImage _depandFrame in focusFrameDependList) {
-              _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y-moveSize);
+              _depandFrame.position = math.Point(_depandFrame.position.x, _depandFrame.position.y-moveSize);
             }
           }
           if( shortCutType == TYPE_SHORTCUT_DOWN  ){
-            focusFrame!.position = Point(focusFrame!.position.x, focusFrame!.position.y+moveSize);
+            focusFrame!.position = math.Point(focusFrame!.position.x, focusFrame!.position.y+moveSize);
             for (FrameImage _depandFrame in focusFrameDependList) {
-              _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y+moveSize);
+              _depandFrame.position = math.Point(_depandFrame.position.x, _depandFrame.position.y+moveSize);
             }
           }
 
-          if( shortCutType == TYPE_SHORTCUT_LEFT  ) focusFrame!.position = Point(focusFrame!.position.x-moveSize  , focusFrame!.position.y);
-          if( shortCutType == TYPE_SHORTCUT_RIGHT ) focusFrame!.position = Point(focusFrame!.position.x+moveSize  , focusFrame!.position.y);
+          if( shortCutType == TYPE_SHORTCUT_LEFT  ) focusFrame!.position = math.Point(focusFrame!.position.x-moveSize  , focusFrame!.position.y);
+          if( shortCutType == TYPE_SHORTCUT_RIGHT ) focusFrame!.position = math.Point(focusFrame!.position.x+moveSize  , focusFrame!.position.y);
           setState(() { });
         }
       },
@@ -580,7 +580,7 @@ class EditPageState extends State<EditPage> {
   }  
 
   double windowZoomSize(){
-    return window.devicePixelRatio/1.25;
+    return html.window.devicePixelRatio/1.25;
   }
 
   bool isImageLoaded(){
@@ -641,7 +641,7 @@ class EditPageState extends State<EditPage> {
       ),
     );
 
-    Point<double> _dragPointPos = Point(widget.project.canvasSize.width/2, widget.project.canvasSize.height);
+    math.Point<double> _dragPointPos = math.Point(widget.project.canvasSize.width/2, widget.project.canvasSize.height);
 
     double ballDiameter = 20.0;
 
@@ -659,7 +659,7 @@ class EditPageState extends State<EditPage> {
             widget.project.save();
           },
           onDrag      : (dragPos) {
-            Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
+            math.Point<double> canvasDragPos = globalToCanvasPos(math.Point<double>(dragPos.dx, dragPos.dy));
             widget.project.canvasSize = Size(widget.project.canvasSize.width, canvasDragPos.y);
             setState(() { });
           },
@@ -702,8 +702,8 @@ class EditPageState extends State<EditPage> {
       if( backGroundColorChangeList.first.pos >= 0 ){
         showWidgetList.add(
           Positioned(
-            left  : canvasToGlobalPos(const Point(0,0)).x,
-            top   : canvasToGlobalPos(const Point(0,0)).y,
+            left  : canvasToGlobalPos(const math.Point(0,0)).x,
+            top   : canvasToGlobalPos(const math.Point(0,0)).y,
             child : Container(
               color : Colors.white,
               height: math.max(0, backGroundColorChangeList.first.pos + offsetSize),
@@ -717,8 +717,8 @@ class EditPageState extends State<EditPage> {
       if( widget.project.canvasSize.height - (backGroundColorChangeList.last.pos + backGroundColorChangeList.last.size) >= 0 ){
         showWidgetList.add(
           Positioned(
-            left  : canvasToGlobalPos(Point(0, backGroundColorChangeList.last.pos + backGroundColorChangeList.last.size)).x,
-            top   : canvasToGlobalPos(Point(0, backGroundColorChangeList.last.pos + backGroundColorChangeList.last.size - offsetSize)).y,
+            left  : canvasToGlobalPos(math.Point(0, backGroundColorChangeList.last.pos + backGroundColorChangeList.last.size)).x,
+            top   : canvasToGlobalPos(math.Point(0, backGroundColorChangeList.last.pos + backGroundColorChangeList.last.size - offsetSize)).y,
             child : Container(
               color : backGroundColorChangeList.last.targetColor,
               height: widget.project.canvasSize.height - (backGroundColorChangeList.last.pos + backGroundColorChangeList.last.size) + offsetSize,
@@ -738,8 +738,8 @@ class EditPageState extends State<EditPage> {
 
       showWidgetList.add(
         Positioned(
-          left  : canvasToGlobalPos(Point(0, preBackGround.pos + preBackGround.size)).x,
-          top   : canvasToGlobalPos(Point(0, preBackGround.pos + preBackGround.size - offsetSize)).y,
+          left  : canvasToGlobalPos(math.Point(0, preBackGround.pos + preBackGround.size)).x,
+          top   : canvasToGlobalPos(math.Point(0, preBackGround.pos + preBackGround.size - offsetSize)).y,
           child : Container(
             color : backGroundColorChangeList[backGroundIndex-1].targetColor,
             height: math.max(0, (_background.pos - (preBackGround.pos + preBackGround.size) + offsetSize*2)),
@@ -757,8 +757,8 @@ class EditPageState extends State<EditPage> {
 
       showWidgetList.add(
         Positioned(
-          left  : canvasToGlobalPos(Point(0,_background.pos)).x,
-          top   : canvasToGlobalPos(Point(0,_background.pos)).y,
+          left  : canvasToGlobalPos(math.Point(0,_background.pos)).x,
+          top   : canvasToGlobalPos(math.Point(0,_background.pos)).y,
           child : Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -788,8 +788,8 @@ class EditPageState extends State<EditPage> {
 
     return [
       Positioned(
-        left  : canvasToGlobalPos(Point(0,focusBackGroundColorChange!.pos)).x,
-        top   : canvasToGlobalPos(Point(0,focusBackGroundColorChange!.pos)).y,
+        left  : canvasToGlobalPos(math.Point(0,focusBackGroundColorChange!.pos)).x,
+        top   : canvasToGlobalPos(math.Point(0,focusBackGroundColorChange!.pos)).y,
         child : Container(
           decoration: BoxDecoration(
             color: Colors.transparent,
@@ -800,8 +800,8 @@ class EditPageState extends State<EditPage> {
         )
       ),
       Positioned(
-        left  : canvasToGlobalPos(Point(widget.project.canvasSize.width/2, focusBackGroundColorChange!.pos)).x - ballDiameter / 2,
-        top   : canvasToGlobalPos(Point(widget.project.canvasSize.width/2, focusBackGroundColorChange!.pos)).y - ballDiameter / 2,
+        left  : canvasToGlobalPos(math.Point(widget.project.canvasSize.width/2, focusBackGroundColorChange!.pos)).x - ballDiameter / 2,
+        top   : canvasToGlobalPos(math.Point(widget.project.canvasSize.width/2, focusBackGroundColorChange!.pos)).y - ballDiameter / 2,
         child: CornerBallWidget(
           cursor      : SystemMouseCursors.resizeUpDown,
           ballDiameter: ballDiameter,
@@ -810,7 +810,7 @@ class EditPageState extends State<EditPage> {
           onDrag      : (dragPos) {
             double finishPos  = focusBackGroundColorChange!.pos + focusBackGroundColorChange!.size;
             
-            Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
+            math.Point<double> canvasDragPos = globalToCanvasPos(math.Point<double>(dragPos.dx, dragPos.dy));
             focusBackGroundColorChange!.size  = finishPos - canvasDragPos.y;
             focusBackGroundColorChange!.pos   = canvasDragPos.y;
 
@@ -819,15 +819,15 @@ class EditPageState extends State<EditPage> {
         ),
       ),
       Positioned(
-        left  : canvasToGlobalPos(Point(widget.project.canvasSize.width/2, focusBackGroundColorChange!.pos)).x - ballDiameter / 2,
-        top   : canvasToGlobalPos(Point(widget.project.canvasSize.width/2, focusBackGroundColorChange!.pos + focusBackGroundColorChange!.size)).y - ballDiameter / 2,
+        left  : canvasToGlobalPos(math.Point(widget.project.canvasSize.width/2, focusBackGroundColorChange!.pos)).x - ballDiameter / 2,
+        top   : canvasToGlobalPos(math.Point(widget.project.canvasSize.width/2, focusBackGroundColorChange!.pos + focusBackGroundColorChange!.size)).y - ballDiameter / 2,
         child: CornerBallWidget(
           cursor      : SystemMouseCursors.resizeUpDown,
           ballDiameter: ballDiameter,
           onDragStart : (){ },
           onDragEnd   : (){ focusBackGroundColorChange!.save(); },
           onDrag      : (dragPos) {
-            focusBackGroundColorChange!.size = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy)).y - focusBackGroundColorChange!.pos;
+            focusBackGroundColorChange!.size = globalToCanvasPos(math.Point<double>(dragPos.dx, dragPos.dy)).y - focusBackGroundColorChange!.pos;
             setState(() { });
           },
         ),
@@ -857,8 +857,8 @@ class EditPageState extends State<EditPage> {
 
   // コマの表示（大きさ変えるための、角に四角配置
 
-  Point<double> dragStartLeftTopPos = const Point(0,0);
-  Point<double> dragStartRightBottomPos = const Point(0,0);
+  math.Point<double> dragStartLeftTopPos = const math.Point(0,0);
+  math.Point<double> dragStartRightBottomPos = const math.Point(0,0);
   List<Widget> _frameWidgetList(FrameImage _frameData){
     Widget _frameColorWidget(Color _color){
       return Positioned(
@@ -883,7 +883,7 @@ class EditPageState extends State<EditPage> {
 
     void tempSavePos(){
       dragStartLeftTopPos     = _frameData.position;
-      dragStartRightBottomPos = Point(
+      dragStartRightBottomPos = math.Point(
         _frameData.position.x + _frameData.rotateSize.x * _frameData.sizeRate,
         _frameData.position.y + _frameData.rotateSize.y * _frameData.sizeRate,
       );
@@ -914,25 +914,25 @@ class EditPageState extends State<EditPage> {
           onDragStart : (){ tempSavePos(); },
           onDragEnd   : (){ saveAfterDrag(); },
           onDrag      : (dragPos) {
-            Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
+            math.Point<double> canvasDragPos = globalToCanvasPos(math.Point<double>(dragPos.dx, dragPos.dy));
 
             // sticy対応で仮計算する
             double tempSizeRate = math.max(
               (canvasDragPos.x - dragStartRightBottomPos.x).abs()/_frameData.rotateSize.x, 
               (canvasDragPos.y - dragStartRightBottomPos.y).abs()/_frameData.rotateSize.y, 
             );
-            Point<double> newLeftTopPos = Point(
+            math.Point<double> newLeftTopPos = math.Point(
               dragStartRightBottomPos.x - _frameData.rotateSize.x * tempSizeRate,
               dragStartRightBottomPos.y - _frameData.rotateSize.y * tempSizeRate,
             );
-            if( newLeftTopPos.x.abs() < stricyArea) newLeftTopPos = Point(0, newLeftTopPos.y);
-            if( newLeftTopPos.y.abs() < stricyArea) newLeftTopPos = Point(newLeftTopPos.x, 0);
+            if( newLeftTopPos.x.abs() < stricyArea) newLeftTopPos = math.Point(0, newLeftTopPos.y);
+            if( newLeftTopPos.y.abs() < stricyArea) newLeftTopPos = math.Point(newLeftTopPos.x, 0);
 
             _frameData.sizeRate = math.max(
               (newLeftTopPos.x - dragStartRightBottomPos.x).abs()/_frameData.rotateSize.x, 
               (newLeftTopPos.y - dragStartRightBottomPos.y).abs()/_frameData.rotateSize.y, 
             );
-            _frameData.position = Point(
+            _frameData.position = math.Point(
               dragStartRightBottomPos.x - _frameData.rotateSize.x * _frameData.sizeRate,
               dragStartRightBottomPos.y - _frameData.rotateSize.y * _frameData.sizeRate,
             );
@@ -952,26 +952,26 @@ class EditPageState extends State<EditPage> {
           onDragStart : (){ tempSavePos(); },
           onDragEnd   : (){ saveAfterDrag(); },
           onDrag      : (dragPos) {
-            Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
+            math.Point<double> canvasDragPos = globalToCanvasPos(math.Point<double>(dragPos.dx, dragPos.dy));
 
             // sticy対応で仮計算する
             double tempSizeRate = math.max(
               (canvasDragPos.x - dragStartLeftTopPos.x).abs()/_frameData.rotateSize.x, 
               (canvasDragPos.y - dragStartRightBottomPos.y).abs()/_frameData.rotateSize.y, 
             );
-            Point<double> newRightTopPos = Point(
+            math.Point<double> newRightTopPos = math.Point(
               dragStartLeftTopPos.x     + _frameData.rotateSize.x * tempSizeRate,
               dragStartRightBottomPos.y - _frameData.rotateSize.y * tempSizeRate,
             );
 
-            if( (widget.project.canvasSize.width - newRightTopPos.x).abs() < stricyArea) newRightTopPos = Point(widget.project.canvasSize.width, newRightTopPos.y);
-            if( newRightTopPos.y.abs() < stricyArea) newRightTopPos = Point(newRightTopPos.x, 0);
+            if( (widget.project.canvasSize.width - newRightTopPos.x).abs() < stricyArea) newRightTopPos = math.Point(widget.project.canvasSize.width, newRightTopPos.y);
+            if( newRightTopPos.y.abs() < stricyArea) newRightTopPos = math.Point(newRightTopPos.x, 0);
 
             _frameData.sizeRate = math.max(
               (newRightTopPos.x - dragStartLeftTopPos.x).abs()/_frameData.rotateSize.x, 
               (newRightTopPos.y - dragStartRightBottomPos.y).abs()/_frameData.rotateSize.y, 
             );
-            _frameData.position = Point(
+            _frameData.position = math.Point(
               _frameData.position.x,
               dragStartRightBottomPos.y - _frameData.rotateSize.y * _frameData.sizeRate,
             );
@@ -991,30 +991,30 @@ class EditPageState extends State<EditPage> {
           onDragStart : (){ tempSavePos(); },
           onDragEnd   : (){ saveAfterDrag(); },
           onDrag      : (dragPos) {
-            Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
+            math.Point<double> canvasDragPos = globalToCanvasPos(math.Point<double>(dragPos.dx, dragPos.dy));
 
             // sticy対応で仮計算する
             double tempSizeRate = math.max(
               (canvasDragPos.x - dragStartRightBottomPos.x).abs()/_frameData.rotateSize.x, 
               (canvasDragPos.y - dragStartLeftTopPos.y).abs()/_frameData.rotateSize.y, 
             );
-            Point<double> newLeftBottomPoint = Point(
+            math.Point<double> newLeftBottomPoint = math.Point(
               dragStartRightBottomPos.x - _frameData.rotateSize.x * tempSizeRate,
               dragStartLeftTopPos.y     + _frameData.rotateSize.y * tempSizeRate,
             );
 
-            if( newLeftBottomPoint.x.abs() < stricyArea) newLeftBottomPoint = Point(0, newLeftBottomPoint.y);
-            if( (widget.project.canvasSize.height - newLeftBottomPoint.y).abs() < stricyArea) newLeftBottomPoint = Point(newLeftBottomPoint.x, widget.project.canvasSize.height);
+            if( newLeftBottomPoint.x.abs() < stricyArea) newLeftBottomPoint = math.Point(0, newLeftBottomPoint.y);
+            if( (widget.project.canvasSize.height - newLeftBottomPoint.y).abs() < stricyArea) newLeftBottomPoint = math.Point(newLeftBottomPoint.x, widget.project.canvasSize.height);
 
             // 反映
-            Point<double> prePos = _frameData.position;
+            math.Point<double> prePos = _frameData.position;
             double preSizeRate = _frameData.sizeRate;
 
             _frameData.sizeRate = math.max(
               (newLeftBottomPoint.x - dragStartRightBottomPos.x).abs()/_frameData.rotateSize.x, 
               (newLeftBottomPoint.y - dragStartLeftTopPos.y).abs()/_frameData.rotateSize.y, 
             );
-            _frameData.position = Point(
+            _frameData.position = math.Point(
               dragStartRightBottomPos.x - _frameData.rotateSize.x * _frameData.sizeRate,
               _frameData.position.y,
             );
@@ -1024,7 +1024,7 @@ class EditPageState extends State<EditPage> {
             double diffY = prePosY - newPosY;
 
             for (FrameImage _depandFrame in focusFrameDependList) {
-              _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y-diffY);
+              _depandFrame.position = math.Point(_depandFrame.position.x, _depandFrame.position.y-diffY);
             }
             setState(() { });
           },
@@ -1041,23 +1041,23 @@ class EditPageState extends State<EditPage> {
           onDragStart : (){ tempSavePos(); },
           onDragEnd   : (){ saveAfterDrag(); },
           onDrag      : (dragPos) {
-            Point<double> canvasDragPos = globalToCanvasPos(Point<double>(dragPos.dx, dragPos.dy));
+            math.Point<double> canvasDragPos = globalToCanvasPos(math.Point<double>(dragPos.dx, dragPos.dy));
 
             // sticy対応で仮計算する
             double tempSizeRate = math.max(
               (canvasDragPos.x - dragStartLeftTopPos.x).abs()/_frameData.rotateSize.x, 
               (canvasDragPos.y - dragStartLeftTopPos.y).abs()/_frameData.rotateSize.y, 
             );
-            Point<double> newRightBottomPoint = Point(
+            math.Point<double> newRightBottomPoint = math.Point(
               dragStartLeftTopPos.x + _frameData.rotateSize.x * tempSizeRate,
               dragStartLeftTopPos.y + _frameData.rotateSize.y * tempSizeRate,
             );
 
-            if( (widget.project.canvasSize.width  - newRightBottomPoint.x).abs() < stricyArea) newRightBottomPoint = Point(widget.project.canvasSize.width, newRightBottomPoint.y);
-            if( (widget.project.canvasSize.height - newRightBottomPoint.y).abs() < stricyArea) newRightBottomPoint = Point(newRightBottomPoint.x, widget.project.canvasSize.height);
+            if( (widget.project.canvasSize.width  - newRightBottomPoint.x).abs() < stricyArea) newRightBottomPoint = math.Point(widget.project.canvasSize.width, newRightBottomPoint.y);
+            if( (widget.project.canvasSize.height - newRightBottomPoint.y).abs() < stricyArea) newRightBottomPoint = math.Point(newRightBottomPoint.x, widget.project.canvasSize.height);
 
             // 反映
-            Point<double> prePos = _frameData.position;
+            math.Point<double> prePos = _frameData.position;
             double preSizeRate = _frameData.sizeRate;
 
             _frameData.sizeRate = math.max(
@@ -1073,7 +1073,7 @@ class EditPageState extends State<EditPage> {
               focusFrameDependList = frameImageList.where((_frame) => _frame.position.y > _frameData.position.y ).toList();
             }
             for (FrameImage _depandFrame in focusFrameDependList) {
-              _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y-diffY);
+              _depandFrame.position = math.Point(_depandFrame.position.x, _depandFrame.position.y-diffY);
             }
 
             setState(() { });
@@ -1151,7 +1151,7 @@ class EditPageState extends State<EditPage> {
         try{
           FrameImage frameImage = frameImageList.singleWhere((_frameImage) => _frameImage.name == _file.name);
           frameImage.byteData = _file.bytes;
-          frameImage.size = Point(_image.width.toDouble(), _image.height.toDouble());
+          frameImage.size = math.Point(_image.width.toDouble(), _image.height.toDouble());
         } catch(e){
           FrameImage newImage = FrameImage(
             dbInstance  : widget.dbInstance,
@@ -1161,8 +1161,8 @@ class EditPageState extends State<EditPage> {
             name        : _file.name,
             angle       : 0,
             sizeRate    : 1.0,
-            position    : const Point<double>(0,0),
-            size        : Point(_image.width.toDouble(), _image.height.toDouble())
+            position    : const math.Point<double>(0,0),
+            size        : math.Point(_image.width.toDouble(), _image.height.toDouble())
           );
           newImage.save();
 
@@ -1193,7 +1193,7 @@ class EditPageState extends State<EditPage> {
             int frameNum = _framejson["FrameNumber"];
             if( !frameStepMap[_pageIndex]!.containsKey(frameNum) ) frameStepMap[_pageIndex]![frameNum] = {};
 
-            // {SpeakBlockList: [], CornerPoints: [{X: 0, Y: 0}, {X: 502, Y: 0}, {X: 505, Y: 259}, {X: 0, Y: 259}], FrameNumber: 0, StepData: {X: 0, Y: 0, StepNum: 0}}
+            // {SpeakBlockList: [], Cornermath.Points: [{X: 0, Y: 0}, {X: 502, Y: 0}, {X: 505, Y: 259}, {X: 0, Y: 259}], FrameNumber: 0, StepData: {X: 0, Y: 0, StepNum: 0}}
             // print(_framejson);
 
             frameStepMap[_pageIndex]![frameNum] = {
@@ -1252,12 +1252,12 @@ class EditPageState extends State<EditPage> {
             FrameImage targetFrame = frameImageList[targetFrameIndex];
 
             // TODO: 配置に関してはこいつを良い感じにする
-            Point<double> calcPos(){
+            math.Point<double> calcPos(){
               // ignore: prefer_const_constructors
-              if( currentHeight == 0 ) return Point(0,0);
+              if( currentHeight == 0 ) return math.Point(0,0);
 
               // ignore: prefer_const_constructors
-              return Point(0, currentHeight + 100);
+              return math.Point(0, currentHeight + 100);
             }
             targetFrame.position = calcPos();
 
@@ -1282,26 +1282,26 @@ class EditPageState extends State<EditPage> {
     });
   }  
 
-  Point<double> canvasToGlobalPos(Point<double> _pos){
+  math.Point<double> canvasToGlobalPos(math.Point<double> _pos){
     Offset _offsetSize = Offset(
       sideSpaceWidth() - (horizonScrollController.hasClients ? horizonScrollController.position.pixels : 0),
       (verticalScrollController.hasClients ? verticalScrollController.position.pixels : 0)
     );
 
-    return Point(
+    return math.Point(
       _pos.x + _offsetSize.dx,
       _pos.y,
       // _pos.y - _offsetSize.dy,
     );
   }
 
-  Point<double> globalToCanvasPos(Point<double> _pos){
+  math.Point<double> globalToCanvasPos(math.Point<double> _pos){
     Offset _offsetSize = Offset(
       sideSpaceWidth() - (horizonScrollController.hasClients ? horizonScrollController.position.pixels : 0),
       (verticalScrollController.hasClients ? verticalScrollController.position.pixels : 0)
     );
 
-    return Point(
+    return math.Point(
       _pos.x - _offsetSize.dx,
       _pos.y + _offsetSize.dy,
     );
