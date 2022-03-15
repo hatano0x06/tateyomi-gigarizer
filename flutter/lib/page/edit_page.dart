@@ -14,6 +14,7 @@ import 'package:tateyomi_gigarizer/model/background_color_change.dart';
 import 'package:tateyomi_gigarizer/model/frame_image.dart';
 import 'package:tateyomi_gigarizer/model/keyboard.dart';
 import 'package:tateyomi_gigarizer/model/project.dart';
+import 'package:tateyomi_gigarizer/page/parts/canvas_detail_box.dart';
 import 'package:tateyomi_gigarizer/page/parts/corner_ball.dart';
 import 'package:tateyomi_gigarizer/download/canvas_to_image.dart';
 import 'package:tateyomi_gigarizer/dialog/shortcuts_info_dialog.dart';
@@ -47,14 +48,11 @@ class EditPageState extends State<EditPage> {
   List<FrameImage> focusFrameDependList = [];
 
   final GlobalKey<FrameDetailWidgetState> _frameDetailKey = GlobalKey<FrameDetailWidgetState>();
+  final GlobalKey<CanvasDetailWidgettState> _canvasDetailKey = GlobalKey<CanvasDetailWidgettState>();
 
   final ScrollController verticalScrollController = ScrollController();
   final ScrollController horizonScrollController  = ScrollController();
 
-  final TextEditingController canvasSizeXController = TextEditingController();
-  final TextEditingController canvasSizeYController = TextEditingController();
-  final FocusNode canvasSizeXFocusNode = FocusNode();
-  final FocusNode canvasSizeYFocusNode = FocusNode();
 
   final TextEditingController downloadController = TextEditingController();
   final FocusNode downloadFocusNode = FocusNode();
@@ -81,42 +79,8 @@ class EditPageState extends State<EditPage> {
   }
 
   void setEditerEvent(){
-    canvasSizeXController.value = canvasSizeXController.value.copyWith( text: widget.project.canvasSize.width.toString() );
-    canvasSizeYController.value = canvasSizeYController.value.copyWith( text: widget.project.canvasSize.height.toString() );
-
     verticalScrollController.addListener(() { setState(() { }); });
     horizonScrollController.addListener(() { setState(() { }); });
-
-
-    canvasSizeXController.addListener((){
-      if(posStringValidate(canvasSizeXController.text) != null ) return;
-
-      double preCanvasWidth = widget.project.canvasSize.width;
-      double newCanvasWidth = double.parse(canvasSizeXController.text);
-
-      if(newCanvasWidth < 100) return;
-
-      double changeRate = newCanvasWidth/preCanvasWidth;
-
-      for (FrameImage _frameImage in frameImageList) {
-        _frameImage.position = Point(_frameImage.position.x * changeRate, _frameImage.position.y * changeRate);
-        _frameImage.sizeRate = _frameImage.sizeRate * changeRate;
-        _frameImage.save();
-      }
-
-      widget.project.canvasSize = Size(newCanvasWidth, widget.project.canvasSize.height);
-      widget.project.save();
-      setState(() { });
-    });    
-
-    canvasSizeYController.addListener((){
-      if(posStringValidate(canvasSizeYController.text) != null ) return;
-
-      widget.project.canvasSize = Size(widget.project.canvasSize.width, double.parse(canvasSizeYController.text));
-      widget.project.save();
-      setState(() { });
-    });    
-
 
     downloadController.value = downloadController.value.copyWith( text: widget.project.downloadName );
     downloadController.addListener(() {
@@ -132,11 +96,6 @@ class EditPageState extends State<EditPage> {
     verticalScrollController.dispose();
     horizonScrollController.dispose();
     
-    canvasSizeXController.dispose();
-    canvasSizeYController.dispose();
-    canvasSizeXFocusNode.dispose();
-    canvasSizeYFocusNode.dispose();
-
     downloadController.dispose();
     downloadFocusNode.dispose();
 
@@ -250,8 +209,7 @@ class EditPageState extends State<EditPage> {
             tooltip : "キャンパスのサイズ変更",
             onPressed: (){
               FocusScope.of(context).unfocus();
-              canvasSizeXController.value = canvasSizeXController.value.copyWith( text: widget.project.canvasSize.width.toString() );
-              canvasSizeYController.value = canvasSizeYController.value.copyWith( text: widget.project.canvasSize.height.toString() );
+              _canvasDetailKey.currentState?.updateTextField();
 
               focusFrame = null;
               showCanvasEdit = true;
@@ -368,7 +326,7 @@ class EditPageState extends State<EditPage> {
         FrameImage? targetFrame = targetFrameImage(_tapUp.globalPosition);
         void frameFunc(){
           if(targetFrame != null) focusBackGroundColorChange = null;
-          
+
           if( focusFrame == targetFrame || targetFrame == null){
             focusFrame = null;
             focusFrameDependList.clear();
@@ -508,10 +466,9 @@ class EditPageState extends State<EditPage> {
         String shortCutType = _shortCutKeyMap.values.toList()[_shortCutIndex];
 
         if(
-          (_frameDetailKey.currentState?.isFocus() ?? false) || 
-          downloadFocusNode.hasFocus || 
-          canvasSizeXFocusNode.hasFocus || 
-          canvasSizeYFocusNode.hasFocus
+          (_frameDetailKey.currentState?.isFocus()  ?? false) || 
+          (_canvasDetailKey.currentState?.isFocus() ?? false) || 
+          downloadFocusNode.hasFocus
         )  return;
 
         if( focusFrame != null ){
@@ -538,9 +495,8 @@ class EditPageState extends State<EditPage> {
       onKeysUp: (){
         if(
           (_frameDetailKey.currentState?.isFocus() ?? false) || 
-          downloadFocusNode.hasFocus || 
-          canvasSizeXFocusNode.hasFocus || 
-          canvasSizeYFocusNode.hasFocus
+          (_canvasDetailKey.currentState?.isFocus() ?? false) || 
+          downloadFocusNode.hasFocus
         )  return;
 
         if( focusFrame != null ){
@@ -552,62 +508,22 @@ class EditPageState extends State<EditPage> {
     );
   }
 
-
-
-  // TODO: こいつリファクタ対象
   Widget canvasSizeSettingBox(){
-    if(focusFrame != null ) return Container();
-    if(focusBackGroundColorChange != null ) return Container();
     if(!showCanvasEdit) return Container();
-
-    Widget textFormWidget(TextEditingController editController, FocusNode focusNode, String labeltext, List<TextInputFormatter> formatList, String? Function(String?)? validatorFunc){
-      return TextFormField(
-        autovalidateMode: AutovalidateMode.always,
-        controller  : editController,
-        focusNode   : focusNode,
-        decoration      : InputDecoration( labelText: labeltext, ),
-        inputFormatters : formatList,
-        validator    : validatorFunc,
-      );
-    }
 
     return Positioned(
       top   : 20,
       left  : sideSpaceWidth() + widget.project.canvasSize.width - horizonScrollController.position.pixels + 20,
-      child: Container(
-        width: 300,
-        decoration: BoxDecoration(
-          color: Colors.grey[100],
-          border: Border.all( color: Colors.black, )
-        ),
-        child: Padding(
-          padding : const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-          child   : Column(
-            children: [
-              const Align(
-                alignment: Alignment.centerLeft,
-                child :  Text("キャンパスサイズの編集", style: TextStyle( fontWeight: FontWeight.bold), ),
-              ),
-              textFormWidget(canvasSizeXController, canvasSizeXFocusNode, "幅", [FilteringTextInputFormatter.allow(RegExp('[0123456789.]'))], 
-                (String? value){
-                  if( value == null ) return null;
-                  return rateStringValidate(value);
-                }
-              ),
-              textFormWidget(canvasSizeYController, canvasSizeYFocusNode, "縦", [FilteringTextInputFormatter.allow(RegExp('[0123456789.]'))], 
-                (String? value){
-                  if( value == null ) return null;
-                  return rateStringValidate(value);
-                }
-              ),
-            ],
-          ),
-        ),
+      child : CanvasDetailWidget(
+        key             : _canvasDetailKey,
+        project         : widget.project,
+        frameImageList  : frameImageList,
+        mainBuild       : (){ setState(() { });},
       ),
     );
+
   }
 
-  // TODO: こいつリファクタ対象
   Widget focusDetailSettingBox(){
     // TODO: こいつの設定関数を作る
     if(focusFrame == null ) return Container();
@@ -749,9 +665,7 @@ class EditPageState extends State<EditPage> {
           ballDiameter: ballDiameter,
           onDragStart : (){ },
           onDragEnd   : (){
-            canvasSizeXController.value = canvasSizeXController.value.copyWith( text: widget.project.canvasSize.width.toString() );
-            canvasSizeYController.value = canvasSizeYController.value.copyWith( text: widget.project.canvasSize.height.toString() );
-
+            _canvasDetailKey.currentState?.updateTextField();
             widget.project.save();
           },
           onDrag      : (dragPos) {
@@ -1360,8 +1274,7 @@ class EditPageState extends State<EditPage> {
         });
 
         widget.project.canvasSize = Size(defaultCanvasWidth, currentHeight + 100);
-        canvasSizeXController.value = canvasSizeXController.value.copyWith( text: widget.project.canvasSize.width.toString() );
-        canvasSizeYController.value = canvasSizeYController.value.copyWith( text: widget.project.canvasSize.height.toString() );
+        _canvasDetailKey.currentState?.updateTextField();
 
         widget.project.save();
         setState(() { });
