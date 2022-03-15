@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
+import 'package:tateyomi_gigarizer/model/project.dart';
 
 class BackGroundColorChange{
   late DbImpl dbInstance;
+  late Project project;
   late String dbIndex;
   late Color targetColor;
   late double pos;
@@ -11,6 +13,7 @@ class BackGroundColorChange{
   BackGroundColorChange(
       // 保存周りに必要な奴
     this.dbInstance,
+    this.project, 
     this.dbIndex,
 
     // 保存変数
@@ -21,12 +24,9 @@ class BackGroundColorChange{
 
   Map<String, dynamic> toDbJson(){
     return {
-      // 'name'            : name,
-      // 'download_name'   : downloadName,
-      // 'canvas_width'    : canvasSize.width,
-      // 'canvas_height'   : canvasSize.height,
-      // 'last_open_time'  : lastOpenTime,
-      // 'create_time'     : createTime,
+      'color' : targetColor.value,
+      'pos'   : pos,
+      'size'  : size,
     };
   }
 
@@ -39,15 +39,13 @@ class BackGroundColorChange{
   }
 
   Future<void> _insertSave() async {
-    // dbInstance.insertProject(this);
+    dbInstance.insertBackGroundColor(this);
   }
-
   Future<void> _updateSave() async {
-    // dbInstance.updateProject(this);
+    dbInstance.updateBackGroundColor(this);
   }
-
   void delete(){
-    // dbInstance.updateProject(this);
+    dbInstance.deleteBackGroundColor(this);
   }
 
 }

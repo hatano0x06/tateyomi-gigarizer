@@ -52,6 +52,8 @@ class BackGroundColorDetailWidgetState extends State<BackGroundColorDetailWidget
               onColorChanged: (Color color) {
                 widget.mainBuild();
                 widget.backGroundColorChange.targetColor = color;
+                print("asdfasdfdsf");
+                widget.backGroundColorChange.save();
               },
               portraitOnly: true,
               enableAlpha   : false,

@@ -5,6 +5,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:tateyomi_gigarizer/model/background_color_change.dart';
 import 'package:tateyomi_gigarizer/model/frame_image.dart';
 import 'package:tateyomi_gigarizer/model/project.dart';
 
@@ -80,6 +81,21 @@ class DbImpl{
   }
 
   Future<void> updateFrame(FrameImage _updateFrame) async { }
+
+
+  Future<List<BackGroundColorChange>> getBackGroundColorList(Project proj) async {
+    return [];
+
+    return [
+      BackGroundColorChange(this, proj, "asdfasdf", Colors.black, 200, 200, ),
+    ];
+  }
+  Future<String> insertBackGroundColor(BackGroundColorChange _insertBackGround) async {
+    _insertBackGround.dbIndex = DateTime.now().millisecondsSinceEpoch.toString() + "_proj";
+    return _insertBackGround.dbIndex;
+  }
+  Future<void> updateBackGroundColor(BackGroundColorChange _updateBackGround) async { }
+  Future<void> deleteBackGroundColor(BackGroundColorChange _deleteBackGround) async { }
 
   bool get isTest{ return true; }
 }

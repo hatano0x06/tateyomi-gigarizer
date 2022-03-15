@@ -6,6 +6,7 @@ import 'package:tateyomi_gigarizer/db/db_impl.dart';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:tateyomi_gigarizer/model/background_color_change.dart';
 import 'package:tateyomi_gigarizer/model/frame_image.dart';
 import 'package:tateyomi_gigarizer/model/project.dart';
 
@@ -254,6 +255,110 @@ class DbFireStore implements DbImpl {
 
     baseFrameRef(_updateFrame.project).doc(_updateFrame.dbIndex).update( _updateFrame.toDbJson() );
   }
+
+  static const String _backgroundColorCollection = "backgroundcolor";
+  CollectionReference baseBackGroundColorRef(Project _proj){ return baseProjRef().doc(_proj.dbIndex).collection(_backgroundColorCollection); }
+  final Map<Project, List<BackGroundColorChange>> _cachedBackgroundColorList = {};
+
+  @override
+  Future<List<BackGroundColorChange>> getBackGroundColorList(Project _proj) async {
+    if(!_cachedBackgroundColorList.containsKey(_proj )) _cachedBackgroundColorList[_proj] = [];
+
+    if(_cachedBackgroundColorList[_proj]!.isNotEmpty) return _cachedBackgroundColorList[_proj]!;
+
+    BackGroundColorChange createBackgroundColor(DocumentSnapshot _snapDoc, ){
+      Map<String, dynamic> snapData = (_snapDoc.data() as Map<String, dynamic>);
+
+      return BackGroundColorChange(
+        this, _proj, _snapDoc.id, 
+        snapData["color"] != null ? Color( snapData["color"] ) : Colors.black,
+        snapData["pos"]   ?? 0.0,
+        snapData["size"]  ?? 300.0
+      );
+    }
+
+    QuerySnapshot frameDocSnapShot = await baseBackGroundColorRef(_proj).get();
+
+    for (QueryDocumentSnapshot<Object?> frameDoc in frameDocSnapShot.docs) {
+      BackGroundColorChange  _addBackgroundColor = createBackgroundColor(frameDoc);
+
+      int backgroundIndex = _cachedBackgroundColorList[_proj]!.indexWhere((_cachedBackgroundColor) => _cachedBackgroundColor.dbIndex == _addBackgroundColor.dbIndex );
+      if( backgroundIndex >= 0 ) continue;
+
+      _cachedBackgroundColorList[_proj]!.add(_addBackgroundColor);
+    }
+
+    if(snapShotList.contains(baseBackGroundColorRef(_proj).path)) return _cachedBackgroundColorList[_proj]!;
+    snapShotList.add(baseBackGroundColorRef(_proj).path);
+
+    baseBackGroundColorRef(_proj).snapshots().listen((data){
+      // if(_cachedProjectList[_loginId]!.isNotEmpty) return _cachedProjectList[_loginId]!;
+
+      bool isUpdate = false;
+      for (DocumentChange<Object?> _doc in data.docChanges) {
+        BackGroundColorChange  _changeBackgroundColor = createBackgroundColor(_doc.doc);
+
+        // 削除
+        if(_doc.type == DocumentChangeType.removed){
+          if( _cachedBackgroundColorList[_proj]!.indexWhere( (_cachedBackgroundColor){ return ( _cachedBackgroundColor.dbIndex == _changeBackgroundColor.dbIndex ); } ) < 0 ) return;
+
+          _cachedBackgroundColorList[_proj]!.removeWhere( (_cachedBackgroundColor){ return ( _cachedBackgroundColor.dbIndex == _changeBackgroundColor.dbIndex ); } );
+          isUpdate = true;
+
+          return;
+        }
+
+        // 追加
+        if(_doc.type == DocumentChangeType.added){
+          List<BackGroundColorChange> storedBackGround = _cachedBackgroundColorList[_proj]!.where( (_cachedBackgroundColor){ return ( _cachedBackgroundColor.dbIndex.isEmpty || _cachedBackgroundColor.dbIndex == _changeBackgroundColor.dbIndex ); } ).toList();
+          if(storedBackGround.isNotEmpty) return;   // すでにある場合は、なにもしない
+
+          _cachedBackgroundColorList[_proj]!.add(_changeBackgroundColor);
+
+          isUpdate = true;
+          return;
+        }        
+
+        // 更新
+        List<BackGroundColorChange> storedBackGround = _cachedBackgroundColorList[_proj]!.where( (_cachedBackgroundColor){ return ( _cachedBackgroundColor.dbIndex == _changeBackgroundColor.dbIndex ); } ).toList();
+        if( storedBackGround.isEmpty ) return;
+
+        BackGroundColorChange storedChangedBackGround = storedBackGround.first;
+
+        bool isChanged(dynamic a, dynamic b){
+          if( a != b) isUpdate = true;
+          return a != b;
+        }
+
+        if( isChanged(storedChangedBackGround.pos         , _changeBackgroundColor.pos ) ) storedChangedBackGround.pos  = _changeBackgroundColor.pos;
+        if( isChanged(storedChangedBackGround.size        , _changeBackgroundColor.size ) ) storedChangedBackGround.size  = _changeBackgroundColor.size;
+        if( isChanged(storedChangedBackGround.targetColor , _changeBackgroundColor.targetColor ) ) storedChangedBackGround.targetColor  = _changeBackgroundColor.targetColor;
+      }
+
+      if(isUpdate) reBuildCanvas();
+
+      return;
+    },);
+
+    return _cachedBackgroundColorList[_proj]!;
+  }
+  @override
+  Future<String> insertBackGroundColor(BackGroundColorChange _insertBackGround) async {
+    _insertBackGround.dbIndex = _getUniqueId("backgroundcolor");
+    baseBackGroundColorRef(_insertBackGround.project).doc(_insertBackGround.dbIndex).set( _insertBackGround.toDbJson() );
+    return _insertBackGround.dbIndex;
+  }
+  @override
+  Future<void> updateBackGroundColor(BackGroundColorChange _updateBackGround) async {
+    if( _updateBackGround.dbIndex.isEmpty ) return;
+    baseBackGroundColorRef(_updateBackGround.project).doc(_updateBackGround.dbIndex).update( _updateBackGround.toDbJson() );
+  }
+  @override
+  Future<void> deleteBackGroundColor(BackGroundColorChange _deleteBackGround) async {
+    if( _deleteBackGround.dbIndex.isEmpty ) return;
+    baseBackGroundColorRef(_deleteBackGround.project).doc(_deleteBackGround.dbIndex).delete();
+  }
+
 
   @override
   bool get isTest{ return false; }

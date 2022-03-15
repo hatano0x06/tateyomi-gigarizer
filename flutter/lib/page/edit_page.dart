@@ -164,7 +164,7 @@ class EditPageState extends State<EditPage> {
                   Color setColor = _color as Color;
 
                   BackGroundColorChange _tmpColor = BackGroundColorChange(
-                    widget.dbInstance, "", 
+                    widget.dbInstance, widget.project, "", 
                     setColor, 
                     verticalScrollController.position.pixels + MediaQuery.of(context).size.height*windowZoomSize()/2 - 150, 
                     300, 
@@ -1124,11 +1124,7 @@ class EditPageState extends State<EditPage> {
 
       if(result == null) return;
       
-      // TODO: asdf
-      backGroundColorChangeList.addAll([
-        BackGroundColorChange(widget.dbInstance, "asdfasdf", Colors.black, 200, 200, ),
-        // BackGroundColorChange(widget.dbInstance, "asdfasdf", Colors.blue, 1200, 400, ),
-      ]);
+      backGroundColorChangeList = await widget.dbInstance.getBackGroundColorList(widget.project);
 
       // 画像読み込み
       await Future.forEach(result.files.where((_file) => _file.extension != null && _file.extension == "png").toList(), (PlatformFile _file) async {
