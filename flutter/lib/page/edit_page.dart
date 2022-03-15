@@ -59,10 +59,6 @@ class EditPageState extends State<EditPage> {
 
   double stricyArea = 10;
 
-  // TODO: 背景
-  //  DB(クラウド)
-  //  db時にcanvasidも一緒に入れる
-
   @override
   void initState(){
     super.initState();

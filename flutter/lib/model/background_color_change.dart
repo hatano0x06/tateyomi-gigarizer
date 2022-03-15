@@ -24,6 +24,7 @@ class BackGroundColorChange{
 
   Map<String, dynamic> toDbJson(){
     return {
+      'project_id' : project.dbIndex,
       'color' : targetColor.value,
       'pos'   : pos,
       'size'  : size,

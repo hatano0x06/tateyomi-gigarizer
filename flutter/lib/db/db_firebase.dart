@@ -156,12 +156,24 @@ class DbFireStore implements DbImpl {
 
     if(_cachedFrameList[_proj]!.isNotEmpty) return _cachedFrameList[_proj]!;
 
-    FrameImage createFrameModel(DocumentSnapshot _snapDoc, ){
+    FrameImage createFrameModel(DocumentSnapshot _snapDoc, Project? __proj){
       Map<String, dynamic> snapData = (_snapDoc.data() as Map<String, dynamic>);
 
+      Project getProject(){
+        if( __proj != null ) return __proj;
+        if( snapData["project_id"] == null ) return _proj;
+      
+        if( snapData["project_id"] != null ){
+          List<Project> tmpList = _cachedProjectList[baseProjRef().path]!.where((_projList) => _projList.dbIndex == snapData["project_id"]).toList();
+          if( tmpList.isNotEmpty ) return tmpList.first;
+        }
+
+        return _proj;
+      }
+ 
       FrameImage addFrameImage = FrameImage(
         dbInstance  : this,
-        project     : _proj,
+        project     : getProject(),
         dbIndex     : _snapDoc.id,
         name        : snapData["name"] ?? "",
         sizeRate    : snapData["size_rate"]  ?? 1.0,
@@ -176,7 +188,7 @@ class DbFireStore implements DbImpl {
     QuerySnapshot frameDocSnapShot = await baseFrameRef(_proj).get();
 
     for (QueryDocumentSnapshot<Object?> frameDoc in frameDocSnapShot.docs) {
-      FrameImage  _addFrame = createFrameModel(frameDoc);
+      FrameImage  _addFrame = createFrameModel(frameDoc, _proj);
 
       int frameIndex = _cachedFrameList[_proj]!.indexWhere((_cacheFrame) => _cacheFrame.dbIndex == _addFrame.dbIndex );
       if( frameIndex >= 0 ) continue;
@@ -192,7 +204,7 @@ class DbFireStore implements DbImpl {
 
       bool isUpdate = false;
       for (DocumentChange<Object?> _doc in data.docChanges) {
-        FrameImage _changeFrame = createFrameModel(_doc.doc);
+        FrameImage _changeFrame = createFrameModel(_doc.doc, null);
 
         // // 削除
         // if(_doc.type == DocumentChangeType.removed){
@@ -202,7 +214,7 @@ class DbFireStore implements DbImpl {
 
         // 追加
         if(_doc.type == DocumentChangeType.added){
-          List<FrameImage> storedFrame = _cachedFrameList[_proj]!.where( (_cacheFrame){ return ( _cacheFrame.dbIndex.isEmpty || _cacheFrame.dbIndex == _changeFrame.dbIndex ); } ).toList();
+          List<FrameImage> storedFrame = _cachedFrameList[_changeFrame.project]!.where( (_cacheFrame){ return ( _cacheFrame.dbIndex.isEmpty || _cacheFrame.dbIndex == _changeFrame.dbIndex ); } ).toList();
           if(storedFrame.isNotEmpty) return;   // すでにある場合は、なにもしない
 
           _cachedFrameList[_proj]!.add(_changeFrame);
@@ -212,7 +224,7 @@ class DbFireStore implements DbImpl {
         }        
 
         // 更新
-        List<FrameImage> storedFrame = _cachedFrameList[_proj]!.where( (_cacheFrame){ return ( _cacheFrame.dbIndex == _changeFrame.dbIndex ); } ).toList();
+        List<FrameImage> storedFrame = _cachedFrameList[_changeFrame.project]!.where( (_cacheFrame){ return ( _cacheFrame.dbIndex == _changeFrame.dbIndex ); } ).toList();
         if( storedFrame.isEmpty ) return;
 
         FrameImage storedChangedFrame = storedFrame.first;
@@ -266,11 +278,24 @@ class DbFireStore implements DbImpl {
 
     if(_cachedBackgroundColorList[_proj]!.isNotEmpty) return _cachedBackgroundColorList[_proj]!;
 
-    BackGroundColorChange createBackgroundColor(DocumentSnapshot _snapDoc, ){
+    BackGroundColorChange createBackgroundColor(DocumentSnapshot _snapDoc, Project? __proj){
       Map<String, dynamic> snapData = (_snapDoc.data() as Map<String, dynamic>);
 
+      Project getProject(){
+        if( __proj != null ) return __proj;
+        if( snapData["project_id"] == null ) return _proj;
+      
+        if( snapData["project_id"] != null ){
+          List<Project> tmpList = _cachedProjectList[baseProjRef().path]!.where((_projList) => _projList.dbIndex == snapData["project_id"]).toList();
+          if( tmpList.isNotEmpty ) return tmpList.first;
+        }
+
+        return _proj;
+      }
+
+ 
       return BackGroundColorChange(
-        this, _proj, _snapDoc.id, 
+        this, getProject(), _snapDoc.id, 
         snapData["color"] != null ? Color( snapData["color"] ) : Colors.black,
         snapData["pos"]   ?? 0.0,
         snapData["size"]  ?? 300.0
@@ -280,7 +305,7 @@ class DbFireStore implements DbImpl {
     QuerySnapshot frameDocSnapShot = await baseBackGroundColorRef(_proj).get();
 
     for (QueryDocumentSnapshot<Object?> frameDoc in frameDocSnapShot.docs) {
-      BackGroundColorChange  _addBackgroundColor = createBackgroundColor(frameDoc);
+      BackGroundColorChange  _addBackgroundColor = createBackgroundColor(frameDoc, _proj);
 
       int backgroundIndex = _cachedBackgroundColorList[_proj]!.indexWhere((_cachedBackgroundColor) => _cachedBackgroundColor.dbIndex == _addBackgroundColor.dbIndex );
       if( backgroundIndex >= 0 ) continue;
@@ -296,13 +321,13 @@ class DbFireStore implements DbImpl {
 
       bool isUpdate = false;
       for (DocumentChange<Object?> _doc in data.docChanges) {
-        BackGroundColorChange  _changeBackgroundColor = createBackgroundColor(_doc.doc);
+        BackGroundColorChange  _changeBackgroundColor = createBackgroundColor(_doc.doc, null);
 
         // 削除
         if(_doc.type == DocumentChangeType.removed){
-          if( _cachedBackgroundColorList[_proj]!.indexWhere( (_cachedBackgroundColor){ return ( _cachedBackgroundColor.dbIndex == _changeBackgroundColor.dbIndex ); } ) < 0 ) return;
+          if( _cachedBackgroundColorList[_changeBackgroundColor.project]!.indexWhere( (_cachedBackgroundColor){ return ( _cachedBackgroundColor.dbIndex == _changeBackgroundColor.dbIndex ); } ) < 0 ) return;
 
-          _cachedBackgroundColorList[_proj]!.removeWhere( (_cachedBackgroundColor){ return ( _cachedBackgroundColor.dbIndex == _changeBackgroundColor.dbIndex ); } );
+          _cachedBackgroundColorList[_changeBackgroundColor.project]!.removeWhere( (_cachedBackgroundColor){ return ( _cachedBackgroundColor.dbIndex == _changeBackgroundColor.dbIndex ); } );
           isUpdate = true;
 
           return;
@@ -310,17 +335,17 @@ class DbFireStore implements DbImpl {
 
         // 追加
         if(_doc.type == DocumentChangeType.added){
-          List<BackGroundColorChange> storedBackGround = _cachedBackgroundColorList[_proj]!.where( (_cachedBackgroundColor){ return ( _cachedBackgroundColor.dbIndex.isEmpty || _cachedBackgroundColor.dbIndex == _changeBackgroundColor.dbIndex ); } ).toList();
+          List<BackGroundColorChange> storedBackGround = _cachedBackgroundColorList[_changeBackgroundColor.project]!.where( (_cachedBackgroundColor){ return ( _cachedBackgroundColor.dbIndex.isEmpty || _cachedBackgroundColor.dbIndex == _changeBackgroundColor.dbIndex ); } ).toList();
           if(storedBackGround.isNotEmpty) return;   // すでにある場合は、なにもしない
 
-          _cachedBackgroundColorList[_proj]!.add(_changeBackgroundColor);
+          _cachedBackgroundColorList[_changeBackgroundColor.project]!.add(_changeBackgroundColor);
 
           isUpdate = true;
           return;
         }        
 
         // 更新
-        List<BackGroundColorChange> storedBackGround = _cachedBackgroundColorList[_proj]!.where( (_cachedBackgroundColor){ return ( _cachedBackgroundColor.dbIndex == _changeBackgroundColor.dbIndex ); } ).toList();
+        List<BackGroundColorChange> storedBackGround = _cachedBackgroundColorList[_changeBackgroundColor.project]!.where( (_cachedBackgroundColor){ return ( _cachedBackgroundColor.dbIndex == _changeBackgroundColor.dbIndex ); } ).toList();
         if( storedBackGround.isEmpty ) return;
 
         BackGroundColorChange storedChangedBackGround = storedBackGround.first;

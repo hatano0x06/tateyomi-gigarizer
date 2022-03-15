@@ -42,6 +42,7 @@ class FrameImage{
 
   Map<String, dynamic> toDbJson(){
     return {
+      'project_id' : project.dbIndex,
       'name'        : name,
       'angle'       : angle,
       'position_x'    : position.x,

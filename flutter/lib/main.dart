@@ -47,8 +47,8 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       navigatorObservers: [ FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance), ],
-      home: LoginPageWidget(dbInstance: DbImpl(),), // test用
-      // home: LoginPageWidget(dbInstance: DbFireStore(),),
+      // home: LoginPageWidget(dbInstance: DbImpl(),), // test用
+      home: LoginPageWidget(dbInstance: DbFireStore(),),
     );
   }
 }
