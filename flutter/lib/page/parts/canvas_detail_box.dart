@@ -1,4 +1,4 @@
-import 'dart:math';
+// import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -24,50 +24,51 @@ class CanvasDetailWidget extends StatefulWidget {
 }
 
 class CanvasDetailWidgetState extends State<CanvasDetailWidget> {
-  final TextEditingController canvasSizeXController = TextEditingController();
+  // final TextEditingController canvasSizeXController = TextEditingController();
   final TextEditingController canvasSizeYController = TextEditingController();
-  final FocusNode canvasSizeXFocusNode = FocusNode();
+  // final FocusNode canvasSizeXFocusNode = FocusNode();
   final FocusNode canvasSizeYFocusNode = FocusNode();
 
   void updateTextField(){
-    canvasSizeXController.value = canvasSizeXController.value.copyWith( text: widget.project.canvasSize.width.toString() );
+    // canvasSizeXController.value = canvasSizeXController.value.copyWith( text: widget.project.canvasSize.width.toString() );
     canvasSizeYController.value = canvasSizeYController.value.copyWith( text: widget.project.canvasSize.height.toString() );
 
     setState(() { });
   }
 
   bool isFocus(){
-    return canvasSizeXFocusNode.hasFocus || canvasSizeYFocusNode.hasFocus;
+    return canvasSizeYFocusNode.hasFocus;
+    // return canvasSizeXFocusNode.hasFocus || canvasSizeYFocusNode.hasFocus;
   }
 
   @override
   void initState(){
     super.initState();
     
-    canvasSizeXController.value = canvasSizeXController.value.copyWith( text: widget.project.canvasSize.width.toString() );
+    // canvasSizeXController.value = canvasSizeXController.value.copyWith( text: widget.project.canvasSize.width.toString() );
     canvasSizeYController.value = canvasSizeYController.value.copyWith( text: widget.project.canvasSize.height.toString() );
 
-    canvasSizeXController.addListener((){
-      if(posStringValidate(canvasSizeXController.text) != null ) return;
+    // canvasSizeXController.addListener((){
+    //   if(posStringValidate(canvasSizeXController.text) != null ) return;
 
-      double preCanvasWidth = widget.project.canvasSize.width;
-      double newCanvasWidth = double.parse(canvasSizeXController.text);
+    //   double preCanvasWidth = widget.project.canvasSize.width;
+    //   double newCanvasWidth = double.parse(canvasSizeXController.text);
 
-      if(newCanvasWidth < 100) return;
+    //   if(newCanvasWidth < 100) return;
 
-      double changeRate = newCanvasWidth/preCanvasWidth;
+    //   double changeRate = newCanvasWidth/preCanvasWidth;
 
-      for (FrameImage _frameImage in widget.frameImageList) {
-        _frameImage.position = Point(_frameImage.position.x * changeRate, _frameImage.position.y * changeRate);
-        _frameImage.sizeRate = _frameImage.sizeRate * changeRate;
-        _frameImage.save();
-      }
+    //   for (FrameImage _frameImage in widget.frameImageList) {
+    //     _frameImage.position = Point(_frameImage.position.x * changeRate, _frameImage.position.y * changeRate);
+    //     _frameImage.sizeRate = _frameImage.sizeRate * changeRate;
+    //     _frameImage.save();
+    //   }
 
-      widget.project.canvasSize = Size(newCanvasWidth, widget.project.canvasSize.height);
-      widget.project.save();
+    //   widget.project.canvasSize = Size(newCanvasWidth, widget.project.canvasSize.height);
+    //   widget.project.save();
 
-      widget.mainBuild();
-    });    
+    //   widget.mainBuild();
+    // });    
 
     canvasSizeYController.addListener((){
       if(posStringValidate(canvasSizeYController.text) != null ) return;
@@ -82,9 +83,9 @@ class CanvasDetailWidgetState extends State<CanvasDetailWidget> {
 
   @override
   void dispose(){
-    canvasSizeXController.dispose();
+    // canvasSizeXController.dispose();
     canvasSizeYController.dispose();
-    canvasSizeXFocusNode.dispose();
+    // canvasSizeXFocusNode.dispose();
     canvasSizeYFocusNode.dispose();
 
     super.dispose();
@@ -118,12 +119,12 @@ class CanvasDetailWidgetState extends State<CanvasDetailWidget> {
               alignment: Alignment.centerLeft,
               child :  Text("キャンパスサイズの編集", style: TextStyle( fontWeight: FontWeight.bold), ),
             ),
-            textFormWidget(canvasSizeXController, canvasSizeXFocusNode, "幅", [FilteringTextInputFormatter.allow(RegExp('[0123456789.]'))], 
-              (String? value){
-                if( value == null ) return null;
-                return rateStringValidate(value);
-              }
-            ),
+            // textFormWidget(canvasSizeXController, canvasSizeXFocusNode, "幅", [FilteringTextInputFormatter.allow(RegExp('[0123456789.]'))], 
+            //   (String? value){
+            //     if( value == null ) return null;
+            //     return rateStringValidate(value);
+            //   }
+            // ),
             textFormWidget(canvasSizeYController, canvasSizeYFocusNode, "縦", [FilteringTextInputFormatter.allow(RegExp('[0123456789.]'))], 
               (String? value){
                 if( value == null ) return null;
