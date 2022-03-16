@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'dart:convert';
 
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
+import 'package:tateyomi_gigarizer/model/common.dart';
 import 'package:tateyomi_gigarizer/model/project.dart';
 
 class FrameImage{
@@ -72,6 +73,7 @@ class FrameImage{
   }
 
   void save(){
+    if(!isDeskTop()) return;
     if( dbIndex.isEmpty ){
       _insertSave();
       return;

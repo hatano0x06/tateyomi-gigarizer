@@ -112,8 +112,6 @@ class _LoginPageWidgetState extends State<LoginPageWidget> {
                   _proj.lastOpenTime = DateTime.now().millisecondsSinceEpoch;
                   _proj.save();
 
-                  // TODO: asdf
-
                   Widget openPage = isDeskTop() ?
                   EditPage(
                     dbInstance  : widget.dbInstance,
@@ -159,8 +157,7 @@ class _LoginPageWidgetState extends State<LoginPageWidget> {
         widget.dbInstance.loginId = "caramelmama";
 
         // caramelmama以外許さない（一旦
-        // TODO: asdf
-        //  firebaseのセキュリティのほうでも制限かかっているので、注意
+        // TODO: firebaseのセキュリティのほうでも制限かかっているので、注意
         // if( loginNameController.text != "caramelmama") return;
         // widget.dbInstance.loginId = loginNameController.text;
 

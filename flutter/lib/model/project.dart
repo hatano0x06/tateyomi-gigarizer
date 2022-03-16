@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
+import 'package:tateyomi_gigarizer/model/common.dart';
 
 class Project{
   late DbImpl dbInstance;
@@ -34,6 +35,7 @@ class Project{
     };
   }
   void save(){
+    if(!isDeskTop()) return;
     if( dbIndex.isEmpty ){
       _insertSave();
       return;

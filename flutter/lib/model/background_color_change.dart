@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
+import 'package:tateyomi_gigarizer/model/common.dart';
 import 'package:tateyomi_gigarizer/model/project.dart';
 
 class BackGroundColorChange{
@@ -32,6 +33,7 @@ class BackGroundColorChange{
   }
 
   void save(){
+    if(!isDeskTop()) return;
     if( dbIndex.isEmpty ){
       _insertSave();
       return;
@@ -46,6 +48,7 @@ class BackGroundColorChange{
     dbInstance.updateBackGroundColor(this);
   }
   void delete(){
+    if(!isDeskTop()) return;
     dbInstance.deleteBackGroundColor(this);
   }
 
