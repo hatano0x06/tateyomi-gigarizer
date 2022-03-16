@@ -28,7 +28,15 @@ class DbFireStore implements DbImpl {
 
     reBuildCanvasBody!();
   }
-  
+
+  double checkDouble(dynamic value, double defaultValue) {
+    if(value == null) return defaultValue;
+    if(value is double) return value;
+    if(value is int) return value.toDouble();
+    if(value is String) return double.tryParse(value) ?? defaultValue;
+    return defaultValue;
+  }
+
   static const String _userCollection = 'user';
   DocumentReference baseDocRef(){ return FirebaseFirestore.instance.collection(_userCollection).doc(_loginId); }
   CollectionReference baseProjRef(){ return baseDocRef().collection(_projectCollection); }
@@ -57,8 +65,8 @@ class DbFireStore implements DbImpl {
         snapData["name"] ?? "",
         snapData["download_name"] ?? "",
         Size(
-          snapData["canvas_width"]  ?? 690,
-          snapData["canvas_height"] ?? 10000,
+          checkDouble(snapData["canvas_width"]  , 690.0),
+          checkDouble(snapData["canvas_height"] , 10000.0),
         ),
         snapData["last_open_time"]  ?? DateTime.now().millisecondsSinceEpoch,
         snapData["create_time"]     ?? DateTime.now().millisecondsSinceEpoch,
@@ -176,8 +184,8 @@ class DbFireStore implements DbImpl {
         project     : getProject(),
         dbIndex     : _snapDoc.id,
         name        : snapData["name"] ?? "",
-        sizeRate    : snapData["size_rate"]  ?? 1.0,
-        position    : Point<double>( snapData["position_x"] ?? 0, snapData["position_y"] ?? 0, ),
+        sizeRate    : checkDouble(snapData["size_rate"], 1.0),
+        position    : Point<double>( checkDouble(snapData["position_x"], 0), checkDouble(snapData["position_y"], 0), ),
         angle       : snapData["angle"] ?? 0,
         byteData    : null,
         size        : const Point<double>(0,0),
@@ -297,8 +305,8 @@ class DbFireStore implements DbImpl {
       return BackGroundColorChange(
         this, getProject(), _snapDoc.id, 
         snapData["color"] != null ? Color( snapData["color"] ) : Colors.black,
-        snapData["pos"]   ?? 0.0,
-        snapData["size"]  ?? 300.0
+        checkDouble(snapData["pos"]   , 0.0),
+        checkDouble(snapData["size"]  , 300.0)
       );
     }
 

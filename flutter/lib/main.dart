@@ -17,7 +17,6 @@ void main() async {
 }
 
 // TODO: 縦読みの機能（２１日まで
-//  - スマホ連携
 //  - 背景ダウンロード & ダウンロード時にいろいろ横幅でできるようにする & スマホでできるようにする
 
 // TODO: オプション
@@ -49,8 +48,8 @@ class MyApp extends StatelessWidget {
       ),
       navigatorObservers: [ FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance), ],
       // // test用
-      home: LoginPageWidget(dbInstance: DbImpl(),)
-      // home: LoginPageWidget(dbInstance: DbFireStore(),),
+      // home: LoginPageWidget(dbInstance: DbImpl(),)
+      home: LoginPageWidget(dbInstance: DbFireStore(),),
     );
   }
 }
