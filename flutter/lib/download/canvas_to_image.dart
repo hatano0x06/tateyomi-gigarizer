@@ -38,8 +38,6 @@ class CanvasToImage{
     Map<double, Uint8List> outputMap = await canvasImageList();
     if( outputMap.isEmpty ) return;
 
-    print( outputMap.length );
-
     // 一枚ならそのままダウンロード
     if( outputMap.length == 1){
       double pixelSize = outputMap.keys.first;
