@@ -656,7 +656,7 @@ class EditPageState extends State<EditPage> {
 
   List<Widget> _backGroundWidgetList(){
 
-    const int offsetSize = 10;
+    const int offsetSize = 1;
     List<Widget> showWidgetList = [];
     
     backGroundColorChangeList.sort((BackGroundColorChange a, BackGroundColorChange b){ return a.pos.compareTo(b.pos); });

@@ -34,7 +34,22 @@ class CanvasToImage{
 
   }
 
-  Future<Uint8List?> saveRelationMapUnit(double canvasWidth) async {
+  Future<Map<double, Uint8List>> canvasImageList() async {
+
+    Map<double, Uint8List> resultList = {};
+
+    List<double> outputWidthList = createOutputList();
+    await Future.forEach(outputWidthList.toList(), (double _canvasWidth) async {
+      Uint8List? _image = await _saveRelationMapUnit(_canvasWidth);
+      if( _image == null ) return;
+
+      resultList[_canvasWidth] = _image;
+    });
+
+    return resultList;
+  }
+
+  Future<Uint8List?> _saveRelationMapUnit(double canvasWidth) async {
     double rate = canvasWidth/project.canvasSize.width;
     Size canvasSize = Size( canvasWidth, project.canvasSize.height * rate );
     
@@ -55,7 +70,7 @@ class CanvasToImage{
     );
 
     _writeBackGroundColor(canvas, canvasSize, rate, backgroundColorList);
-    _writeFrameImage(canvas, canvasSize, rate, frameImageList);
+    await _writeFrameImage(canvas, canvasSize, rate, frameImageList);
 
     // 保存
     try{
@@ -72,7 +87,7 @@ class CanvasToImage{
 
   void _writeBackGroundColor(Canvas canvas, Size canvasSize, double rate, List<BackGroundColorChange> backgroundColorList){
 
-    double offsetSize = 10;
+    double offsetSize = 1;
     // 一番最初
     if( backgroundColorList.isNotEmpty ) {
 
@@ -109,7 +124,7 @@ class CanvasToImage{
           Offset(0, (preBackGround.pos + preBackGround.size)* rate - offsetSize ), 
           Offset(canvasSize.width, _background.pos*rate + offsetSize),
         ), 
-        Paint()..color = _background.targetColor..style = PaintingStyle.fill
+        Paint()..color = preBackGround.targetColor..style = PaintingStyle.fill
       );
     }
 
@@ -150,7 +165,6 @@ class CanvasToImage{
       );
 
       // TODO: rotate
-
       final paint = Paint()..style = PaintingStyle.fill..filterQuality = FilterQuality.high;
       canvas.drawImageRect(_image, srcRect, dstRect, paint);
     });

@@ -7,6 +7,9 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
+// ignore: unused_import
+import 'package:tateyomi_gigarizer/download/canvas_to_image.dart';
+import 'package:tateyomi_gigarizer/download/sample_show_download.dart';
 import 'package:tateyomi_gigarizer/model/background_color_change.dart';
 import 'package:tateyomi_gigarizer/model/frame_image.dart';
 import 'package:tateyomi_gigarizer/model/project.dart';
@@ -26,8 +29,6 @@ class ViewerPage extends StatefulWidget {
   @override
   ViewerPageState createState() => ViewerPageState();
 }
-
-    // TODO:  CanvasToImage(frameImageList, widget.project.canvasSize).download(downloadController.text);
 
 class ViewerPageState extends State<ViewerPage> {
   List<FrameImage> frameImageList = [];
@@ -58,7 +59,24 @@ class ViewerPageState extends State<ViewerPage> {
 
     return SingleChildScrollView(
       controller  : verticalScrollController,
-      child       : Stack( children: showWidgetList ),
+      child       : GestureDetector(
+        child: Stack( children: showWidgetList ),
+        onLongPressEnd: (LongPressEndDetails _tapDown) async {
+          print( _tapDown );
+          if( _tapDown.globalPosition.dy > MediaQuery.of(context).size.height/3) return;
+
+          Navigator.push( 
+            context, 
+            MaterialPageRoute( builder: (context) => DownloadViewerBoard(
+              project: widget.project,
+              frameImageList: frameImageList,
+              backgroundColorList: backGroundColorChangeList,
+            ))
+          );
+        },
+      )
+      
+      
     );
     // scrollbar
   }
@@ -89,7 +107,7 @@ class ViewerPageState extends State<ViewerPage> {
 
   List<Widget> _backGroundWidgetList(){
 
-    const int offsetSize = 10;
+    const int offsetSize = 1;
     List<Widget> showWidgetList = [];
     
     backGroundColorChangeList.sort((BackGroundColorChange a, BackGroundColorChange b){ return a.pos.compareTo(b.pos); });
