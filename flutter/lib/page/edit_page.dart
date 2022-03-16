@@ -8,7 +8,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
-import 'package:tateyomi_gigarizer/dialog/color_picker.dart';
 import 'package:tateyomi_gigarizer/dialog/text_input_dialog.dart';
 import 'package:tateyomi_gigarizer/model/background_color_change.dart';
 import 'package:tateyomi_gigarizer/model/frame_image.dart';
@@ -161,29 +160,18 @@ class EditPageState extends State<EditPage> {
               icon    : const Icon(Icons.gradient),
               tooltip : "背景の追加",
               onPressed: (){
-                showDialog(
-                  context: context, 
-                  builder: (BuildContext context) => const ColorPickerDialog( )
-                ).then((_color){
-                  if( _color == null ) return;
+                BackGroundColorChange _tmpColor = BackGroundColorChange(
+                  widget.dbInstance, widget.project, "", 
+                  Colors.black, 
+                  verticalScrollController.position.pixels + MediaQuery.of(context).size.height*windowZoomSize()/2 - 50, 
+                  100, 
+                );
+                _tmpColor.save();
 
-                  Color setColor = _color as Color;
+                setFocusBackGround(_tmpColor);
+                backGroundColorChangeList.add( _tmpColor );
 
-                  BackGroundColorChange _tmpColor = BackGroundColorChange(
-                    widget.dbInstance, widget.project, "", 
-                    setColor, 
-                    verticalScrollController.position.pixels + MediaQuery.of(context).size.height*windowZoomSize()/2 - 50, 
-                    100, 
-                  );
-                  _tmpColor.save();
-
-                  setFocusBackGround(_tmpColor);
-                  backGroundColorChangeList.add( _tmpColor );
-
-                  setState(() { });
-                });
-
-                
+                setState(() { });
               }
             ),
             IconButton(
