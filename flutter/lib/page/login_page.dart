@@ -177,7 +177,6 @@ class _LoginPageWidgetState extends State<LoginPageWidget> {
             widget.dbInstance,
             "",
             _text,
-            _text,
             Size.zero,
             DateTime.now().millisecondsSinceEpoch,
             DateTime.now().millisecondsSinceEpoch,

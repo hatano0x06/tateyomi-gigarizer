@@ -63,7 +63,6 @@ class DbFireStore implements DbImpl {
         this, 
         _snapDoc.id,
         snapData["name"] ?? "",
-        snapData["download_name"] ?? "",
         Size(
           checkDouble(snapData["canvas_width"]  , 690.0),
           checkDouble(snapData["canvas_height"] , 10000.0),
@@ -124,7 +123,6 @@ class DbFireStore implements DbImpl {
         }
 
         if( isChanged(storedChangedProject.name, _changeProject.name ) ) storedChangedProject.name  = _changeProject.name;
-        if( isChanged(storedChangedProject.downloadName, _changeProject.downloadName ) ) storedChangedProject.downloadName  = _changeProject.downloadName;
         if( isChanged(storedChangedProject.canvasSize.width , _changeProject.canvasSize.width   ) ) storedChangedProject.canvasSize  = _changeProject.canvasSize;
         if( isChanged(storedChangedProject.canvasSize.height, _changeProject.canvasSize.height  ) ) storedChangedProject.canvasSize  = _changeProject.canvasSize;
         if( isChanged(storedChangedProject.lastOpenTime , _changeProject.lastOpenTime ) ) storedChangedProject.lastOpenTime  = _changeProject.lastOpenTime;

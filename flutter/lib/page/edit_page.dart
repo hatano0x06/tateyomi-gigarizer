@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
 import 'package:tateyomi_gigarizer/dialog/color_picker.dart';
+import 'package:tateyomi_gigarizer/dialog/text_input_dialog.dart';
 import 'package:tateyomi_gigarizer/model/background_color_change.dart';
 import 'package:tateyomi_gigarizer/model/frame_image.dart';
 import 'package:tateyomi_gigarizer/model/keyboard.dart';
@@ -133,7 +134,28 @@ class EditPageState extends State<EditPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title   : Text( "編集ページ ： " + widget.project.name ),
+        title   : Row(children: [
+          Text( "編集ページ ： " + widget.project.name ),
+          IconButton(
+            icon: const Icon(Icons.edit),
+            tooltip : "名前の変更",
+            onPressed: (){
+              showDialog( 
+                context: context, 
+                builder: (BuildContext context) => TextInputDialog( widget.project.name )
+              ).then((_text){
+                if( _text == null ) return;
+                String _fixText = _text as String;
+                if( _fixText.isEmpty ) return;
+
+                setState(() { });
+                widget.project.name = _fixText;
+                widget.project.save();
+              });
+            }
+          ),
+          
+        ]),
         actions : !isImageLoaded() ? [] : [
             IconButton(
               icon    : const Icon(Icons.gradient),
@@ -191,19 +213,6 @@ class EditPageState extends State<EditPage> {
               setState(() { });
             },
           ),
-          Padding(
-            padding : const EdgeInsets.symmetric(vertical: 5),
-            child   : Container(
-              padding     : const EdgeInsets.symmetric(horizontal: 20),
-              width: 300,
-              height: 30,
-              decoration  : BoxDecoration(
-                borderRadius  : BorderRadius.circular(30.0),
-                border        : Border.all( color: Colors.white.withAlpha(200) ),
-                color         : Colors.white.withAlpha(120),
-              ),
-            ),
-          ),
           IconButton(
             icon    : const Icon(Icons.help_outline),
             onPressed: (){
@@ -230,7 +239,6 @@ class EditPageState extends State<EditPage> {
   }
 
   void setFocusBackGround(BackGroundColorChange? targetBackgroundColor){
-
     if( focusBackGroundColorChange != null ) focusBackGroundColorChange?.save();
     focusBackGroundColorChange = targetBackgroundColor;
 
@@ -240,6 +248,7 @@ class EditPageState extends State<EditPage> {
     setState(() { });
   }  
 
+  // TODO: あｓｄふぁｓｄｆ
   void setCanvasEdit(bool status){
     showCanvasEdit = status;
     focusFrame = null;

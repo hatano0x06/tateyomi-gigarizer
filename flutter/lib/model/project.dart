@@ -6,7 +6,6 @@ class Project{
   late DbImpl dbInstance;
   late String dbIndex;
   late String name;
-  late String downloadName;
   late Size canvasSize;
   late int lastOpenTime;
   late int createTime;
@@ -18,7 +17,6 @@ class Project{
 
     // 保存変数
     this.name,
-    this.downloadName,
     this.canvasSize,
     this.lastOpenTime,
     this.createTime,
@@ -27,7 +25,6 @@ class Project{
   Map<String, dynamic> toDbJson(){
     return {
       'name'            : name,
-      'download_name'   : downloadName,
       'canvas_width'    : canvasSize.width,
       'canvas_height'   : canvasSize.height,
       'last_open_time'  : lastOpenTime,
