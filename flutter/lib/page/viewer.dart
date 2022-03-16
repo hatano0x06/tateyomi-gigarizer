@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_print, constant_identifier_names
 
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
@@ -51,7 +52,7 @@ class ViewerPageState extends State<ViewerPage> {
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> showWidgetList = [_canvasBody(), ..._backGroundWidgetList(), ..._frameBodyList(),];
+    List<Widget> showWidgetList = [_canvasBody(),..._backGroundWidgetList(), ..._frameBodyList()];
 
     return SingleChildScrollView(
       controller  : verticalScrollController,
@@ -65,22 +66,18 @@ class ViewerPageState extends State<ViewerPage> {
     return frameImageList.where((_frameImage) => _frameImage.byteData != null).isNotEmpty;
   }
 
+  double rate(){
+    return MediaQuery.of(context).size.width/widget.project.canvasSize.width;
+  }
+
 
   /* -----  キャンパス設定 ----- */
 
   Widget _canvasBody(){
-    if( !isImageLoaded() ) {
-      return Container(
-        width : MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
-        color: Colors.white,
-      );
-    }
-
     return Center(
       child: Container(
-        width : widget.project.canvasSize.width,
-        height: widget.project.canvasSize.height,
+        width : MediaQuery.of(context).size.width,
+        height: widget.project.canvasSize.height * rate(),
         color: Colors.white,
       )
     );
@@ -106,8 +103,8 @@ class ViewerPageState extends State<ViewerPage> {
             top   : canvasToGlobalPos(const math.Point(0,0)).y,
             child : Container(
               color : Colors.white,
-              height: math.max(0, backGroundColorChangeList.first.pos + offsetSize),
-              width : widget.project.canvasSize.width,
+              height: math.max(0, backGroundColorChangeList.first.pos * rate() + offsetSize),
+              width : MediaQuery.of(context).size.width,
             )
           )
         );
@@ -118,11 +115,11 @@ class ViewerPageState extends State<ViewerPage> {
         showWidgetList.add(
           Positioned(
             left  : canvasToGlobalPos(math.Point(0, backGroundColorChangeList.last.pos + backGroundColorChangeList.last.size)).x,
-            top   : canvasToGlobalPos(math.Point(0, backGroundColorChangeList.last.pos + backGroundColorChangeList.last.size - offsetSize)).y,
+            top   : canvasToGlobalPos(math.Point(0, (backGroundColorChangeList.last.pos + backGroundColorChangeList.last.size)* rate() - offsetSize)).y,
             child : Container(
               color : backGroundColorChangeList.last.targetColor,
-              height: widget.project.canvasSize.height - (backGroundColorChangeList.last.pos + backGroundColorChangeList.last.size) + offsetSize,
-              width : widget.project.canvasSize.width,
+              height: (widget.project.canvasSize.height - (backGroundColorChangeList.last.pos + backGroundColorChangeList.last.size))* rate() + offsetSize,
+              width : MediaQuery.of(context).size.width,
             )
           )
         );
@@ -138,12 +135,12 @@ class ViewerPageState extends State<ViewerPage> {
 
       showWidgetList.add(
         Positioned(
-          left  : canvasToGlobalPos(math.Point(0, preBackGround.pos + preBackGround.size)).x,
-          top   : canvasToGlobalPos(math.Point(0, preBackGround.pos + preBackGround.size - offsetSize)).y,
+          left  : canvasToGlobalPos(math.Point(0, (preBackGround.pos + preBackGround.size)* rate())).x,
+          top   : canvasToGlobalPos(math.Point(0, (preBackGround.pos + preBackGround.size)* rate() - offsetSize)).y,
           child : Container(
             color : backGroundColorChangeList[backGroundIndex-1].targetColor,
-            height: math.max(0, (_background.pos - (preBackGround.pos + preBackGround.size) + offsetSize*2)),
-            width : widget.project.canvasSize.width,
+            height: math.max(0, ((_background.pos - (preBackGround.pos + preBackGround.size)) * rate() + offsetSize*2)),
+            width : MediaQuery.of(context).size.width,
           )
         )
       );
@@ -157,8 +154,8 @@ class ViewerPageState extends State<ViewerPage> {
 
       showWidgetList.add(
         Positioned(
-          left  : canvasToGlobalPos(math.Point(0,_background.pos)).x,
-          top   : canvasToGlobalPos(math.Point(0,_background.pos)).y,
+          left  : canvasToGlobalPos(math.Point(0,_background.pos)).x * rate(),
+          top   : canvasToGlobalPos(math.Point(0,_background.pos)).y * rate(),
           child : Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -171,8 +168,8 @@ class ViewerPageState extends State<ViewerPage> {
                 ],
               ),
             ),
-            height: _background.size,
-            width : widget.project.canvasSize.width,
+            height: _background.size * rate(),
+            width : MediaQuery.of(context).size.width,
           )
         )
       );
@@ -201,23 +198,20 @@ class ViewerPageState extends State<ViewerPage> {
 
   // コマの表示
   Widget _frameDraggingWidget(FrameImage _frameData){
-    Widget dragging = MouseRegion(
-      cursor  : SystemMouseCursors.click,
-      child   : RotatedBox(
-        quarterTurns: _frameData.angle,
-        child : Image.memory(
-          _frameData.byteData!, 
-          width: _frameData.size.x * _frameData.sizeRate, 
-          // height: _frameData.size.y,
-          fit: BoxFit.fitWidth, 
-          filterQuality: FilterQuality.high,
-        )
-      ),
+    Widget dragging = RotatedBox(
+      quarterTurns: _frameData.angle,
+      child : Image.memory(
+        _frameData.byteData!, 
+        width: _frameData.size.x * _frameData.sizeRate * rate(), 
+        // height: _frameData.size.y,
+        fit: BoxFit.fitWidth, 
+        filterQuality: FilterQuality.high,
+      )
     );
 
     return Positioned(
-      left  : canvasToGlobalPos(_frameData.position).x,
-      top   : canvasToGlobalPos(_frameData.position).y,
+      left  : canvasToGlobalPos(_frameData.position).x * rate(),
+      top   : canvasToGlobalPos(_frameData.position).y * rate(),
       child : dragging,
     );
   }
@@ -233,13 +227,19 @@ class ViewerPageState extends State<ViewerPage> {
         allowedExtensions : ['png' ],
       );
 
+      print( result );
+
       if(result == null) return;
       
       backGroundColorChangeList = await widget.dbInstance.getBackGroundColorList(widget.project);
 
       // 画像読み込み
-      await Future.forEach(result.files.where((_file) => _file.extension != null && _file.extension == "png").toList(), (PlatformFile _file) async {
-        if(_file.bytes == null) return;
+      await Future.forEach(result.files, (PlatformFile _file) async {
+        if( _file.path == null ) return;
+        if( !(await File(_file.path!).exists()) ) return;
+
+        Uint8List imageBytes = File(_file.path!).readAsBytesSync();
+        if( imageBytes.isEmpty ) return;
 
         Future<ui.Image> _loadImage(Uint8List _charThumbImg) async {
           final Completer<ui.Image> completer = Completer();
@@ -250,28 +250,14 @@ class ViewerPageState extends State<ViewerPage> {
           return completer.future;
         }
                     
-        ui.Image _image = await _loadImage(_file.bytes!);
+        ui.Image _image = await _loadImage(imageBytes);
 
         try{
           FrameImage frameImage = frameImageList.singleWhere((_frameImage) => _frameImage.name == _file.name);
-          frameImage.byteData = _file.bytes;
+          frameImage.byteData = imageBytes;
           frameImage.size = math.Point(_image.width.toDouble(), _image.height.toDouble());
-        } catch(e){
-          FrameImage newImage = FrameImage(
-            dbInstance  : widget.dbInstance,
-            project     : widget.project,
-            dbIndex     : "",
-            byteData    : _file.bytes, 
-            name        : _file.name,
-            angle       : 0,
-            sizeRate    : 1.0,
-            position    : const math.Point<double>(0,0),
-            size        : math.Point(_image.width.toDouble(), _image.height.toDouble())
-          );
-          newImage.save();
-
-          frameImageList.add( newImage );
-        }
+        // ignore: empty_catches
+        } catch(e){ }
       });
       
       setState(() { });

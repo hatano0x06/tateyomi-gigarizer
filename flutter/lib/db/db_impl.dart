@@ -25,15 +25,8 @@ class DbImpl{
   Future<List<Project>> getProjectList() async {
     return [
       Project(
-        this, "aaa", "test1", "test1", const Size(200, 200), DateTime.now().millisecondsSinceEpoch, DateTime.now().millisecondsSinceEpoch
+        this, "aaa", "test1", "test1", const Size(200, 1000), DateTime.now().millisecondsSinceEpoch, DateTime.now().millisecondsSinceEpoch
       ),
-      Project(
-        this, "bbb", "test2", "test1", const Size(300, 300), DateTime.now().millisecondsSinceEpoch, DateTime.now().millisecondsSinceEpoch
-      ),
-      Project(
-        this, "asdf", "test1", "test1", const Size(200, 200), DateTime.now().millisecondsSinceEpoch, DateTime.now().millisecondsSinceEpoch
-      ),
-
     ];
   }
   Future<String> insertProject(Project _insertProj) async {
@@ -45,8 +38,6 @@ class DbImpl{
 
 
   Future<List<FrameImage>> getFrameList(Project _proj) async {
-    return [];
-    
     return [
       FrameImage(
         dbIndex     : "aaaa",
