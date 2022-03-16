@@ -774,10 +774,12 @@ class EditPageState extends State<EditPage> {
           onDragStart : (){ },
           onDragEnd   : (){ focusBackGroundColorChange!.save(); },
           onDrag      : (dragPos) {
+            setState(() { });
             double finishPos  = focusBackGroundColorChange!.pos + focusBackGroundColorChange!.size;
-            
             math.Point<double> canvasDragPos = globalToCanvasPos(math.Point<double>(dragPos.dx, dragPos.dy));
-            focusBackGroundColorChange!.size  = finishPos - canvasDragPos.y;
+            if( finishPos - canvasDragPos.y < 0 ) return;
+
+            focusBackGroundColorChange!.size  = math.max(1, finishPos - canvasDragPos.y);
             focusBackGroundColorChange!.pos   = canvasDragPos.y;
 
             setState(() { });
@@ -793,7 +795,7 @@ class EditPageState extends State<EditPage> {
           onDragStart : (){ },
           onDragEnd   : (){ focusBackGroundColorChange!.save(); },
           onDrag      : (dragPos) {
-            focusBackGroundColorChange!.size = globalToCanvasPos(math.Point<double>(dragPos.dx, dragPos.dy)).y - focusBackGroundColorChange!.pos;
+            focusBackGroundColorChange!.size = math.max(1, globalToCanvasPos(math.Point<double>(dragPos.dx, dragPos.dy)).y - focusBackGroundColorChange!.pos);
             setState(() { });
           },
         ),

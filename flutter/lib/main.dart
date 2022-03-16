@@ -17,8 +17,6 @@ void main() async {
 }
 
 // TODO: 縦読みの機能（２１日まで
-//  - 画像回転 && ダウンロード時にいろいろ横幅でできるようにする & 
-//  backgroundのsize変更でマイナスいかないようにする
 //  スマホダウンロードをヘルプに
 //  名前の変更
 //  colorのtextのfocus
@@ -52,8 +50,8 @@ class MyApp extends StatelessWidget {
       ),
       navigatorObservers: [ FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance), ],
       // // test用
-      // home: LoginPageWidget(dbInstance: DbImpl(),)
-      home: LoginPageWidget(dbInstance: DbFireStore(),),
+      home: LoginPageWidget(dbInstance: DbImpl(),)
+      // home: LoginPageWidget(dbInstance: DbFireStore(),),
     );
   }
 }
