@@ -49,6 +49,8 @@ class EditPageState extends State<EditPage> {
 
   final GlobalKey<FrameDetailWidgetState> _frameDetailKey = GlobalKey<FrameDetailWidgetState>();
   final GlobalKey<CanvasDetailWidgetState> _canvasDetailKey = GlobalKey<CanvasDetailWidgetState>();
+  final GlobalKey<BackGroundColorDetailWidgetState> _backgroundColorDetailKey = GlobalKey<BackGroundColorDetailWidgetState>();
+  
 
   final ScrollController verticalScrollController = ScrollController();
   final ScrollController horizonScrollController  = ScrollController();
@@ -450,7 +452,8 @@ class EditPageState extends State<EditPage> {
 
         if(
           (_frameDetailKey.currentState?.isFocus()  ?? false) || 
-          (_canvasDetailKey.currentState?.isFocus() ?? false)
+          (_canvasDetailKey.currentState?.isFocus() ?? false) || 
+          (_backgroundColorDetailKey.currentState?.isFocus() ?? false)
         )  return;
 
         if( focusFrame != null ){
@@ -477,7 +480,8 @@ class EditPageState extends State<EditPage> {
       onKeysUp: (){
         if(
           (_frameDetailKey.currentState?.isFocus() ?? false) || 
-          (_canvasDetailKey.currentState?.isFocus() ?? false)
+          (_canvasDetailKey.currentState?.isFocus() ?? false) || 
+          (_backgroundColorDetailKey.currentState?.isFocus() ?? false)
         )  return;
 
         if( focusFrame != null ){

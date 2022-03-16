@@ -18,7 +18,6 @@ void main() async {
 
 // TODO: 縦読みの機能（２１日まで
 //  名前の変更
-//  colorのtextのfocus
 //  画質確認
 
 // TODO: オプション

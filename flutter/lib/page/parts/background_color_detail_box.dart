@@ -24,6 +24,7 @@ class BackGroundColorDetailWidget extends StatefulWidget {
 
 class BackGroundColorDetailWidgetState extends State<BackGroundColorDetailWidget> {
   late TextEditingController textController;
+  final FocusNode focusNode = FocusNode();
 
   @override
   void initState(){
@@ -42,9 +43,14 @@ class BackGroundColorDetailWidgetState extends State<BackGroundColorDetailWidget
   void dispose(){
     if(widget.backGroundColorChange.dbIndex.isNotEmpty) widget.backGroundColorChange.save();
     textController.dispose();
+    focusNode.dispose();
     super.dispose();
   }
 
+  bool isFocus(){
+    return focusNode.hasFocus;
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Container(
