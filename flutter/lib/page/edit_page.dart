@@ -16,7 +16,6 @@ import 'package:tateyomi_gigarizer/model/project.dart';
 import 'package:tateyomi_gigarizer/page/parts/background_color_detail_box.dart';
 import 'package:tateyomi_gigarizer/page/parts/canvas_detail_box.dart';
 import 'package:tateyomi_gigarizer/page/parts/corner_ball.dart';
-import 'package:tateyomi_gigarizer/download/canvas_to_image.dart';
 import 'package:tateyomi_gigarizer/dialog/shortcuts_info_dialog.dart';
 import 'dart:ui' as ui;
 import 'package:universal_html/html.dart' as html;
@@ -54,9 +53,6 @@ class EditPageState extends State<EditPage> {
   final ScrollController verticalScrollController = ScrollController();
   final ScrollController horizonScrollController  = ScrollController();
 
-  final TextEditingController downloadController = TextEditingController();
-  final FocusNode downloadFocusNode = FocusNode();
-
   double stricyArea = 10;
 
   @override
@@ -73,23 +69,12 @@ class EditPageState extends State<EditPage> {
   void setEditerEvent(){
     verticalScrollController.addListener(() { setState(() { }); });
     horizonScrollController.addListener(() { setState(() { }); });
-
-    downloadController.value = downloadController.value.copyWith( text: widget.project.downloadName );
-    downloadController.addListener(() {
-      widget.project.downloadName = downloadController.text;
-      widget.project.save();
-
-      setState(() { });
-    });
   }
 
   @override
   void dispose(){
     verticalScrollController.dispose();
     horizonScrollController.dispose();
-    
-    downloadController.dispose();
-    downloadFocusNode.dispose();
 
     super.dispose();
   }
@@ -215,24 +200,7 @@ class EditPageState extends State<EditPage> {
                 border        : Border.all( color: Colors.white.withAlpha(200) ),
                 color         : Colors.white.withAlpha(120),
               ),
-              child: Padding(
-                padding : const EdgeInsets.only(bottom:8),
-                child   : TextFormField(
-                  controller: downloadController,
-                  focusNode : downloadFocusNode,
-                  decoration      : const InputDecoration( hintText: "ダウンロード名", ),
-                ),
-              ),
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.download),
-            tooltip : "ダウンロード",
-            onPressed: (){
-              if( frameImageList.isEmpty ) return;
-
-              CanvasToImage(frameImageList, widget.project.canvasSize).download(downloadController.text);
-            },
           ),
           IconButton(
             icon    : const Icon(Icons.help_outline),
@@ -482,8 +450,7 @@ class EditPageState extends State<EditPage> {
 
         if(
           (_frameDetailKey.currentState?.isFocus()  ?? false) || 
-          (_canvasDetailKey.currentState?.isFocus() ?? false) || 
-          downloadFocusNode.hasFocus
+          (_canvasDetailKey.currentState?.isFocus() ?? false)
         )  return;
 
         if( focusFrame != null ){
@@ -510,8 +477,7 @@ class EditPageState extends State<EditPage> {
       onKeysUp: (){
         if(
           (_frameDetailKey.currentState?.isFocus() ?? false) || 
-          (_canvasDetailKey.currentState?.isFocus() ?? false) || 
-          downloadFocusNode.hasFocus
+          (_canvasDetailKey.currentState?.isFocus() ?? false)
         )  return;
 
         if( focusFrame != null ){

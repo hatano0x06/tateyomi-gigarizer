@@ -27,6 +27,8 @@ class ViewerPage extends StatefulWidget {
   ViewerPageState createState() => ViewerPageState();
 }
 
+    // TODO:  CanvasToImage(frameImageList, widget.project.canvasSize).download(downloadController.text);
+
 class ViewerPageState extends State<ViewerPage> {
   List<FrameImage> frameImageList = [];
   List<BackGroundColorChange> backGroundColorChangeList = [];
@@ -125,6 +127,7 @@ class ViewerPageState extends State<ViewerPage> {
         );
       }
     }
+
 
     // グラデーション間の穴埋め
     for (BackGroundColorChange _background in backGroundColorChangeList) {
