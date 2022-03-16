@@ -18,7 +18,8 @@ void main() async {
 
 // TODO: 縦読みの機能（２１日まで
 //  - 画像回転 && ダウンロード時にいろいろ横幅でできるようにする & 
-// スマホダウンロードをヘルプに
+//  backgroundのsize変更でマイナスいかないようにする
+//  スマホダウンロードをヘルプに
 //  名前の変更
 //  colorのtextのfocus
 //  画質確認
@@ -29,7 +30,6 @@ void main() async {
 //  - ctrl+z機能
 //  - 横に全体像が見れるやつ
 //  - クラッシュログ
-//  - windowsダメだった
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);

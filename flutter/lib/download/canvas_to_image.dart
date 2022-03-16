@@ -1,9 +1,13 @@
 // ignore_for_file: avoid_print
 
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:archive/archive_io.dart';
+import 'package:esys_flutter_share_plus/esys_flutter_share_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:tateyomi_gigarizer/model/background_color_change.dart';
 import 'package:tateyomi_gigarizer/model/frame_image.dart';
 import 'package:tateyomi_gigarizer/model/project.dart';
@@ -30,8 +34,34 @@ class CanvasToImage{
     return outputList;
   }
 
-  Future<void> download(String fileName) async {
+  Future<void> download() async {
+    Map<double, Uint8List> outputMap = await canvasImageList();
+    if( outputMap.isEmpty ) return;
 
+    print( outputMap.length );
+
+    // 一枚ならそのままダウンロード
+    if( outputMap.length == 1){
+      double pixelSize = outputMap.keys.first;
+      Uint8List file = outputMap[pixelSize]!;
+      Share.file( project.name + "_" + pixelSize.toInt().toString() +"px", project.name, file, 'image/png', );
+      return;
+    }
+
+    Directory tempDirectory = await getTemporaryDirectory();
+    ZipFileEncoder zipEncoder = ZipFileEncoder();
+    zipEncoder.create(tempDirectory.path + "/" + project.name + '.zip');
+    // outputMap.forEach((pixelWidth, fileBytes) {
+    await Future.forEach(outputMap.keys.toList(), (double pixelWidth) async {
+      Uint8List fileBytes = outputMap[pixelWidth]!;
+
+      File file = File(tempDirectory.path + "/" + pixelWidth.toInt().toString() + ".png");
+      await file.writeAsBytes(fileBytes);
+      zipEncoder.addFile(file);
+    });
+    zipEncoder.close();
+
+    Share.file( project.name, project.name, File(tempDirectory.path + "/" + project.name + '.zip').readAsBytesSync(), 'application/zip', );
   }
 
   Future<Map<double, Uint8List>> canvasImageList() async {
