@@ -209,7 +209,7 @@ class EditPageState extends State<EditPage> {
               FocusScope.of(context).unfocus();
               _canvasDetailKey.currentState?.updateTextField();
 
-              setCanvasEdit(showCanvasEdit);
+              setCanvasEdit(true);
               setState(() { });
             },
           ),
@@ -248,7 +248,6 @@ class EditPageState extends State<EditPage> {
     setState(() { });
   }  
 
-  // TODO: あｓｄふぁｓｄｆ
   void setCanvasEdit(bool status){
     showCanvasEdit = status;
     focusFrame = null;

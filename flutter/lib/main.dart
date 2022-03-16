@@ -17,9 +17,9 @@ void main() async {
 }
 
 // TODO: 縦読みの機能（２１日まで
-//  名前の変更
-//  画質確認
+//  グラデーション追加のやり方変更
 //  下に余分なスペース（ハートつけてね
+//  画質確認
 
 // TODO: オプション
 //  - 拡大の修正
@@ -49,8 +49,8 @@ class MyApp extends StatelessWidget {
       ),
       navigatorObservers: [ FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance), ],
       // // test用
-      // home: LoginPageWidget(dbInstance: DbImpl(),)
-      home: LoginPageWidget(dbInstance: DbFireStore(),),
+      home: LoginPageWidget(dbInstance: DbImpl(),)
+      // home: LoginPageWidget(dbInstance: DbFireStore(),),
     );
   }
 }
