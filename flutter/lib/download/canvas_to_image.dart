@@ -157,16 +157,19 @@ class CanvasToImage{
       if( _frameData.sizeRate <= 0 ) return;
 
       ui.Image _image = await _loadImage(_frameData.byteData!);
-      Rect srcRect = Rect.fromLTWH( 0, 0, _image.width.toDouble(), _image.height.toDouble() );
-      Rect dstRect = Rect.fromLTWH(
-        _frameData.position.x, _frameData.position.y, 
-        _frameData.size.x * _frameData.sizeRate, 
-        _frameData.size.y * _frameData.sizeRate
-      );
 
-      // TODO: rotate
-      final paint = Paint()..style = PaintingStyle.fill..filterQuality = FilterQuality.high;
-      canvas.drawImageRect(_image, srcRect, dstRect, paint);
+      Offset startPosOffset = Offset.zero;
+      if( _frameData.angle == 1) startPosOffset = Offset( _frameData.size.y, 0);
+      if( _frameData.angle == 2) startPosOffset = Offset( _frameData.size.x, _frameData.size.y);
+      if( _frameData.angle == 3) startPosOffset = Offset( 0, _frameData.size.x);
+
+      canvas.save();
+      canvas.translate(_frameData.position.x + startPosOffset.dx, _frameData.position.y + startPosOffset.dy);
+      canvas.rotate(_frameData.angle * math.pi/2);
+      Rect srcRect = Rect.fromLTWH( 0, 0, _image.width.toDouble(), _image.height.toDouble() );
+      Rect dstRect = Rect.fromLTWH( 0 , 0, _frameData.size.x * _frameData.sizeRate,  _frameData.size.y * _frameData.sizeRate );
+      canvas.drawImageRect(_image, srcRect, dstRect, Paint()..style = PaintingStyle.fill..filterQuality = FilterQuality.high);
+      canvas.restore();
     });
   }
 
