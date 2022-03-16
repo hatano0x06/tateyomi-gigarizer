@@ -52,4 +52,22 @@ class BackGroundColorChange{
     dbInstance.deleteBackGroundColor(this);
   }
 
+  void copy(BackGroundColorChange copy){
+    // 保存変数
+    targetColor = copy.targetColor;
+    pos = copy.pos;
+    size = copy.size;
+  }
+
+  BackGroundColorChange clone(){
+    return BackGroundColorChange(
+      dbInstance,
+      project,
+      dbIndex,
+      targetColor,
+      pos,
+      size,
+    );
+  }
+
 }

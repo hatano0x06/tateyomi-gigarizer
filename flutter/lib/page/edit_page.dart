@@ -24,6 +24,13 @@ import 'dart:convert';
 
 import 'parts/frame_detail_box.dart';
 
+// TODO: asdf
+//  進む、戻る
+//  ドラッグ
+//  キーボード移動
+//  拡大縮小
+
+
 class EditPage extends StatefulWidget {
   final DbImpl dbInstance;
   final Project project;
@@ -56,6 +63,9 @@ class EditPageState extends State<EditPage> {
   final ScrollController horizonScrollController  = ScrollController();
 
   double stricyArea = 10;
+
+  List<dynamic> historyLog  = [];
+  List<dynamic> futureLog   = [];
 
   @override
   void initState(){
@@ -360,6 +370,11 @@ class EditPageState extends State<EditPage> {
           if(RawKeyboard.instance.keysPressed.where((_pressd) => _pressd.keyLabel == LogicalKeyboardKey.controlLeft.keyLabel).isNotEmpty){
             focusFrameDependList = frameImageList.where((_frame) => _frame.position.y > draggingFrame!.position.y ).toList();
           }
+
+          List<FrameImage> forHistoryList = [];
+          for( FrameImage _focusFrame in focusFrameDependList){ forHistoryList.add(_focusFrame.clone()); }
+          forHistoryList.add( draggingFrame!.clone() );
+          addHistory(forHistoryList);
           return;
         }
 
@@ -367,6 +382,8 @@ class EditPageState extends State<EditPage> {
         if( draggingBackGroundColorChange != null ){
           setFocusBackGround(draggingBackGroundColorChange);
           initDragPosition = math.Point(0, draggingBackGroundColorChange!.pos);
+
+          addHistory(draggingBackGroundColorChange!.clone());
         }
 
       },
@@ -429,11 +446,16 @@ class EditPageState extends State<EditPage> {
     const String TYPE_SHORTCUT_LEFT   = "left";
     const String TYPE_SHORTCUT_DOWN   = "down";
     const String TYPE_SHORTCUT_RIGHT  = "right";
+    const String TYPE_SHORTCUT_HISTORY_BACK = "historyBack";
+    const String TYPE_SHORTCUT_HISTORY_FRONT = "historyFront";
     Map<Set<LogicalKeyboardKey>, String> _shortCutKeyMap = {
       {LogicalKeyboardKey.keyW}       : TYPE_SHORTCUT_UP,
       {LogicalKeyboardKey.keyA}       : TYPE_SHORTCUT_LEFT,
       {LogicalKeyboardKey.keyS}       : TYPE_SHORTCUT_DOWN,
       {LogicalKeyboardKey.keyD}       : TYPE_SHORTCUT_RIGHT,
+      {LogicalKeyboardKey.controlLeft, LogicalKeyboardKey.keyZ}       : TYPE_SHORTCUT_HISTORY_BACK,
+      {LogicalKeyboardKey.controlLeft, LogicalKeyboardKey.shiftLeft, LogicalKeyboardKey.keyZ}       : TYPE_SHORTCUT_HISTORY_FRONT,
+      {LogicalKeyboardKey.controlLeft, LogicalKeyboardKey.keyY}       : TYPE_SHORTCUT_HISTORY_FRONT,
     };
 
     // shortCuts
@@ -451,6 +473,35 @@ class EditPageState extends State<EditPage> {
           (_canvasDetailKey.currentState?.isFocus() ?? false) || 
           (_backgroundColorDetailKey.currentState?.isFocus() ?? false)
         )  return;
+
+        setState(() { });
+
+        if( shortCutType == TYPE_SHORTCUT_HISTORY_BACK ){
+          if( historyLog.isEmpty) return;
+
+          dynamic historyData = historyLog.last;
+          if( historyData is FrameImage ){
+            FrameImage currentFrame = frameImageList.singleWhere((_frame) => _frame.dbIndex == historyData.dbIndex);
+            currentFrame.copy(historyData);
+            currentFrame.save();
+          }
+          if( historyData is List<FrameImage> ){
+            for (FrameImage _historyFrame in historyData) {
+              FrameImage currentFrame = frameImageList.singleWhere((_frame) => _frame.dbIndex == _historyFrame.dbIndex);
+              currentFrame.copy(_historyFrame);
+              currentFrame.save();
+            }
+          }
+
+          if( historyData is BackGroundColorChange ){
+            BackGroundColorChange currentBackColor = backGroundColorChangeList.singleWhere((_frame) => _frame.dbIndex == historyData.dbIndex);
+            currentBackColor.copy(historyData);
+            currentBackColor.save();
+          }
+
+          futureLog.add(historyData);
+          historyLog.removeLast();
+        }
 
         if( focusFrame != null ){
           
@@ -470,10 +521,12 @@ class EditPageState extends State<EditPage> {
 
           if( shortCutType == TYPE_SHORTCUT_LEFT  ) focusFrame!.position = math.Point(focusFrame!.position.x-moveSize  , focusFrame!.position.y);
           if( shortCutType == TYPE_SHORTCUT_RIGHT ) focusFrame!.position = math.Point(focusFrame!.position.x+moveSize  , focusFrame!.position.y);
-          setState(() { });
         }
       },
       onKeysUp: (){
+        if( ModalRoute.of(context) == null ) return;
+        if( !ModalRoute.of(context)!.isCurrent ) return;
+
         if(
           (_frameDetailKey.currentState?.isFocus() ?? false) || 
           (_canvasDetailKey.currentState?.isFocus() ?? false) || 
@@ -1274,5 +1327,11 @@ class EditPageState extends State<EditPage> {
       _pos.y + _offsetSize.dy,
     );
   }  
+
+  void addHistory(dynamic action){
+    print(" add history ");
+    historyLog.add(action);
+    futureLog.clear();
+  }
 
 }

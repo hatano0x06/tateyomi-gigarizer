@@ -89,5 +89,26 @@ class FrameImage{
     dbInstance.updateFrame(this);
   }
 
+  void copy(FrameImage copy){
+    position = copy.position;
+    size = copy.size;
+    sizeRate = copy.sizeRate;
+    angle = copy.angle;
+  }
+
+  FrameImage clone(){
+    return FrameImage(
+      project   : project,
+      dbInstance: dbInstance,
+      dbIndex   : dbIndex,
+      name      : name,
+      angle     : angle,
+      position  : position,
+      size      : size,
+      sizeRate  : sizeRate,
+      byteData  : byteData,
+    );
+  }
+
 }
 
