@@ -95,12 +95,43 @@ class ViewerPageState extends State<ViewerPage> {
   /* -----  キャンパス設定 ----- */
 
   Widget _canvasBody(){
-    return Center(
-      child: Container(
-        width : MediaQuery.of(context).size.width,
-        height: widget.project.canvasSize.height * rate(),
-        color: Colors.white,
-      )
+    return Column(
+      children: [
+        Container(
+          width : MediaQuery.of(context).size.width,
+          height: widget.project.canvasSize.height * rate(),
+          color: Colors.white,
+        ),
+        Container(
+          width : MediaQuery.of(context).size.width,
+          height: MediaQuery.of(context).size.height,
+          color: Colors.white,
+          child: Container(
+            padding: EdgeInsets.only(top: MediaQuery.of(context).size.height/2 - 50),
+            child: Column(children: [
+              const Center( child: Text("面白かったら、ハート押してね", style: TextStyle(fontSize: 12, color: Colors.grey),), ),
+              const SizedBox(height: 5,),
+              const Center( child: Icon(Icons.favorite_border, size: 70,), ),
+              const SizedBox(height: 10,),
+              Padding(
+                padding : const EdgeInsets.symmetric(horizontal: 10),
+                child   : Row(
+                  children: [
+                    Expanded(child: ElevatedButton(
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(Colors.yellow),
+                      ),
+                      child   : const Text('次の話を読む', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 11),),
+                      onPressed: (){ print("asdfasdf"); },
+                    ),),
+                  ]
+                )
+              )
+            ]),
+          ),
+        ),
+
+      ]
     );
   }
 
