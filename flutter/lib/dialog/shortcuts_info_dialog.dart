@@ -61,6 +61,10 @@ class _ShortCutInfoDialogState extends State<ShortCutInfoDialog> {
         [
           "ブラウザ標準機能に準拠してます(ctrl+スクロールなど"
         ],
+      "画像のダウンロード": 
+        [
+          "スマホ版のほうで、画面上部の長押し"
+        ],
 
       // "asdfasdfasdf": ["1111", "22222"]
     };
