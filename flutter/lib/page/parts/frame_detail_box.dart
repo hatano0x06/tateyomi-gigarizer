@@ -13,6 +13,8 @@ class FrameDetailWidget extends StatefulWidget {
   final FrameImage focusFrame;
   final List<FrameImage> focusFrameDependList;
   final void Function() mainBuild;
+  final List<FrameImage> allFrameList;
+  final void Function() unfocus;
 
   const FrameDetailWidget({
     Key? key, 
@@ -20,6 +22,8 @@ class FrameDetailWidget extends StatefulWidget {
     required this.focusFrame, 
     required this.focusFrameDependList, 
     required this.mainBuild, 
+    required this.allFrameList, 
+    required this.unfocus, 
   }):super(key:key);
 
 
@@ -171,13 +175,26 @@ class FrameDetailWidgetState extends State<FrameDetailWidget> {
             ),
             Align(
               alignment : Alignment.centerLeft,
-              child     : IconButton(
-                icon: const Icon(Icons.rotate_right_outlined),
-                onPressed: (){
-                  widget.focusFrame.angle += 1;
-                  widget.focusFrame.angle = widget.focusFrame.angle%4;
-                  widget.mainBuild();
-                }, 
+              child     : Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.rotate_right_outlined),
+                    onPressed: (){
+                      widget.focusFrame.angle += 1;
+                      widget.focusFrame.angle = widget.focusFrame.angle%4;
+                      widget.mainBuild();
+                    }, 
+                  ),
+
+                  IconButton(
+                    icon: const Icon(Icons.delete),
+                    onPressed: (){
+                      widget.allFrameList.remove(widget.focusFrame);
+                      widget.focusFrame.delete();
+                      widget.unfocus();
+                    }, 
+                  )
+                ],
               )
             )
           ],
