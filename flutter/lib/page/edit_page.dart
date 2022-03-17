@@ -486,8 +486,6 @@ class EditPageState extends State<EditPage> {
         )  return;
 
         setState(() { });
-
-        // TODO: 削除対応
         if( shortCutType == TYPE_SHORTCUT_HISTORY_BACK ){
           if( historyLog.isEmpty) return;
 
@@ -714,6 +712,9 @@ class EditPageState extends State<EditPage> {
       child: BackGroundColorDetailWidget(
         backGroundColorChange: focusBackGroundColorChange!,
         mainBuild: (){ setState(() { });},
+        update: (BackGroundColorChange _backColor){
+          addHistory(typeEdit, _backColor.clone());
+        },
         delete: (){
           backGroundColorChangeList.remove(focusBackGroundColorChange!);
           focusBackGroundColorChange!.delete();

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
@@ -7,12 +9,14 @@ class BackGroundColorDetailWidget extends StatefulWidget {
   final BackGroundColorChange backGroundColorChange; 
   final void Function() mainBuild;
   final void Function() delete;
+  final void Function(BackGroundColorChange) update;
 
   const BackGroundColorDetailWidget({
     Key? key, 
     required this.backGroundColorChange,
     required this.mainBuild, 
     required this.delete, 
+    required this.update, 
   }):super(key:key);
 
 
@@ -24,9 +28,12 @@ class BackGroundColorDetailWidgetState extends State<BackGroundColorDetailWidget
   late TextEditingController textController;
   final FocusNode focusNode = FocusNode();
 
+  late BackGroundColorChange tempColorChange;
   @override
   void initState(){
     super.initState();
+
+    tempColorChange = widget.backGroundColorChange.clone();
 
     String hexColorString(){
       return '${widget.backGroundColorChange.targetColor.red.toRadixString(16).padLeft(2, '0')}'
@@ -35,10 +42,25 @@ class BackGroundColorDetailWidgetState extends State<BackGroundColorDetailWidget
     }
 
     textController = TextEditingController(text: hexColorString());
+
+    Timer.periodic(const Duration(seconds: 2), (timer) {
+      if (!mounted) return;
+
+      if( tempColorChange.targetColor != widget.backGroundColorChange.targetColor){
+        widget.backGroundColorChange.save();
+        widget.update(tempColorChange);
+      }
+      tempColorChange = widget.backGroundColorChange.clone();
+    });
   }
 
   @override
   void dispose(){
+    if( tempColorChange.targetColor != widget.backGroundColorChange.targetColor){
+      widget.backGroundColorChange.save();
+      widget.update(tempColorChange);
+    }
+
     textController.dispose();
     focusNode.dispose();
     super.dispose();

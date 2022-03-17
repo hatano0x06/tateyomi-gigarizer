@@ -17,9 +17,8 @@ void main() async {
 }
 
 // TODO: 縦読みの機能（２１日まで
-//  - ctrl+z機能
 //  画質確認
-// iosやる
+//  iosやる
 
 // TODO: オプション
 //  android リリース(確認中)
@@ -48,8 +47,8 @@ class MyApp extends StatelessWidget {
       ),
       navigatorObservers: [ FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance), ],
       // // test用
-      // home: LoginPageWidget(dbInstance: DbImpl(),)
-      home: LoginPageWidget(dbInstance: DbFireStore(),),
+      home: LoginPageWidget(dbInstance: DbImpl(),)
+      // home: LoginPageWidget(dbInstance: DbFireStore(),),
     );
   }
 }
