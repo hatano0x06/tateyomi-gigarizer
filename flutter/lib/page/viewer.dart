@@ -6,6 +6,7 @@ import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
 // ignore: unused_import
 import 'package:tateyomi_gigarizer/download/canvas_to_image.dart';
@@ -65,22 +66,17 @@ class ViewerPageState extends State<ViewerPage> {
           child: Stack( children: showWidgetList ),
           onLongPressStart: (LongPressStartDetails _tapDown){
             if( _tapDown.globalPosition.dy > MediaQuery.of(context).size.height/3) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar( 
-                duration: Duration(seconds: 5),
-                content :Text( "ファイルをダウンロードします", style: TextStyle(fontSize: 16.0,))
-              )
+            Fluttertoast.showToast(
+              msg: "データ作成中",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.TOP,
+              timeInSecForIosWeb: 1,
+              backgroundColor: Colors.grey[300],
+              textColor: Colors.black,
+              fontSize: 16.0
             );
 
             CanvasToImage(widget.project, frameImageList, backGroundColorChangeList).download();
-            // Navigator.push( 
-            //   context, 
-            //   MaterialPageRoute( builder: (context) => DownloadViewerBoard(
-            //     project: widget.project,
-            //     frameImageList: frameImageList,
-            //     backgroundColorList: backGroundColorChangeList,
-            //   ))
-            // );
           },
         )
       )

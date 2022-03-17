@@ -27,6 +27,7 @@ dependencies:
   esys_flutter_share_plus: ^2.1.0
   archive: ^3.2.2
   path_provider: ^2.0.9
+  fluttertoast: ^8.0.9
 
 dev_dependencies:
   flutter_test:
