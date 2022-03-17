@@ -25,11 +25,8 @@ import 'dart:convert';
 import 'parts/frame_detail_box.dart';
 
 // TODO: asdf
-//  進む、戻る
-//  ドラッグ
 //  キーボード移動
 //  拡大縮小
-
 
 class EditPage extends StatefulWidget {
   final DbImpl dbInstance;
@@ -482,26 +479,60 @@ class EditPageState extends State<EditPage> {
           dynamic historyData = historyLog.last;
           if( historyData is FrameImage ){
             FrameImage currentFrame = frameImageList.singleWhere((_frame) => _frame.dbIndex == historyData.dbIndex);
+            futureLog.add(currentFrame.clone());
             currentFrame.copy(historyData);
             currentFrame.save();
           }
           if( historyData is List<FrameImage> ){
+            List<FrameImage> forFutureList = [];
             for (FrameImage _historyFrame in historyData) {
+              FrameImage currentFrame = frameImageList.singleWhere((_frame) => _frame.dbIndex == _historyFrame.dbIndex);
+              forFutureList.add(currentFrame.clone());
+              currentFrame.copy(_historyFrame);
+              currentFrame.save();
+            }
+
+            futureLog.add(forFutureList);
+          }
+          
+          // TODO: 削除対応
+          if( historyData is BackGroundColorChange ){
+            BackGroundColorChange currentBackColor = backGroundColorChangeList.singleWhere((_frame) => _frame.dbIndex == historyData.dbIndex);
+            futureLog.add(currentBackColor.clone());
+            currentBackColor.copy(historyData);
+            currentBackColor.save();
+          }
+
+          historyLog.removeLast();
+        }
+
+        if( shortCutType == TYPE_SHORTCUT_HISTORY_FRONT ){
+          if( futureLog.isEmpty) return;
+
+          dynamic futureData = futureLog.last;
+          if( futureData is FrameImage ){
+            FrameImage currentFrame = frameImageList.singleWhere((_frame) => _frame.dbIndex == futureData.dbIndex);
+            currentFrame.copy(futureData);
+            currentFrame.save();
+          }
+          if( futureData is List<FrameImage> ){
+            for (FrameImage _historyFrame in futureData) {
               FrameImage currentFrame = frameImageList.singleWhere((_frame) => _frame.dbIndex == _historyFrame.dbIndex);
               currentFrame.copy(_historyFrame);
               currentFrame.save();
             }
           }
 
-          if( historyData is BackGroundColorChange ){
-            BackGroundColorChange currentBackColor = backGroundColorChangeList.singleWhere((_frame) => _frame.dbIndex == historyData.dbIndex);
-            currentBackColor.copy(historyData);
+          // TODO: 削除対応
+          if( futureData is BackGroundColorChange ){
+            BackGroundColorChange currentBackColor = backGroundColorChangeList.singleWhere((_frame) => _frame.dbIndex == futureData.dbIndex);
+            currentBackColor.copy(futureData);
             currentBackColor.save();
           }
 
-          futureLog.add(historyData);
-          historyLog.removeLast();
-        }
+          historyLog.add(futureData);
+          futureLog.removeLast();
+        }        
 
         if( focusFrame != null ){
           
