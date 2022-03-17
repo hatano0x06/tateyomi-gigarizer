@@ -181,12 +181,9 @@ class EditPageState extends State<EditPage> {
                   verticalScrollController.position.pixels + MediaQuery.of(context).size.height*windowZoomSize()/2 - 50, 
                   100, 
                 );
-                _tmpColor.save();
-                // TODO: asdf
 
-            //                 if( backGroundColorChangeList.isNotEmpty ){
-            //   if( canvasDragPos.y <= backGroundColorChangeList.last.pos + backGroundColorChangeList.last.size ) return;
-            // }
+                if( _tmpColor.pos + _tmpColor.size > widget.project.canvasSize.height ) _tmpColor.pos = widget.project.canvasSize.height - 50;
+                _tmpColor.save();
 
                 setFocusBackGround(_tmpColor);
                 backGroundColorChangeList.add( _tmpColor );
