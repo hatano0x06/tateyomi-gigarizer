@@ -275,7 +275,6 @@ class ViewerPageState extends State<ViewerPage> {
     );
   }
 
-  // TODO: ダウンロード時にモーダル
   void getFrameList(){
     widget.dbInstance.getFrameList(widget.project).then((_frameList) async {
       frameImageList = _frameList;

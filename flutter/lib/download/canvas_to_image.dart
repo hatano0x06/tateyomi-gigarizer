@@ -38,11 +38,19 @@ class CanvasToImage{
     Map<double, Uint8List> outputMap = await canvasImageList();
     if( outputMap.isEmpty ) return;
 
+    DateTime currentDate = DateTime.now();
+
+    String fillByZero(int value){
+      String magicPassCode = ("00" + value.toString());
+      return magicPassCode.substring(magicPassCode.toString().length-2);
+    }
+    String dateTime = "${currentDate.year}-${fillByZero(currentDate.month)}-${fillByZero(currentDate.day)}_${fillByZero(currentDate.hour)}:${fillByZero(currentDate.minute)}:${currentDate.second}";
+
     // 一枚ならそのままダウンロード
     if( outputMap.length == 1){
       double pixelSize = outputMap.keys.first;
       Uint8List file = outputMap[pixelSize]!;
-      Share.file( project.name + "_" + pixelSize.toInt().toString() +"px", project.name, file, 'image/png', );
+      Share.file( project.name + "_" + dateTime + "_" + pixelSize.toInt().toString() +"px", project.name, file, 'image/png', );
       return;
     }
 
@@ -59,7 +67,7 @@ class CanvasToImage{
     });
     zipEncoder.close();
 
-    Share.file( project.name, project.name+".zip", File(tempDirectory.path + "/" + project.name + '.zip').readAsBytesSync(), 'application/zip', );
+    Share.file( project.name, project.name+"_" + dateTime + ".zip", File(tempDirectory.path + "/" + project.name + '.zip').readAsBytesSync(), 'application/zip', );
   }
 
   Future<Map<double, Uint8List>> canvasImageList() async {
@@ -192,7 +200,7 @@ class CanvasToImage{
       if( _frameData.angle == 3) startPosOffset = Offset( 0, _frameData.size.x);
 
       canvas.save();
-      canvas.translate(_frameData.position.x + startPosOffset.dx, _frameData.position.y + startPosOffset.dy);
+      canvas.translate((_frameData.position.x + startPosOffset.dx) * rate, (_frameData.position.y + startPosOffset.dy) * rate);
       canvas.rotate(_frameData.angle * math.pi/2);
       Rect srcRect = Rect.fromLTWH( 0, 0, _image.width.toDouble(), _image.height.toDouble() );
       Rect dstRect = Rect.fromLTWH( 0 , 0, _frameData.size.x * _frameData.sizeRate * rate,  _frameData.size.y * _frameData.sizeRate * rate );
