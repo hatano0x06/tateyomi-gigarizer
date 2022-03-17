@@ -25,8 +25,6 @@ import 'dart:convert';
 
 import 'parts/frame_detail_box.dart';
 
-// TODO: 重なってた時の処理
-
 class EditPage extends StatefulWidget {
   final DbImpl dbInstance;
   final Project project;
@@ -294,7 +292,7 @@ class EditPageState extends State<EditPage> {
     FrameImage? targetFrameImage(Offset _tapPos){
       math.Point<double> canvasTapPos = dragGlobalToCanvasPos(_tapPos);
 
-      for (FrameImage _frameImage in frameImageList) {
+      for (FrameImage _frameImage in frameImageList.toList().reversed.toList()) {
         if( canvasTapPos.x < _frameImage.position.x ) continue;
         if( canvasTapPos.y < _frameImage.position.y ) continue;
 
