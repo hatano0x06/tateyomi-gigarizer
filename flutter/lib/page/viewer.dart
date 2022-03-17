@@ -269,6 +269,8 @@ class ViewerPageState extends State<ViewerPage> {
     );
   }
 
+  // TODO: プロジェクト一蘭
+  // TODO: ダウンロード時にモーダル
   void getFrameList(){
     widget.dbInstance.getFrameList(widget.project).then((_frameList) async {
       frameImageList = _frameList;
@@ -281,7 +283,8 @@ class ViewerPageState extends State<ViewerPage> {
           allowedExtensions : ['png' ],
         ) : await FilePicker.platform.pickFiles(
           allowMultiple     : true,
-          type              : FileType.image,
+          type              : FileType.custom,
+          allowedExtensions : ['png' ],
         );
 
       if(result == null) return;

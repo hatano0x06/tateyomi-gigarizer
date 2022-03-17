@@ -59,7 +59,7 @@ class CanvasToImage{
     });
     zipEncoder.close();
 
-    Share.file( project.name, project.name, File(tempDirectory.path + "/" + project.name + '.zip').readAsBytesSync(), 'application/zip', );
+    Share.file( project.name, project.name+".zip", File(tempDirectory.path + "/" + project.name + '.zip').readAsBytesSync(), 'application/zip', );
   }
 
   Future<Map<double, Uint8List>> canvasImageList() async {

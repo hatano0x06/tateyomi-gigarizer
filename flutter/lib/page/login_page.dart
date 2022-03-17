@@ -85,8 +85,7 @@ class _LoginPageWidgetState extends State<LoginPageWidget> {
   Widget existProjectList(){
     if(projectList.isEmpty) return Container();
 
-    return SizedBox(
-      child : SingleChildScrollView(
+    return SingleChildScrollView(
         child: ListView.builder(
           shrinkWrap  : true,
           itemBuilder : (BuildContext context, int index) {
@@ -129,7 +128,6 @@ class _LoginPageWidgetState extends State<LoginPageWidget> {
           },
           itemCount: projectList.length,
         )
-      ),
     );
   }
 
