@@ -491,38 +491,35 @@ class EditPageState extends State<EditPage> {
         if( shortCutType == TYPE_SHORTCUT_HISTORY_BACK ){
           if( historyLog.isEmpty) return;
 
-          dynamic historyData = historyLog.last;
-          if( historyData is Project ){
-            // TODO: asdf
-            // futureLog.add(widget.project.clone());
-            widget.project.copy(historyData);
+          HistoryData historyData = historyLog.last;
+
+          if( historyData.data is Project ){
+            futureLog.add( HistoryData(typeEdit, widget.project.clone()) );
+            widget.project.copy(historyData.data);
             widget.project.save();
           }
-          if( historyData is FrameImage ){
-            FrameImage currentFrame = frameImageList.singleWhere((_frame) => _frame.dbIndex == historyData.dbIndex);
-            // TODO: asdf
-            // futureLog.add(currentFrame.clone());
-            currentFrame.copy(historyData);
+          if( historyData.data is FrameImage ){
+            FrameImage currentFrame = frameImageList.singleWhere((_frame) => _frame.dbIndex == historyData.data.dbIndex);
+            futureLog.add( HistoryData(typeEdit, currentFrame.clone()) );
+            currentFrame.copy(historyData.data);
             currentFrame.save();
           }
-          if( historyData is List<FrameImage> ){
+          if( historyData.data is List<FrameImage> ){
             List<FrameImage> forFutureList = [];
-            for (FrameImage _historyFrame in historyData) {
+            for (FrameImage _historyFrame in historyData.data) {
               FrameImage currentFrame = frameImageList.singleWhere((_frame) => _frame.dbIndex == _historyFrame.dbIndex);
               forFutureList.add(currentFrame.clone());
               currentFrame.copy(_historyFrame);
               currentFrame.save();
             }
 
-            // TODO: asdf
-            // futureLog.add(forFutureList);
+            futureLog.add( HistoryData(typeEdit, forFutureList) );
           }
           
-          if( historyData is BackGroundColorChange ){
-            BackGroundColorChange currentBackColor = backGroundColorChangeList.singleWhere((_frame) => _frame.dbIndex == historyData.dbIndex);
-            // TODO: asdf
-            // futureLog.add(currentBackColor.clone());
-            currentBackColor.copy(historyData);
+          if( historyData.data is BackGroundColorChange ){
+            BackGroundColorChange currentBackColor = backGroundColorChangeList.singleWhere((_frame) => _frame.dbIndex == historyData.data.dbIndex);
+            futureLog.add( HistoryData(typeEdit, currentBackColor.clone()) );
+            currentBackColor.copy(historyData.data);
             currentBackColor.save();
           }
 
@@ -532,31 +529,37 @@ class EditPageState extends State<EditPage> {
         if( shortCutType == TYPE_SHORTCUT_HISTORY_FRONT ){
           if( futureLog.isEmpty) return;
 
-          dynamic futureData = futureLog.last;
-          if( futureData is Project ){
-            widget.project.copy(futureData);
+          HistoryData futureData = futureLog.last;
+
+          if( futureData.data is Project ){
+            historyLog.add( HistoryData(typeEdit, widget.project.clone()) );
+            widget.project.copy(futureData.data);
             widget.project.save();
           }
-          if( futureData is FrameImage ){
-            FrameImage currentFrame = frameImageList.singleWhere((_frame) => _frame.dbIndex == futureData.dbIndex);
-            currentFrame.copy(futureData);
+          if( futureData.data is FrameImage ){
+            FrameImage currentFrame = frameImageList.singleWhere((_frame) => _frame.dbIndex == futureData.data.dbIndex);
+            historyLog.add( HistoryData(typeEdit, currentFrame.clone()) );
+            currentFrame.copy(futureData.data);
             currentFrame.save();
           }
-          if( futureData is List<FrameImage> ){
-            for (FrameImage _historyFrame in futureData) {
+          if( futureData.data is List<FrameImage> ){
+            List<FrameImage> forHistoryList = [];
+            for (FrameImage _historyFrame in futureData.data) {
               FrameImage currentFrame = frameImageList.singleWhere((_frame) => _frame.dbIndex == _historyFrame.dbIndex);
+              forHistoryList.add(currentFrame.clone());
               currentFrame.copy(_historyFrame);
               currentFrame.save();
             }
+            historyLog.add( HistoryData(typeEdit, forHistoryList) );
           }
 
-          if( futureData is BackGroundColorChange ){
-            BackGroundColorChange currentBackColor = backGroundColorChangeList.singleWhere((_frame) => _frame.dbIndex == futureData.dbIndex);
-            currentBackColor.copy(futureData);
+          if( futureData.data is BackGroundColorChange ){
+            BackGroundColorChange currentBackColor = backGroundColorChangeList.singleWhere((_frame) => _frame.dbIndex == futureData.data.dbIndex);
+            historyLog.add( HistoryData(typeEdit, currentBackColor.clone()) );
+            currentBackColor.copy(futureData.data);
             currentBackColor.save();
           }
 
-          historyLog.add(futureData);
           futureLog.removeLast();
         }        
 
