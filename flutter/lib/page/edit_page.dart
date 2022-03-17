@@ -61,6 +61,8 @@ class EditPageState extends State<EditPage> {
   List<HistoryData> historyLog  = [];
   List<HistoryData> futureLog   = [];
 
+  Map<String, Uint8List> frameImageBytes = {};
+
   @override
   void initState(){
     super.initState();
@@ -729,7 +731,8 @@ class EditPageState extends State<EditPage> {
 
   bool isImageLoaded(){
     if( widget.project.canvasSize == Size.zero ) return false;
-    return frameImageList.where((_frameImage) => _frameImage.byteData != null).isNotEmpty;
+
+    return frameImageBytes.isNotEmpty;
   }
 
   double sideSpaceWidth(){
@@ -990,7 +993,7 @@ class EditPageState extends State<EditPage> {
     List<Widget> showWidgetList = [];
 
     for (FrameImage _frameData in frameImageList) {
-      if( _frameData.byteData == null ) continue;
+      if( !frameImageBytes.containsKey(_frameData.dbIndex)) continue;
       if( _frameData.sizeRate <= 0.0 ) continue;
 
       showWidgetList.addAll(_frameWidgetList(_frameData));
@@ -1252,7 +1255,7 @@ class EditPageState extends State<EditPage> {
         child : Opacity(
           opacity: _frameData == draggingFrame ? 0.5 : 1.0,
           child: Image.memory(
-            _frameData.byteData!, 
+            frameImageBytes[_frameData.dbIndex]!,
             width: _frameData.size.x * _frameData.sizeRate, 
             // height: _frameData.size.y,
             fit: BoxFit.fitWidth, 
@@ -1301,14 +1304,14 @@ class EditPageState extends State<EditPage> {
 
         try{
           FrameImage frameImage = frameImageList.singleWhere((_frameImage) => _frameImage.name == _file.name);
-          frameImage.byteData = _file.bytes;
+          frameImageBytes[frameImage.dbIndex] = _file.bytes!;
           frameImage.size = math.Point(_image.width.toDouble(), _image.height.toDouble());
         } catch(e){
           FrameImage newImage = FrameImage(
             dbInstance  : widget.dbInstance,
             project     : widget.project,
             dbIndex     : "",
-            byteData    : _file.bytes, 
+            byteData    : null, 
             name        : _file.name,
             angle       : 0,
             sizeRate    : 1.0,
@@ -1316,6 +1319,7 @@ class EditPageState extends State<EditPage> {
             size        : math.Point(_image.width.toDouble(), _image.height.toDouble())
           );
           newImage.save();
+          frameImageBytes[newImage.dbIndex] = _file.bytes!;
 
           frameImageList.add( newImage );
         }
@@ -1459,7 +1463,11 @@ class EditPageState extends State<EditPage> {
   }  
 
   void addHistory(String type, dynamic model, ){
+
+    const int historySize = 100;
     historyLog.add(HistoryData(type, model));
+
+    if( historyLog.length > historySize ) historyLog.removeAt(0);
     futureLog.clear();
   }
 

@@ -24,7 +24,6 @@ class CanvasToImage{
 
   CanvasToImage(this.project, this.frameImageList, this.backgroundColorList, );
 
-  // TODO: temp
   final List<double> outputPixelList = [690, 1300];
 
   List<double> createOutputList(){
