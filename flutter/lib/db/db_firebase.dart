@@ -108,7 +108,7 @@ class DbFireStore implements DbImpl {
           _cachedProjectList[baseProjRef().path]!.add(_changeProject);
 
           isUpdate = true;
-          return;
+          continue;
         }        
 
         // 更新
@@ -219,7 +219,7 @@ class DbFireStore implements DbImpl {
           _cachedFrameList[_changeFrame.project]!.removeWhere( (_cacheFrame){ return ( _cacheFrame.dbIndex == _changeFrame.dbIndex ); } );
           isUpdate = true;
 
-          return;
+          continue;
         }
 
         // 追加
@@ -230,7 +230,7 @@ class DbFireStore implements DbImpl {
           _cachedFrameList[_proj]!.add(_changeFrame);
 
           isUpdate = true;
-          return;
+          continue;
         }        
 
         // 更新
@@ -346,7 +346,7 @@ class DbFireStore implements DbImpl {
           _cachedBackgroundColorList[_changeBackgroundColor.project]!.removeWhere( (_cachedBackgroundColor){ return ( _cachedBackgroundColor.dbIndex == _changeBackgroundColor.dbIndex ); } );
           isUpdate = true;
 
-          return;
+          continue;
         }
 
         // 追加
@@ -357,7 +357,7 @@ class DbFireStore implements DbImpl {
           _cachedBackgroundColorList[_changeBackgroundColor.project]!.add(_changeBackgroundColor);
 
           isUpdate = true;
-          return;
+          continue;
         }        
 
         // 更新

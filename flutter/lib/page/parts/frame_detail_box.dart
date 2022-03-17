@@ -180,15 +180,14 @@ class FrameDetailWidgetState extends State<FrameDetailWidget> {
                     onPressed: (){
                       widget.focusFrame.angle += 1;
                       widget.focusFrame.angle = widget.focusFrame.angle%4;
+                      widget.focusFrame.save();
                       widget.mainBuild();
                     }, 
                   ),
 
                   IconButton(
                     icon: const Icon(Icons.delete),
-                    onPressed: (){
-                      widget.delete();
-                    }, 
+                    onPressed: (){ widget.delete(); }, 
                   )
                 ],
               )

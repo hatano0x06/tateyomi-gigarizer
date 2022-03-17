@@ -26,6 +26,7 @@ import 'parts/frame_detail_box.dart';
 
 // TODO: asdf
 //  削除されていた時の処理
+//  背景の追加
 //  色変更
 
 // TODO: 重なってた時の処理
@@ -70,6 +71,7 @@ class EditPageState extends State<EditPage> {
   void initState(){
     super.initState();
     widget.dbInstance.reBuildCanvasBody = (){
+      // TODO: checkfocus
       setState(() { });
     };
 
