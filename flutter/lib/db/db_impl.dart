@@ -69,6 +69,7 @@ class DbImpl{
   }
 
   Future<void> updateFrame(FrameImage _updateFrame) async { }
+  Future<void> deleteFrame(FrameImage _deleteFrame) async { }
 
 
   Future<List<BackGroundColorChange>> getBackGroundColorList(Project proj) async {

@@ -91,8 +91,7 @@ class FrameImage{
 
   void delete(){
     if(!isDeskTop()) return;
-    // TODO: asdf
-    // dbInstance.deleteBackGroundColor(this);
+    dbInstance.deleteFrame(this);
   }
 
   void copy(FrameImage copy){

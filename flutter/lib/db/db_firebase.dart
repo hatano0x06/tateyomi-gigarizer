@@ -212,11 +212,15 @@ class DbFireStore implements DbImpl {
       for (DocumentChange<Object?> _doc in data.docChanges) {
         FrameImage _changeFrame = createFrameModel(_doc.doc, null);
 
-        // // 削除
-        // if(_doc.type == DocumentChangeType.removed){
-          
-        //   return;
-        // }
+        // 削除
+        if(_doc.type == DocumentChangeType.removed){
+          if( _cachedFrameList[_changeFrame.project]!.indexWhere( (_cacheFrame){ return ( _cacheFrame.dbIndex == _changeFrame.dbIndex ); } ) < 0 ) return;
+
+          _cachedFrameList[_changeFrame.project]!.removeWhere( (_cacheFrame){ return ( _cacheFrame.dbIndex == _changeFrame.dbIndex ); } );
+          isUpdate = true;
+
+          return;
+        }
 
         // 追加
         if(_doc.type == DocumentChangeType.added){
@@ -272,6 +276,12 @@ class DbFireStore implements DbImpl {
     if( _updateFrame.dbIndex.isEmpty ) return;
 
     baseFrameRef(_updateFrame.project).doc(_updateFrame.dbIndex).update( _updateFrame.toDbJson() );
+  }
+
+  @override
+  Future<void> deleteFrame(FrameImage _deleteFrame) async {
+    if( _deleteFrame.dbIndex.isEmpty ) return;
+    baseFrameRef(_deleteFrame.project).doc(_deleteFrame.dbIndex).delete();
   }
 
   static const String _backgroundColorCollection = "backgroundcolor";
