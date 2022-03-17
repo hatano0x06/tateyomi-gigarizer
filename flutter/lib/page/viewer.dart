@@ -58,26 +58,26 @@ class ViewerPageState extends State<ViewerPage> {
   Widget build(BuildContext context) {
     List<Widget> showWidgetList = [_canvasBody(),..._backGroundWidgetList(), ..._frameBodyList()];
 
-    return SingleChildScrollView(
-      controller  : verticalScrollController,
-      child       : GestureDetector(
-        child: Stack( children: showWidgetList ),
-        onLongPressEnd: (LongPressEndDetails _tapDown) async {
-          if( _tapDown.globalPosition.dy > MediaQuery.of(context).size.height/3) return;
-          CanvasToImage(widget.project, frameImageList, backGroundColorChangeList).download();
+    return SafeArea(
+      child : SingleChildScrollView(
+        controller  : verticalScrollController,
+        child       : GestureDetector(
+          child: Stack( children: showWidgetList ),
+          onLongPressEnd: (LongPressEndDetails _tapDown) async {
+            if( _tapDown.globalPosition.dy > MediaQuery.of(context).size.height/3) return;
+            CanvasToImage(widget.project, frameImageList, backGroundColorChangeList).download();
 
-          // Navigator.push( 
-          //   context, 
-          //   MaterialPageRoute( builder: (context) => DownloadViewerBoard(
-          //     project: widget.project,
-          //     frameImageList: frameImageList,
-          //     backgroundColorList: backGroundColorChangeList,
-          //   ))
-          // );
-        },
+            // Navigator.push( 
+            //   context, 
+            //   MaterialPageRoute( builder: (context) => DownloadViewerBoard(
+            //     project: widget.project,
+            //     frameImageList: frameImageList,
+            //     backgroundColorList: backGroundColorChangeList,
+            //   ))
+            // );
+          },
+        )
       )
-      
-      
     );
     // scrollbar
   }
@@ -274,11 +274,15 @@ class ViewerPageState extends State<ViewerPage> {
       frameImageList = _frameList;
       setState(() { });
 
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
-        allowMultiple     : true,
-        type              : FileType.custom,
-        allowedExtensions : ['png' ],
-      );
+      FilePickerResult? result = Platform.isAndroid ? 
+        await FilePicker.platform.pickFiles(
+          allowMultiple     : true,
+          type              : FileType.custom,
+          allowedExtensions : ['png' ],
+        ) : await FilePicker.platform.pickFiles(
+          allowMultiple     : true,
+          type              : FileType.image,
+        );
 
       if(result == null) return;
       

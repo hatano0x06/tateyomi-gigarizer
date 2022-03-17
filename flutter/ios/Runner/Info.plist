@@ -47,5 +47,10 @@
 	<string>Used to store images and other data uniquely in the application</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Permissions are required to display images in the app for show data</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
 </dict>
 </plist>
