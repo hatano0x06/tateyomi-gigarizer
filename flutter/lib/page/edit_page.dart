@@ -26,7 +26,6 @@ import 'dart:convert';
 import 'parts/frame_detail_box.dart';
 
 // TODO: asdf
-//  追加、削除されていた時の処理(コマ）
 //  色変更
 
 // TODO: 重なってた時の処理
@@ -502,10 +501,18 @@ class EditPageState extends State<EditPage> {
             widget.project.save();
           }
           if( targetModel is FrameImage ){
-            FrameImage currentFrame = frameImageList.singleWhere((_frame) => _frame.dbIndex == targetModel.dbIndex);
-            futureLog.add( HistoryData(typeEdit, currentFrame.clone()) );
-            currentFrame.copy(targetModel);
-            currentFrame.save();
+            // 削除を遡るということなので、追加する
+            if( historyData.type == typeDelete){
+              frameImageList.add(targetModel);
+              targetModel.insertSave();
+              futureLog.add( historyData );
+            }
+            if( historyData.type == typeEdit){
+              FrameImage currentFrame = frameImageList.singleWhere((_frame) => _frame.dbIndex == targetModel.dbIndex);
+              futureLog.add( HistoryData(typeEdit, currentFrame.clone()) );
+              currentFrame.copy(targetModel);
+              currentFrame.save();
+            }
           }
           if( targetModel is List<FrameImage> ){
             List<FrameImage> forFutureList = [];
@@ -557,10 +564,18 @@ class EditPageState extends State<EditPage> {
             widget.project.save();
           }
           if( targetModel is FrameImage ){
-            FrameImage currentFrame = frameImageList.singleWhere((_frame) => _frame.dbIndex == targetModel.dbIndex);
-            historyLog.add( HistoryData(typeEdit, currentFrame.clone()) );
-            currentFrame.copy(targetModel);
-            currentFrame.save();
+            if( futureData.type == typeDelete){
+              frameImageList.removeWhere((_frame) => _frame.dbIndex == targetModel.dbIndex);
+              targetModel.delete();
+
+              historyLog.add( futureData );
+            }
+            if( futureData.type == typeEdit){
+              FrameImage currentFrame = frameImageList.singleWhere((_frame) => _frame.dbIndex == targetModel.dbIndex);
+              historyLog.add( HistoryData(typeEdit, currentFrame.clone()) );
+              currentFrame.copy(targetModel);
+              currentFrame.save();
+            }
           }
           if( targetModel is List<FrameImage> ){
             List<FrameImage> forHistoryList = [];
@@ -679,6 +694,8 @@ class EditPageState extends State<EditPage> {
         focusFrameDependList: focusFrameDependList,
         mainBuild: (){ setState(() { });},
         delete: (){
+          addHistory(typeDelete, focusFrame!.clone());
+
           frameImageList.remove(focusFrame!);
           focusFrame!.delete();
           setFocusFrame(null);
@@ -1446,7 +1463,6 @@ class EditPageState extends State<EditPage> {
   }  
 
   void addHistory(String type, dynamic model, ){
-    print(" add history ");
     historyLog.add(HistoryData(type, model));
     futureLog.clear();
   }

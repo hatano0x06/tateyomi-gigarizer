@@ -75,13 +75,13 @@ class FrameImage{
   void save(){
     if(!isDeskTop()) return;
     if( dbIndex.isEmpty ){
-      _insertSave();
+      insertSave();
       return;
     }
     _updateSave();
   }
 
-  Future<void> _insertSave() async {
+  Future<void> insertSave() async {
     dbInstance.insertFrame(this);
   }
 
