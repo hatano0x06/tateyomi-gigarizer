@@ -43,5 +43,9 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Used to store images and other data uniquely in the application</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Permissions are required to display images in the app for show data</string>
 </dict>
 </plist>
