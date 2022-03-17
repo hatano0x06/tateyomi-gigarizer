@@ -25,9 +25,6 @@ import 'dart:convert';
 
 import 'parts/frame_detail_box.dart';
 
-// TODO: asdf
-//  色変更
-
 // TODO: 重なってた時の処理
 
 class EditPage extends StatefulWidget {
