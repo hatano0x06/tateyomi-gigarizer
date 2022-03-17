@@ -527,6 +527,13 @@ class EditPageState extends State<EditPage> {
               futureLog.add( historyData );
               targetModel.delete();
             }
+            // 削除を遡るということなので、追加する
+            if( historyData.type == typeDelete){
+              backGroundColorChangeList.add(targetModel);
+              targetModel.insertSave();
+              futureLog.add( historyData );
+            }
+
             if( historyData.type == typeEdit){
               BackGroundColorChange currentBackColor = backGroundColorChangeList.singleWhere((_frame) => _frame.dbIndex == targetModel.dbIndex);
               futureLog.add( HistoryData(typeEdit, currentBackColor.clone()) );
@@ -572,6 +579,11 @@ class EditPageState extends State<EditPage> {
               targetModel.insertSave();
               historyLog.add( futureData );
             }
+            if( futureData.type == typeDelete){
+              backGroundColorChangeList.removeWhere((_frame) => _frame.dbIndex == targetModel.dbIndex);
+              targetModel.delete();
+              historyLog.add( futureData );
+            }            
             if( futureData.type == typeEdit){
               BackGroundColorChange currentBackColor = backGroundColorChangeList.singleWhere((_frame) => _frame.dbIndex == targetModel.dbIndex);
               historyLog.add( HistoryData(typeEdit, currentBackColor.clone()) );
