@@ -142,30 +142,33 @@ class _LoginPageWidgetState extends State<LoginPageWidget> {
         if(_value.isEmpty) return "id名を入力してください";
         return null;
       },
+      onFieldSubmitted: (_){ loginAction(); },
     );
+  }
+
+  void loginAction() async {
+    setState(() { });
+    projectList.clear();
+    isEnableLoginId = false;
+
+    if( widget.dbInstance.isTest ){
+      widget.dbInstance.loginId = "caramelmama";
+    } else {
+      // TODO: firebaseのセキュリティのほうでも制限かかっているので、注意
+      // caramelmama以外許さない（一旦
+      if( loginNameController.text != "caramelmama") return;
+      widget.dbInstance.loginId = loginNameController.text;
+    }
+
+    projectList = await widget.dbInstance.getProjectList();
+    isEnableLoginId = true;
+    setState(() { });
   }
 
   Widget loginButton(){
     return ElevatedButton(
       child   : const Text('このidでデータの取得'),
-      onPressed: () async { 
-        setState(() { });
-        projectList.clear();
-        isEnableLoginId = false;
-
-        if( widget.dbInstance.isTest ){
-          widget.dbInstance.loginId = "caramelmama";
-        } else {
-          // TODO: firebaseのセキュリティのほうでも制限かかっているので、注意
-          // caramelmama以外許さない（一旦
-          if( loginNameController.text != "caramelmama") return;
-          widget.dbInstance.loginId = loginNameController.text;
-        }
-
-        projectList = await widget.dbInstance.getProjectList();
-        isEnableLoginId = true;
-        setState(() { });
-      }
+      onPressed: () async { loginAction(); }
     );
   }
 
