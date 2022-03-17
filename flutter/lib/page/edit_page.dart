@@ -11,6 +11,7 @@ import 'package:tateyomi_gigarizer/db/db_impl.dart';
 import 'package:tateyomi_gigarizer/dialog/text_input_dialog.dart';
 import 'package:tateyomi_gigarizer/model/background_color_change.dart';
 import 'package:tateyomi_gigarizer/model/frame_image.dart';
+import 'package:tateyomi_gigarizer/model/history_data.dart';
 import 'package:tateyomi_gigarizer/model/keyboard.dart';
 import 'package:tateyomi_gigarizer/model/project.dart';
 import 'package:tateyomi_gigarizer/page/parts/background_color_detail_box.dart';
@@ -64,14 +65,22 @@ class EditPageState extends State<EditPage> {
 
   double stricyArea = 10;
 
-  List<dynamic> historyLog  = [];
-  List<dynamic> futureLog   = [];
+  List<HistoryData> historyLog  = [];
+  List<HistoryData> futureLog   = [];
 
   @override
   void initState(){
     super.initState();
     widget.dbInstance.reBuildCanvasBody = (){
-      // TODO: checkfocus
+      
+      // 削除されていた場合は、フォーカスの解除
+      if( focusFrame != null ){
+        if( frameImageList.indexWhere((_framelist) => _framelist.dbIndex == focusFrame!.dbIndex) < 0 ) focusFrame = null;
+      }
+
+      if( focusBackGroundColorChange != null ){
+        if( backGroundColorChangeList.indexWhere((_backlist) => _backlist.dbIndex == focusBackGroundColorChange!.dbIndex) < 0 ) focusBackGroundColorChange = null;
+      }      
       setState(() { });
     };
 
@@ -375,7 +384,7 @@ class EditPageState extends State<EditPage> {
           List<FrameImage> forHistoryList = [];
           for( FrameImage _focusFrame in focusFrameDependList){ forHistoryList.add(_focusFrame.clone()); }
           forHistoryList.add( draggingFrame!.clone() );
-          addHistory(forHistoryList);
+          addHistory(typeEdit, forHistoryList);
           return;
         }
 
@@ -384,7 +393,7 @@ class EditPageState extends State<EditPage> {
           setFocusBackGround(draggingBackGroundColorChange);
           initDragPosition = math.Point(0, draggingBackGroundColorChange!.pos);
 
-          addHistory(draggingBackGroundColorChange!.clone());
+          addHistory(typeEdit, draggingBackGroundColorChange!.clone());
         }
 
       },
@@ -484,13 +493,15 @@ class EditPageState extends State<EditPage> {
 
           dynamic historyData = historyLog.last;
           if( historyData is Project ){
-            futureLog.add(widget.project.clone());
+            // TODO: asdf
+            // futureLog.add(widget.project.clone());
             widget.project.copy(historyData);
             widget.project.save();
           }
           if( historyData is FrameImage ){
             FrameImage currentFrame = frameImageList.singleWhere((_frame) => _frame.dbIndex == historyData.dbIndex);
-            futureLog.add(currentFrame.clone());
+            // TODO: asdf
+            // futureLog.add(currentFrame.clone());
             currentFrame.copy(historyData);
             currentFrame.save();
           }
@@ -503,12 +514,14 @@ class EditPageState extends State<EditPage> {
               currentFrame.save();
             }
 
-            futureLog.add(forFutureList);
+            // TODO: asdf
+            // futureLog.add(forFutureList);
           }
           
           if( historyData is BackGroundColorChange ){
             BackGroundColorChange currentBackColor = backGroundColorChangeList.singleWhere((_frame) => _frame.dbIndex == historyData.dbIndex);
-            futureLog.add(currentBackColor.clone());
+            // TODO: asdf
+            // futureLog.add(currentBackColor.clone());
             currentBackColor.copy(historyData);
             currentBackColor.save();
           }
@@ -555,7 +568,7 @@ class EditPageState extends State<EditPage> {
             shortCutType == TYPE_SHORTCUT_LEFT    ||
             shortCutType == TYPE_SHORTCUT_RIGHT    
           ){
-            if( !startPress ) addHistory(focusFrame!.clone());
+            if( !startPress ) addHistory(typeEdit, focusFrame!.clone());
             startPress = true;
           }
 
@@ -735,7 +748,7 @@ class EditPageState extends State<EditPage> {
         child: CornerBallWidget(
           cursor      : SystemMouseCursors.resizeUpDown,
           ballDiameter: ballDiameter,
-          onDragStart : (){ addHistory(widget.project.clone()); },
+          onDragStart : (){ addHistory(typeEdit, widget.project.clone()); },
           onDragEnd   : (){
             _canvasDetailKey.currentState?.updateTextField();
             widget.project.save();
@@ -887,7 +900,7 @@ class EditPageState extends State<EditPage> {
         child: CornerBallWidget(
           cursor      : SystemMouseCursors.resizeUpDown,
           ballDiameter: ballDiameter,
-          onDragStart : (){ addHistory(focusBackGroundColorChange!.clone()); },
+          onDragStart : (){ addHistory(typeEdit, focusBackGroundColorChange!.clone()); },
           onDragEnd   : (){ focusBackGroundColorChange!.save(); },
           onDrag      : (dragPos) {
             setState(() { });
@@ -908,7 +921,7 @@ class EditPageState extends State<EditPage> {
         child: CornerBallWidget(
           cursor      : SystemMouseCursors.resizeUpDown,
           ballDiameter: ballDiameter,
-          onDragStart : (){ addHistory(focusBackGroundColorChange!.clone()); },
+          onDragStart : (){ addHistory(typeEdit, focusBackGroundColorChange!.clone()); },
           onDragEnd   : (){ focusBackGroundColorChange!.save(); },
           onDrag      : (dragPos) {
             focusBackGroundColorChange!.size = math.max(1, globalToCanvasPos(math.Point<double>(dragPos.dx, dragPos.dy)).y - focusBackGroundColorChange!.pos);
@@ -979,7 +992,7 @@ class EditPageState extends State<EditPage> {
       List<FrameImage> forHistoryList = [];
       for( FrameImage _focusFrame in focusFrameDependList){ forHistoryList.add(_focusFrame.clone()); }
       forHistoryList.add( _frameData.clone() );
-      addHistory(forHistoryList);
+      addHistory(typeEdit, forHistoryList);
     }
 
     void saveAfterDrag(){
@@ -1396,9 +1409,9 @@ class EditPageState extends State<EditPage> {
     );
   }  
 
-  void addHistory(dynamic action){
+  void addHistory(String type, dynamic model, ){
     print(" add history ");
-    historyLog.add(action);
+    historyLog.add(HistoryData(type, model));
     futureLog.clear();
   }
 
