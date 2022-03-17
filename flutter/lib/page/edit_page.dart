@@ -25,7 +25,6 @@ import 'dart:convert';
 import 'parts/frame_detail_box.dart';
 
 // TODO: asdf
-//  frameの削除
 //  削除されていた時の処理
 //  色変更
 

@@ -19,6 +19,7 @@ void main() async {
 // TODO: 縦読みの機能（２１日まで
 //  - ctrl+z機能
 //  画質確認
+// iosやる
 
 // TODO: オプション
 //  android リリース(確認中)
