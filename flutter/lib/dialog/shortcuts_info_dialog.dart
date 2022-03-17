@@ -57,6 +57,11 @@ class _ShortCutInfoDialogState extends State<ShortCutInfoDialog> {
         [
           "ctrlを押しながら操作（赤色に縁がつくコマが従属されます"
         ],
+      "作業の戻り": 
+        [
+          "前の作業内容 : ctrl+z",
+          "次の作業内容 : ctrl+shift+z, ctrl+y",
+        ],
       "拡大・縮小": 
         [
           "ブラウザ標準機能に準拠してます(ctrl+スクロールなど"
