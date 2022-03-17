@@ -25,7 +25,7 @@ import 'dart:convert';
 import 'parts/frame_detail_box.dart';
 
 // TODO: asdf
-//  project size
+//  frameの削除
 //  削除されていた時の処理
 
 // TODO: 重なってた時の処理
@@ -476,10 +476,16 @@ class EditPageState extends State<EditPage> {
 
         setState(() { });
 
+        // TODO: 削除対応
         if( shortCutType == TYPE_SHORTCUT_HISTORY_BACK ){
           if( historyLog.isEmpty) return;
 
           dynamic historyData = historyLog.last;
+          if( historyData is Project ){
+            futureLog.add(widget.project.clone());
+            widget.project.copy(historyData);
+            widget.project.save();
+          }
           if( historyData is FrameImage ){
             FrameImage currentFrame = frameImageList.singleWhere((_frame) => _frame.dbIndex == historyData.dbIndex);
             futureLog.add(currentFrame.clone());
@@ -498,7 +504,6 @@ class EditPageState extends State<EditPage> {
             futureLog.add(forFutureList);
           }
           
-          // TODO: 削除対応
           if( historyData is BackGroundColorChange ){
             BackGroundColorChange currentBackColor = backGroundColorChangeList.singleWhere((_frame) => _frame.dbIndex == historyData.dbIndex);
             futureLog.add(currentBackColor.clone());
@@ -513,6 +518,10 @@ class EditPageState extends State<EditPage> {
           if( futureLog.isEmpty) return;
 
           dynamic futureData = futureLog.last;
+          if( futureData is Project ){
+            widget.project.copy(futureData);
+            widget.project.save();
+          }
           if( futureData is FrameImage ){
             FrameImage currentFrame = frameImageList.singleWhere((_frame) => _frame.dbIndex == futureData.dbIndex);
             currentFrame.copy(futureData);
@@ -526,7 +535,6 @@ class EditPageState extends State<EditPage> {
             }
           }
 
-          // TODO: 削除対応
           if( futureData is BackGroundColorChange ){
             BackGroundColorChange currentBackColor = backGroundColorChangeList.singleWhere((_frame) => _frame.dbIndex == futureData.dbIndex);
             currentBackColor.copy(futureData);
@@ -717,12 +725,10 @@ class EditPageState extends State<EditPage> {
         child: CornerBallWidget(
           cursor      : SystemMouseCursors.resizeUpDown,
           ballDiameter: ballDiameter,
-          onDragStart : (){ },
+          onDragStart : (){ addHistory(widget.project.clone()); },
           onDragEnd   : (){
             _canvasDetailKey.currentState?.updateTextField();
             widget.project.save();
-
-            // TODO: asdf
           },
           onDrag      : (dragPos) {
             math.Point<double> canvasDragPos = globalToCanvasPos(math.Point<double>(dragPos.dx, dragPos.dy));
@@ -871,7 +877,7 @@ class EditPageState extends State<EditPage> {
         child: CornerBallWidget(
           cursor      : SystemMouseCursors.resizeUpDown,
           ballDiameter: ballDiameter,
-          onDragStart : (){  addHistory(focusBackGroundColorChange!.clone()); },
+          onDragStart : (){ addHistory(focusBackGroundColorChange!.clone()); },
           onDragEnd   : (){ focusBackGroundColorChange!.save(); },
           onDrag      : (dragPos) {
             setState(() { });
@@ -892,7 +898,7 @@ class EditPageState extends State<EditPage> {
         child: CornerBallWidget(
           cursor      : SystemMouseCursors.resizeUpDown,
           ballDiameter: ballDiameter,
-          onDragStart : (){  addHistory(focusBackGroundColorChange!.clone()); },
+          onDragStart : (){ addHistory(focusBackGroundColorChange!.clone()); },
           onDragEnd   : (){ focusBackGroundColorChange!.save(); },
           onDrag      : (dragPos) {
             focusBackGroundColorChange!.size = math.max(1, globalToCanvasPos(math.Point<double>(dragPos.dx, dragPos.dy)).y - focusBackGroundColorChange!.pos);

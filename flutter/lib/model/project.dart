@@ -48,4 +48,19 @@ class Project{
     dbInstance.updateProject(this);
   }
 
+  void copy(Project copy){
+    canvasSize = copy.canvasSize;
+  }
+
+  Project clone(){
+    return Project(
+      dbInstance,
+      dbIndex,
+      name,
+      canvasSize,
+      lastOpenTime,
+      createTime
+    );
+  }
+
 }
