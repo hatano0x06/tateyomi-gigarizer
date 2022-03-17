@@ -63,10 +63,16 @@ class ViewerPageState extends State<ViewerPage> {
         controller  : verticalScrollController,
         child       : GestureDetector(
           child: Stack( children: showWidgetList ),
-          onLongPressEnd: (LongPressEndDetails _tapDown) async {
+          onLongPressStart: (LongPressStartDetails _tapDown){
             if( _tapDown.globalPosition.dy > MediaQuery.of(context).size.height/3) return;
-            CanvasToImage(widget.project, frameImageList, backGroundColorChangeList).download();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar( 
+                duration: Duration(seconds: 5),
+                content :Text( "ファイルをダウンロードします", style: TextStyle(fontSize: 16.0,))
+              )
+            );
 
+            CanvasToImage(widget.project, frameImageList, backGroundColorChangeList).download();
             // Navigator.push( 
             //   context, 
             //   MaterialPageRoute( builder: (context) => DownloadViewerBoard(
