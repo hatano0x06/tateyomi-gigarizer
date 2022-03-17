@@ -25,7 +25,8 @@ import 'dart:convert';
 import 'parts/frame_detail_box.dart';
 
 // TODO: asdf
-//  キーボード移動
+//  project size
+//  削除されていた時の処理
 
 // TODO: 重なってた時の処理
 
@@ -439,6 +440,7 @@ class EditPageState extends State<EditPage> {
   }
 
 
+  bool startPress = false;
   Widget shortCutsWidget(Widget _body){
     const String TYPE_SHORTCUT_UP     = "up";
     const String TYPE_SHORTCUT_LEFT   = "left";
@@ -536,7 +538,17 @@ class EditPageState extends State<EditPage> {
         }        
 
         if( focusFrame != null ){
-          
+
+          if( 
+            shortCutType == TYPE_SHORTCUT_UP    ||
+            shortCutType == TYPE_SHORTCUT_DOWN    ||
+            shortCutType == TYPE_SHORTCUT_LEFT    ||
+            shortCutType == TYPE_SHORTCUT_RIGHT    
+          ){
+            if( !startPress ) addHistory(focusFrame!.clone());
+            startPress = true;
+          }
+
           double moveSize = 0.1;
           if( shortCutType == TYPE_SHORTCUT_UP    ){
             focusFrame!.position = math.Point(focusFrame!.position.x, focusFrame!.position.y-moveSize);
@@ -556,6 +568,7 @@ class EditPageState extends State<EditPage> {
         }
       },
       onKeysUp: (){
+        startPress = false;
         if( ModalRoute.of(context) == null ) return;
         if( !ModalRoute.of(context)!.isCurrent ) return;
 
