@@ -60,75 +60,75 @@ class _LoginPageWidgetState extends State<LoginPageWidget> {
       ]);
     }
 
-    widgetList.add(existProjectList());
+    widgetList.addAll(existProjectList());
 
 
     return Scaffold(
       appBar: AppBar(
         title   : const Text( "ログインページ" ),
       ),
+
       body: Container(
         width   : MediaQuery.of(context).size.width,
         height  : MediaQuery.of(context).size.height - kToolbarHeight,
         color   : Colors.white,
         child : Container(
           margin  : const EdgeInsets.symmetric(vertical: 50, horizontal: 10),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children    : widgetList
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children    : widgetList
+            ),
           ),
         ),
       ),
     );
   } 
 
-  Widget existProjectList(){
-    if(projectList.isEmpty) return Container();
+  List<Widget> existProjectList(){
+    if(projectList.isEmpty) return [];
 
-    return SingleChildScrollView(
-        child: ListView.builder(
-          shrinkWrap  : true,
-          itemBuilder : (BuildContext context, int index) {
-            Project _proj = projectList[index];
-
-            return Card(
-              color: Colors.grey[400],
-              child : InkWell(
-                child : ListTile(
-                  title : Text(_proj.name, style: const TextStyle( fontWeight: FontWeight.bold),),
-                  subtitle  : Column(mainAxisSize: MainAxisSize.min, children: [
-                    Align(
-                      alignment : Alignment.centerLeft,
-                      child     : Text("作成日：" + DateTime.fromMillisecondsSinceEpoch(_proj.createTime).toIso8601String() ),
-                    ),
-                    Align(
-                      alignment : Alignment.centerLeft,
-                      child     : Text("更新日：" + DateTime.fromMillisecondsSinceEpoch(_proj.lastOpenTime).toIso8601String()),
-                    ),
-                  ],),
+    List<Widget> widgetList = [];
+    for (var _proj in projectList) {
+      widgetList.add(
+        Card(
+          color: Colors.grey[300],
+          child : InkWell(
+            child : ListTile(
+              title : Text(_proj.name, style: const TextStyle( fontWeight: FontWeight.bold,),),
+              subtitle  : Column(mainAxisSize: MainAxisSize.min, children: [
+                Align(
+                  alignment : Alignment.centerLeft,
+                  child     : Text("作成日：" + DateTime.fromMillisecondsSinceEpoch(_proj.createTime).toIso8601String() ),
                 ),
-                onTap: (){
-                  _proj.lastOpenTime = DateTime.now().millisecondsSinceEpoch;
-                  _proj.save();
+                Align(
+                  alignment : Alignment.centerLeft,
+                  child     : Text("更新日：" + DateTime.fromMillisecondsSinceEpoch(_proj.lastOpenTime).toIso8601String()),
+                ),
+              ],),
+            ),
+            onTap: (){
+              _proj.lastOpenTime = DateTime.now().millisecondsSinceEpoch;
+              _proj.save();
 
-                  Widget openPage = isDeskTop() ?
-                  EditPage(
-                    dbInstance  : widget.dbInstance,
-                    project     : _proj,
-                  ) :
-                  ViewerPage(
-                    dbInstance  : widget.dbInstance,
-                    project     : _proj,
-                  );
+              Widget openPage = isDeskTop() ?
+              EditPage(
+                dbInstance  : widget.dbInstance,
+                project     : _proj,
+              ) :
+              ViewerPage(
+                dbInstance  : widget.dbInstance,
+                project     : _proj,
+              );
 
-                  Navigator.push( context, PageRouteBuilder( pageBuilder: (context, animation1, animation2) => openPage ), );
-                },
-              ),
-            );
-          },
-          itemCount: projectList.length,
+              Navigator.push( context, PageRouteBuilder( pageBuilder: (context, animation1, animation2) => openPage ), );
+            },
+          ),
         )
-    );
+      );
+    }
+
+    return widgetList;
   }
 
   Widget loginIdWidget(){

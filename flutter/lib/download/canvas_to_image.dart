@@ -195,7 +195,7 @@ class CanvasToImage{
       canvas.translate(_frameData.position.x + startPosOffset.dx, _frameData.position.y + startPosOffset.dy);
       canvas.rotate(_frameData.angle * math.pi/2);
       Rect srcRect = Rect.fromLTWH( 0, 0, _image.width.toDouble(), _image.height.toDouble() );
-      Rect dstRect = Rect.fromLTWH( 0 , 0, _frameData.size.x * _frameData.sizeRate,  _frameData.size.y * _frameData.sizeRate );
+      Rect dstRect = Rect.fromLTWH( 0 , 0, _frameData.size.x * _frameData.sizeRate * rate,  _frameData.size.y * _frameData.sizeRate * rate );
       canvas.drawImageRect(_image, srcRect, dstRect, Paint()..style = PaintingStyle.fill..filterQuality = FilterQuality.high);
       canvas.restore();
     });
