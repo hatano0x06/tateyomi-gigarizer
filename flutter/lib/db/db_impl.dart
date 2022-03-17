@@ -25,28 +25,7 @@ class DbImpl{
   Future<List<Project>> getProjectList() async {
     return [
       Project(
-        this, "aaa", "test1", const Size(1000, 5000), DateTime.now().millisecondsSinceEpoch, DateTime.now().millisecondsSinceEpoch
-      ),
-      Project(
-        this, "aaa", "test1", const Size(1000, 5000), DateTime.now().millisecondsSinceEpoch, DateTime.now().millisecondsSinceEpoch
-      ),
-      Project(
-        this, "aaa", "test1", const Size(1000, 5000), DateTime.now().millisecondsSinceEpoch, DateTime.now().millisecondsSinceEpoch
-      ),
-      Project(
-        this, "aaa", "test1", const Size(1000, 5000), DateTime.now().millisecondsSinceEpoch, DateTime.now().millisecondsSinceEpoch
-      ),
-      Project(
-        this, "aaa", "test1", const Size(1000, 5000), DateTime.now().millisecondsSinceEpoch, DateTime.now().millisecondsSinceEpoch
-      ),
-      Project(
-        this, "aaa", "test1", const Size(1000, 5000), DateTime.now().millisecondsSinceEpoch, DateTime.now().millisecondsSinceEpoch
-      ),
-      Project(
-        this, "aaa", "test1", const Size(1000, 5000), DateTime.now().millisecondsSinceEpoch, DateTime.now().millisecondsSinceEpoch
-      ),
-      Project(
-        this, "aaa", "test1", const Size(1000, 5000), DateTime.now().millisecondsSinceEpoch, DateTime.now().millisecondsSinceEpoch
+        this, "aaa", "test1", const Size(1000, 500), DateTime.now().millisecondsSinceEpoch, DateTime.now().millisecondsSinceEpoch
       ),
     ];
   }

@@ -182,6 +182,11 @@ class EditPageState extends State<EditPage> {
                   100, 
                 );
                 _tmpColor.save();
+                // TODO: asdf
+
+            //                 if( backGroundColorChangeList.isNotEmpty ){
+            //   if( canvasDragPos.y <= backGroundColorChangeList.last.pos + backGroundColorChangeList.last.size ) return;
+            // }
 
                 setFocusBackGround(_tmpColor);
                 backGroundColorChangeList.add( _tmpColor );
@@ -407,7 +412,13 @@ class EditPageState extends State<EditPage> {
 
         void _draggingBackGround(){
           if( draggingBackGroundColorChange == null ) return;
-          draggingBackGroundColorChange!.pos =  initDragPosition.y + (currentDragFramePosition - initDragFramePosition).y;
+          
+          // キャンパスよりも下回るのはダメ
+          double newPos = initDragPosition.y + (currentDragFramePosition - initDragFramePosition).y;
+          if( newPos + draggingBackGroundColorChange!.size >= widget.project.canvasSize.height ) return;
+          if( newPos + draggingBackGroundColorChange!.size <= 0 ) return;
+
+          draggingBackGroundColorChange!.pos = newPos;
         }
         _draggingBackGround();
       },
@@ -807,6 +818,13 @@ class EditPageState extends State<EditPage> {
           },
           onDrag      : (dragPos) {
             math.Point<double> canvasDragPos = globalToCanvasPos(math.Point<double>(dragPos.dx, dragPos.dy));
+            if( canvasDragPos.y <= 0 ) return;
+            
+            // 背景色より上にくることはないはずなので、制限をかける
+            if( backGroundColorChangeList.isNotEmpty ){
+              if( canvasDragPos.y <= backGroundColorChangeList.last.pos + backGroundColorChangeList.last.size ) return;
+            }
+            
             widget.project.canvasSize = Size(widget.project.canvasSize.width, canvasDragPos.y);
             setState(() { });
           },
@@ -976,7 +994,11 @@ class EditPageState extends State<EditPage> {
           onDragStart : (){ addHistory(typeEdit, focusBackGroundColorChange!.clone()); },
           onDragEnd   : (){ focusBackGroundColorChange!.save(); },
           onDrag      : (dragPos) {
-            focusBackGroundColorChange!.size = math.max(1, globalToCanvasPos(math.Point<double>(dragPos.dx, dragPos.dy)).y - focusBackGroundColorChange!.pos);
+
+            double newSize = globalToCanvasPos(math.Point<double>(dragPos.dx, dragPos.dy)).y - focusBackGroundColorChange!.pos;
+            if( focusBackGroundColorChange!.pos + newSize >= widget.project.canvasSize.height ) return;
+            if( focusBackGroundColorChange!.pos + newSize <= 0 ) return;
+            focusBackGroundColorChange!.size = math.max(1, newSize);
             setState(() { });
           },
         ),
