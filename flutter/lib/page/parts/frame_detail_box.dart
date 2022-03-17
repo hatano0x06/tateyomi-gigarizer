@@ -13,8 +13,7 @@ class FrameDetailWidget extends StatefulWidget {
   final FrameImage focusFrame;
   final List<FrameImage> focusFrameDependList;
   final void Function() mainBuild;
-  final List<FrameImage> allFrameList;
-  final void Function() unfocus;
+  final void Function() delete;
 
   const FrameDetailWidget({
     Key? key, 
@@ -22,8 +21,7 @@ class FrameDetailWidget extends StatefulWidget {
     required this.focusFrame, 
     required this.focusFrameDependList, 
     required this.mainBuild, 
-    required this.allFrameList, 
-    required this.unfocus, 
+    required this.delete, 
   }):super(key:key);
 
 
@@ -189,9 +187,7 @@ class FrameDetailWidgetState extends State<FrameDetailWidget> {
                   IconButton(
                     icon: const Icon(Icons.delete),
                     onPressed: (){
-                      widget.allFrameList.remove(widget.focusFrame);
-                      widget.focusFrame.delete();
-                      widget.unfocus();
+                      widget.delete();
                     }, 
                   )
                 ],

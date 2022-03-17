@@ -629,8 +629,11 @@ class EditPageState extends State<EditPage> {
         focusFrame: focusFrame!,
         focusFrameDependList: focusFrameDependList,
         mainBuild: (){ setState(() { });},
-        allFrameList: frameImageList,
-        unfocus: (){ setFocusFrame(null); },
+        delete: (){
+          frameImageList.remove(focusFrame!);
+          focusFrame!.delete();
+          setFocusFrame(null);
+        },
       )
     );
   }
@@ -644,12 +647,15 @@ class EditPageState extends State<EditPage> {
       left  : sideSpaceWidth() + widget.project.canvasSize.width - horizonScrollController.position.pixels + 20,
       child: BackGroundColorDetailWidget(
         backGroundColorChange: focusBackGroundColorChange!,
-        backGroundColorChangeList: backGroundColorChangeList,
         mainBuild: (){ setState(() { });},
-        unfocusBackGround: (){
+        delete: (){
+          backGroundColorChangeList.remove(focusBackGroundColorChange!);
+          focusBackGroundColorChange!.delete();
+          focusBackGroundColorChange!.dbIndex = "";
+
           focusBackGroundColorChange = null;
           setState(() { });
-        }
+        },
       )
     );
   }  
