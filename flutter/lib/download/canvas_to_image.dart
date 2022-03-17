@@ -210,12 +210,7 @@ class CanvasToImage{
   }
 
   Future<ui.Image> _loadImage(Uint8List _imageBytes) async {
-    final Completer<ui.Image> completer = Completer();
-
-    ui.decodeImageFromList(_imageBytes, (ui.Image convertedImg) {
-      return completer.complete(convertedImg);
-    });
-    return completer.future;
+    return await decodeImageFromList(_imageBytes);
   }
     
 }
