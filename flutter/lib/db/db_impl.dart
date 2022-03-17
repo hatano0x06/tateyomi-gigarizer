@@ -63,7 +63,7 @@ class DbImpl{
       ),
     ];
   }
-  Future<String> insertFrame(FrameImage _insertFrame) async {
+  String insertFrame(FrameImage _insertFrame) {
     if( _insertFrame.dbIndex.isNotEmpty ) return _insertFrame.dbIndex;
     _insertFrame.dbIndex = DateTime.now().millisecondsSinceEpoch.toString() + "_frame_" + _insertFrame.name;
     return _insertFrame.dbIndex;

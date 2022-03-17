@@ -265,7 +265,7 @@ class DbFireStore implements DbImpl {
   }
 
   @override
-  Future<String> insertFrame(FrameImage _insertFrame) async {
+  String insertFrame(FrameImage _insertFrame) {
    if( _insertFrame.dbIndex.isEmpty )  _insertFrame.dbIndex = _getUniqueId("frame_" + _insertFrame.name);
     baseFrameRef(_insertFrame.project).doc(_insertFrame.dbIndex).set( _insertFrame.toDbJson() );
     return _insertFrame.dbIndex;
