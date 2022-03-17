@@ -26,7 +26,8 @@ import 'parts/frame_detail_box.dart';
 
 // TODO: asdf
 //  キーボード移動
-//  拡大縮小
+
+// TODO: 重なってた時の処理
 
 class EditPage extends StatefulWidget {
   final DbImpl dbInstance;
@@ -707,6 +708,8 @@ class EditPageState extends State<EditPage> {
           onDragEnd   : (){
             _canvasDetailKey.currentState?.updateTextField();
             widget.project.save();
+
+            // TODO: asdf
           },
           onDrag      : (dragPos) {
             math.Point<double> canvasDragPos = globalToCanvasPos(math.Point<double>(dragPos.dx, dragPos.dy));
@@ -855,7 +858,7 @@ class EditPageState extends State<EditPage> {
         child: CornerBallWidget(
           cursor      : SystemMouseCursors.resizeUpDown,
           ballDiameter: ballDiameter,
-          onDragStart : (){ },
+          onDragStart : (){  addHistory(focusBackGroundColorChange!.clone()); },
           onDragEnd   : (){ focusBackGroundColorChange!.save(); },
           onDrag      : (dragPos) {
             setState(() { });
@@ -876,7 +879,7 @@ class EditPageState extends State<EditPage> {
         child: CornerBallWidget(
           cursor      : SystemMouseCursors.resizeUpDown,
           ballDiameter: ballDiameter,
-          onDragStart : (){ },
+          onDragStart : (){  addHistory(focusBackGroundColorChange!.clone()); },
           onDragEnd   : (){ focusBackGroundColorChange!.save(); },
           onDrag      : (dragPos) {
             focusBackGroundColorChange!.size = math.max(1, globalToCanvasPos(math.Point<double>(dragPos.dx, dragPos.dy)).y - focusBackGroundColorChange!.pos);
@@ -943,6 +946,11 @@ class EditPageState extends State<EditPage> {
       if(RawKeyboard.instance.keysPressed.where((_pressd) => _pressd.keyLabel == LogicalKeyboardKey.controlLeft.keyLabel).isNotEmpty){
         focusFrameDependList = frameImageList.where((_frame) => _frame.position.y > _frameData.position.y ).toList();
       }
+
+      List<FrameImage> forHistoryList = [];
+      for( FrameImage _focusFrame in focusFrameDependList){ forHistoryList.add(_focusFrame.clone()); }
+      forHistoryList.add( _frameData.clone() );
+      addHistory(forHistoryList);
     }
 
     void saveAfterDrag(){
