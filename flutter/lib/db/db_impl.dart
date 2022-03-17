@@ -64,6 +64,7 @@ class DbImpl{
     ];
   }
   Future<String> insertFrame(FrameImage _insertFrame) async {
+    if( _insertFrame.dbIndex.isNotEmpty ) return _insertFrame.dbIndex;
     _insertFrame.dbIndex = DateTime.now().millisecondsSinceEpoch.toString() + "_frame_" + _insertFrame.name;
     return _insertFrame.dbIndex;
   }
@@ -74,11 +75,13 @@ class DbImpl{
 
   Future<List<BackGroundColorChange>> getBackGroundColorList(Project proj) async {
     return [
-      BackGroundColorChange(this, proj, "back1", Colors.black, 200, 200, ),
-      BackGroundColorChange(this, proj, "back2", Colors.blue , 500, 100, ),
+      // BackGroundColorChange(this, proj, "back1", Colors.black, 200, 200, ),
+      // BackGroundColorChange(this, proj, "back2", Colors.blue , 500, 100, ),
     ];
   }
   Future<String> insertBackGroundColor(BackGroundColorChange _insertBackGround) async {
+    if( _insertBackGround.dbIndex.isNotEmpty ) return _insertBackGround.dbIndex;
+
     _insertBackGround.dbIndex = DateTime.now().millisecondsSinceEpoch.toString() + "_proj";
     return _insertBackGround.dbIndex;
   }

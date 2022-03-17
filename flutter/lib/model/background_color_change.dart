@@ -35,13 +35,13 @@ class BackGroundColorChange{
   void save(){
     if(!isDeskTop()) return;
     if( dbIndex.isEmpty ){
-      _insertSave();
+      insertSave();
       return;
     }
     _updateSave();
   }
 
-  Future<void> _insertSave() async {
+  Future<void> insertSave() async {
     dbInstance.insertBackGroundColor(this);
   }
   Future<void> _updateSave() async {

@@ -39,7 +39,6 @@ class BackGroundColorDetailWidgetState extends State<BackGroundColorDetailWidget
 
   @override
   void dispose(){
-    if(widget.backGroundColorChange.dbIndex.isNotEmpty) widget.backGroundColorChange.save();
     textController.dispose();
     focusNode.dispose();
     super.dispose();

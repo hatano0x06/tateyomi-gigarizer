@@ -26,8 +26,7 @@ import 'dart:convert';
 import 'parts/frame_detail_box.dart';
 
 // TODO: asdf
-//  削除されていた時の処理
-//  背景の追加
+//  追加、削除されていた時の処理(コマ）
 //  色変更
 
 // TODO: 重なってた時の処理
@@ -190,6 +189,8 @@ class EditPageState extends State<EditPage> {
 
                 setFocusBackGround(_tmpColor);
                 backGroundColorChangeList.add( _tmpColor );
+
+                addHistory(typeAdd, _tmpColor.clone());
 
                 setState(() { });
               }
@@ -493,20 +494,22 @@ class EditPageState extends State<EditPage> {
 
           HistoryData historyData = historyLog.last;
 
-          if( historyData.data is Project ){
+          dynamic targetModel = historyData.data;
+
+          if( targetModel is Project ){
             futureLog.add( HistoryData(typeEdit, widget.project.clone()) );
-            widget.project.copy(historyData.data);
+            widget.project.copy(targetModel);
             widget.project.save();
           }
-          if( historyData.data is FrameImage ){
-            FrameImage currentFrame = frameImageList.singleWhere((_frame) => _frame.dbIndex == historyData.data.dbIndex);
+          if( targetModel is FrameImage ){
+            FrameImage currentFrame = frameImageList.singleWhere((_frame) => _frame.dbIndex == targetModel.dbIndex);
             futureLog.add( HistoryData(typeEdit, currentFrame.clone()) );
-            currentFrame.copy(historyData.data);
+            currentFrame.copy(targetModel);
             currentFrame.save();
           }
-          if( historyData.data is List<FrameImage> ){
+          if( targetModel is List<FrameImage> ){
             List<FrameImage> forFutureList = [];
-            for (FrameImage _historyFrame in historyData.data) {
+            for (FrameImage _historyFrame in targetModel) {
               FrameImage currentFrame = frameImageList.singleWhere((_frame) => _frame.dbIndex == _historyFrame.dbIndex);
               forFutureList.add(currentFrame.clone());
               currentFrame.copy(_historyFrame);
@@ -516,11 +519,20 @@ class EditPageState extends State<EditPage> {
             futureLog.add( HistoryData(typeEdit, forFutureList) );
           }
           
-          if( historyData.data is BackGroundColorChange ){
-            BackGroundColorChange currentBackColor = backGroundColorChangeList.singleWhere((_frame) => _frame.dbIndex == historyData.data.dbIndex);
-            futureLog.add( HistoryData(typeEdit, currentBackColor.clone()) );
-            currentBackColor.copy(historyData.data);
-            currentBackColor.save();
+          if( targetModel is BackGroundColorChange ){
+            // 追加を遡るということなので、削除する
+            if( historyData.type == typeAdd){
+              backGroundColorChangeList.removeWhere((_frame) => _frame.dbIndex == targetModel.dbIndex);
+              if( (focusBackGroundColorChange?.dbIndex ?? "") == targetModel.dbIndex) focusBackGroundColorChange = null;
+              futureLog.add( historyData );
+              targetModel.delete();
+            }
+            if( historyData.type == typeEdit){
+              BackGroundColorChange currentBackColor = backGroundColorChangeList.singleWhere((_frame) => _frame.dbIndex == targetModel.dbIndex);
+              futureLog.add( HistoryData(typeEdit, currentBackColor.clone()) );
+              currentBackColor.copy(targetModel);
+              currentBackColor.save();
+            }
           }
 
           historyLog.removeLast();
@@ -530,21 +542,22 @@ class EditPageState extends State<EditPage> {
           if( futureLog.isEmpty) return;
 
           HistoryData futureData = futureLog.last;
+          dynamic targetModel = futureData.data;
 
-          if( futureData.data is Project ){
+          if( targetModel is Project ){
             historyLog.add( HistoryData(typeEdit, widget.project.clone()) );
-            widget.project.copy(futureData.data);
+            widget.project.copy(targetModel);
             widget.project.save();
           }
-          if( futureData.data is FrameImage ){
-            FrameImage currentFrame = frameImageList.singleWhere((_frame) => _frame.dbIndex == futureData.data.dbIndex);
+          if( targetModel is FrameImage ){
+            FrameImage currentFrame = frameImageList.singleWhere((_frame) => _frame.dbIndex == targetModel.dbIndex);
             historyLog.add( HistoryData(typeEdit, currentFrame.clone()) );
-            currentFrame.copy(futureData.data);
+            currentFrame.copy(targetModel);
             currentFrame.save();
           }
-          if( futureData.data is List<FrameImage> ){
+          if( targetModel is List<FrameImage> ){
             List<FrameImage> forHistoryList = [];
-            for (FrameImage _historyFrame in futureData.data) {
+            for (FrameImage _historyFrame in targetModel) {
               FrameImage currentFrame = frameImageList.singleWhere((_frame) => _frame.dbIndex == _historyFrame.dbIndex);
               forHistoryList.add(currentFrame.clone());
               currentFrame.copy(_historyFrame);
@@ -553,11 +566,18 @@ class EditPageState extends State<EditPage> {
             historyLog.add( HistoryData(typeEdit, forHistoryList) );
           }
 
-          if( futureData.data is BackGroundColorChange ){
-            BackGroundColorChange currentBackColor = backGroundColorChangeList.singleWhere((_frame) => _frame.dbIndex == futureData.data.dbIndex);
-            historyLog.add( HistoryData(typeEdit, currentBackColor.clone()) );
-            currentBackColor.copy(futureData.data);
-            currentBackColor.save();
+          if( targetModel is BackGroundColorChange ){
+            if( futureData.type == typeAdd){
+              backGroundColorChangeList.add(targetModel);
+              targetModel.insertSave();
+              historyLog.add( futureData );
+            }
+            if( futureData.type == typeEdit){
+              BackGroundColorChange currentBackColor = backGroundColorChangeList.singleWhere((_frame) => _frame.dbIndex == targetModel.dbIndex);
+              historyLog.add( HistoryData(typeEdit, currentBackColor.clone()) );
+              currentBackColor.copy(targetModel);
+              currentBackColor.save();
+            }
           }
 
           futureLog.removeLast();
@@ -668,7 +688,8 @@ class EditPageState extends State<EditPage> {
         delete: (){
           backGroundColorChangeList.remove(focusBackGroundColorChange!);
           focusBackGroundColorChange!.delete();
-          focusBackGroundColorChange!.dbIndex = "";
+
+          addHistory(typeDelete, focusBackGroundColorChange!.clone());
 
           focusBackGroundColorChange = null;
           setState(() { });

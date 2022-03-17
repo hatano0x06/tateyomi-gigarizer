@@ -266,7 +266,7 @@ class DbFireStore implements DbImpl {
 
   @override
   Future<String> insertFrame(FrameImage _insertFrame) async {
-    _insertFrame.dbIndex = _getUniqueId("frame_" + _insertFrame.name);
+   if( _insertFrame.dbIndex.isEmpty )  _insertFrame.dbIndex = _getUniqueId("frame_" + _insertFrame.name);
     baseFrameRef(_insertFrame.project).doc(_insertFrame.dbIndex).set( _insertFrame.toDbJson() );
     return _insertFrame.dbIndex;
   }
@@ -385,7 +385,7 @@ class DbFireStore implements DbImpl {
   }
   @override
   Future<String> insertBackGroundColor(BackGroundColorChange _insertBackGround) async {
-    _insertBackGround.dbIndex = _getUniqueId("backgroundcolor");
+   if( _insertBackGround.dbIndex.isEmpty ) _insertBackGround.dbIndex = _getUniqueId("backgroundcolor");
     baseBackGroundColorRef(_insertBackGround.project).doc(_insertBackGround.dbIndex).set( _insertBackGround.toDbJson() );
     return _insertBackGround.dbIndex;
   }
