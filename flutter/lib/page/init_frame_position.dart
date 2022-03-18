@@ -73,13 +73,26 @@ void initFramePos(List<PlatformFile> files, List<FrameImage> frameImageList, Pro
         Map<String, dynamic> _framejson  = _frameValuejson as Map<String, dynamic>;
         int frameNum = _framejson["FrameNumber"];
 
-        // {SpeakBlockList: [], Cornermath.Points: [{X: 0, Y: 0}, {X: 502, Y: 0}, {X: 505, Y: 259}, {X: 0, Y: 259}], FrameNumber: 0, StepData: {X: 0, Y: 0, StepNum: 0}}
-        // print(_framejson);
+        String _imageTitle(){
+          int pageNumCutLength = jsonData.length >= 100 ? -3:-2;
+          String fullPageNum = '00000' + (_pageIndex+1).toString();
+          String cutPageNum  = fullPageNum.substring(fullPageNum.length+pageNumCutLength);
+
+          int frameNumCutLength = _pageJson.length >= 100 ? -3:-2;
+          String fullFrameNum = '00000' + (_frameIndex+1).toString();
+          String cutFrameNum  = fullFrameNum.substring(fullFrameNum.length+frameNumCutLength);
+
+          return cutPageNum + "p_" + cutFrameNum + ".png";
+        }
+
+        int targetFrameIndex = frameImageList.indexWhere((_frameImage) => _frameImage.name == _imageTitle());
+        if( targetFrameIndex < 0 ) return;
 
         frameStepMap[_pageIndex]![frameNum] = FramePagePos(
           _framejson["StepData"]["X"],
           _framejson["StepData"]["Y"],
           _framejson["StepData"]["StepNum"],
+          frameImageList[targetFrameIndex]
         );
 
       });
@@ -112,50 +125,83 @@ void initFramePos(List<PlatformFile> files, List<FrameImage> frameImageList, Pro
 
     // TODO: 真ん中になるように調整
     double currentHeight = 100;
+    bool rightToLeft = false;
     frameStepMap.forEach((_pageIndex, _frameMap) {
       print(" -- page $_pageIndex ");
+
+      List<FramePagePos> samePageFrameList = frameStepMap[_pageIndex]?.values.toList() ?? [];
+
       _frameMap.forEach((_frameIndex, _frameStepData) {
-        String _imageTitle(){
-          int pageNumCutLength = frameStepMap.length >= 100 ? -3:-2;
-          String fullPageNum = '00000' + (_pageIndex+1).toString();
-          String cutPageNum  = fullPageNum.substring(fullPageNum.length+pageNumCutLength);
 
-          int frameNumCutLength = _frameMap.length >= 100 ? -3:-2;
-          String fullFrameNum = '00000' + (_frameIndex+1).toString();
-          String cutFrameNum  = fullFrameNum.substring(fullFrameNum.length+frameNumCutLength);
+        FrameImage targetFrame = _frameStepData.frameImageData;
 
-          return cutPageNum + "p_" + cutFrameNum + ".png";
-        }
-
-        // すでにwebに設定済みのデータがある（読み込み済み）なら、なにもせずに終了
-        int targetFrameIndex = frameImageList.indexWhere((_frameImage) => _frameImage.name == _imageTitle());
-        if( targetFrameIndex < 0 ) return;
-
-        FrameImage targetFrame = frameImageList[targetFrameIndex];
-
-        // TODO: 配置に関してはこいつを良い感じにする
         void setFrameInitPos(){
-          math.Point<double> calcPosition(){
 
-            FramePagePos? preFramePos = frameStepMap[_pageIndex]?[_frameIndex-1];
-            FramePagePos? currentFramePos = frameStepMap[_pageIndex]?[_frameIndex];
+          FramePagePos? currentFramePos = frameStepMap[_pageIndex]?[_frameIndex];
 
-            // ignore: prefer_const_constructors
-            return math.Point(0, currentHeight);
+          // コマとして認識できていない場合は、横幅いっぱいのコマにする
+          if( currentFramePos == null ){
+            rightToLeft = !rightToLeft;
+            targetFrame.position = math.Point(0, currentHeight);
+            targetFrame.sizeRate = defaultCanvasWidth/targetFrame.rotateSize.x;
+            return;
           }
 
-          targetFrame.position = calcPosition();
+          List<FramePagePos> sameStepFrameList = samePageFrameList.where((_frameData) => _frameData.step == currentFramePos.step).toList();
+          if( sameStepFrameList.first == currentFramePos ) rightToLeft = !rightToLeft;
 
-          currentHeight = currentHeight + 100;
+          // 前後のコマが別の段落だった場合は、横幅いっぱいのコマ
+          if( sameStepFrameList.length == 1){
+            targetFrame.position = math.Point(0, currentHeight);
+            targetFrame.sizeRate = defaultCanvasWidth/targetFrame.rotateSize.x;
+            return;
+          }
+
+          void setFrameSizeAndPosFunc(){
+            double maxWidth = 0.0;
+            for (FramePagePos _frame in sameStepFrameList) { maxWidth += _frame.frameImageData.rotateSize.x; }
+
+            // TODO: ちょっとかぶるようにする
+            // TODO: 同じ段落で、上下がある場合は、それも対応
+
+            double xPos = 0.0;
+            for (FramePagePos _frame in sameStepFrameList) {
+              double rate = 1/maxWidth * defaultCanvasWidth;
+              double resizeWidth = _frame.frameImageData.rotateSize.x * rate;
+
+              // 対象のコマはなにもしない
+              if( _frame != currentFramePos ){
+                xPos += resizeWidth;
+                continue;
+              }
+
+              // ちょっとコマがかぶるように大きくする
+              double overRateSize = 0.2;
+              _frame.frameImageData.sizeRate = rate + overRateSize;
+              double pos = rightToLeft ? 
+                defaultCanvasWidth - xPos - (_frame.frameImageData.rotateSize.x*(rate+overRateSize/2))
+                : xPos;
+
+              _frame.frameImageData.position = math.Point( 
+                // 画面外にいかない対応
+                math.min( math.max(0, pos), defaultCanvasWidth - (_frame.frameImageData.rotateSize.x*(rate+overRateSize)), ),
+                currentHeight
+              );
+
+              xPos += resizeWidth;
+            }
+          }
+
+          setFrameSizeAndPosFunc();
+
+          return;
         }
 
         setFrameInitPos();
 
-        // 枠を超えていた場合は、rateで枠内に収まるようにする
-        if( targetFrame.rotateSize.x > defaultCanvasWidth ) targetFrame.sizeRate = targetFrame.rotateSize.x/defaultCanvasWidth;
-
         targetFrame.save();
 
+        // TODO: stepの状態でスペースを設ける
         currentHeight = targetFrame.position.y + targetFrame.rotateSize.y * targetFrame.sizeRate;
       });
     });
@@ -172,8 +218,9 @@ class FramePagePos {
   final int x;
   final int y;
   final int step;
+  final FrameImage frameImageData;
 
-  FramePagePos(this.x, this.y, this.step);
+  FramePagePos(this.x, this.y, this.step, this.frameImageData);
 
   @override
   String toString() {
