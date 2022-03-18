@@ -48,7 +48,7 @@ Future<void> initLoadImage(List<PlatformFile> files, List<FrameImage> frameImage
         size        : math.Point(_image.width.toDouble(), _image.height.toDouble())
       );
       newImage.sizeRate = defaultCanvasWidth/newImage.rotateSize.x;
-      
+
       newImage.save();
       frameImageBytes[newImage.dbIndex] = _file.bytes!;
 
@@ -65,7 +65,6 @@ void initFramePos(List<PlatformFile> files, List<FrameImage> frameImageList, Pro
     // map作成
     Map<int, Map<int, FramePagePos>> frameStepMap = _createFrameStepMap(_file, frameImageList);
 
-    // TODO: 真ん中になるように調整
     double currentHeight  = 100;
     double preFrameHeight = 0;
     bool rightToLeft = false;
