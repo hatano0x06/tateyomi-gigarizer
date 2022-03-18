@@ -13,6 +13,9 @@ import 'package:tateyomi_gigarizer/model/project.dart';
 import 'dart:convert';
 
 
+// comico設定　https://tips.clip-studio.com/ja-jp/articles/2781#:~:text=%E8%A7%A3%E5%83%8F%E5%BA%A6%E3%81%AF%E5%8D%B0%E5%88%B7%E3%81%AE%E9%9A%9B,%E3%81%99%E3%82%8B%E3%81%93%E3%81%A8%E3%81%8C%E5%A4%9A%E3%81%84%E3%81%A7%E3%81%99%E3%80%82
+const double defaultCanvasWidth = 690;
+
 Future<void> initLoadImage(List<PlatformFile> files, List<FrameImage> frameImageList, Map<String, Uint8List> frameImageBytes, Project project) async {
   await Future.forEach(files.where((_file) => _file.extension != null && _file.extension == "png").toList(), (PlatformFile _file) async {
     if(_file.bytes == null) return;
@@ -44,6 +47,8 @@ Future<void> initLoadImage(List<PlatformFile> files, List<FrameImage> frameImage
         position    : const math.Point<double>(0,0),
         size        : math.Point(_image.width.toDouble(), _image.height.toDouble())
       );
+      newImage.sizeRate = defaultCanvasWidth/newImage.rotateSize.x;
+      
       newImage.save();
       frameImageBytes[newImage.dbIndex] = _file.bytes!;
 
@@ -59,9 +64,6 @@ void initFramePos(List<PlatformFile> files, List<FrameImage> frameImageList, Pro
 
     // map作成
     Map<int, Map<int, FramePagePos>> frameStepMap = _createFrameStepMap(_file, frameImageList);
-
-    // comico設定　https://tips.clip-studio.com/ja-jp/articles/2781#:~:text=%E8%A7%A3%E5%83%8F%E5%BA%A6%E3%81%AF%E5%8D%B0%E5%88%B7%E3%81%AE%E9%9A%9B,%E3%81%99%E3%82%8B%E3%81%93%E3%81%A8%E3%81%8C%E5%A4%9A%E3%81%84%E3%81%A7%E3%81%99%E3%80%82
-    const double defaultCanvasWidth = 690;
 
     // TODO: 真ん中になるように調整
     double currentHeight  = 100;
@@ -203,7 +205,6 @@ void initFramePos(List<PlatformFile> files, List<FrameImage> frameImageList, Pro
         _frameStepData.frameImageData.save();
       });
     });
-
 
     project.canvasSize = Size(defaultCanvasWidth, currentHeight + 100);
     project.save();
