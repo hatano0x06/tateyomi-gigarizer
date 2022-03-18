@@ -1007,6 +1007,9 @@ class EditPageState extends State<EditPage> {
   /* -----  コマ周り ----- */
 
   List<Widget> _frameBodyList(){
+
+    frameImageList.sort((FrameImage a, FrameImage b){ return a.position.y.compareTo(b.position.y); });
+
     List<Widget> showWidgetList = [];
 
     for (FrameImage _frameData in frameImageList) {
