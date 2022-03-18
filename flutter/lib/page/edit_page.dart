@@ -1,6 +1,5 @@
 // ignore_for_file: avoid_print, constant_identifier_names
 
-import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:adaptive_scrollbar/adaptive_scrollbar.dart';
@@ -18,11 +17,10 @@ import 'package:tateyomi_gigarizer/page/parts/background_color_detail_box.dart';
 import 'package:tateyomi_gigarizer/page/parts/canvas_detail_box.dart';
 import 'package:tateyomi_gigarizer/page/parts/corner_ball.dart';
 import 'package:tateyomi_gigarizer/dialog/shortcuts_info_dialog.dart';
-import 'dart:ui' as ui;
 import 'package:universal_html/html.dart' as html;
 import 'dart:math' as math;
-import 'dart:convert';
 
+import 'init_frame_position.dart';
 import 'parts/frame_detail_box.dart';
 
 class EditPage extends StatefulWidget {
@@ -1307,164 +1305,10 @@ class EditPageState extends State<EditPage> {
       backGroundColorChangeList = await widget.dbInstance.getBackGroundColorList(widget.project);
 
       // 画像読み込み
-      await Future.forEach(result.files.where((_file) => _file.extension != null && _file.extension == "png").toList(), (PlatformFile _file) async {
-        if(_file.bytes == null) return;
-
-        Future<ui.Image> _loadImage(Uint8List _charThumbImg) async {
-          final Completer<ui.Image> completer = Completer();
-
-          ui.decodeImageFromList(_charThumbImg, (ui.Image convertedImg) {
-            return completer.complete(convertedImg);
-          });
-          return completer.future;
-        }
-                    
-        ui.Image _image = await _loadImage(_file.bytes!);
-
-        try{
-          FrameImage frameImage = frameImageList.singleWhere((_frameImage) => _frameImage.name == _file.name);
-          frameImageBytes[frameImage.dbIndex] = _file.bytes!;
-          frameImage.size = math.Point(_image.width.toDouble(), _image.height.toDouble());
-        } catch(e){
-          FrameImage newImage = FrameImage(
-            dbInstance  : widget.dbInstance,
-            project     : widget.project,
-            dbIndex     : "",
-            byteData    : null, 
-            name        : _file.name,
-            angle       : 0,
-            sizeRate    : 1.0,
-            position    : const math.Point<double>(0,0),
-            size        : math.Point(_image.width.toDouble(), _image.height.toDouble())
-          );
-          newImage.save();
-          frameImageBytes[newImage.dbIndex] = _file.bytes!;
-
-          frameImageList.add( newImage );
-        }
-      });
-      
-      setState(() { });
-
+      await initLoadImage(result.files, frameImageList, frameImageBytes, widget.project);
       // 設定読み込み
-      for (PlatformFile _file in result.files.where((_file) => _file.extension != null && _file.extension == "json").toList()) {
-        if(_file.bytes == null) continue;
-
-        // map作成
-        Map<int, Map<int, Map<String, int>>> frameStepMap = {};
-
-        List<dynamic> jsonData = json.decode(utf8.decode(_file.bytes!)); 
-        // List<List<Map<String, dynamic>>> jsonData = json.decode(utf8.decode(_file.bytes!)); 
-        // print( jsonData );
-        jsonData.asMap().forEach((_pageIndex, _pageValueJson) {
-          if( !frameStepMap.containsKey(_pageIndex) ) frameStepMap[_pageIndex] = {};
-
-          List<dynamic> _pageJson  = _pageValueJson as List<dynamic>;
-
-          // print( "frameNum in Page : $_pageIndex" );
-          _pageJson.asMap().forEach((_frameIndex, _frameValuejson) {
-            Map<String, dynamic> _framejson  = _frameValuejson as Map<String, dynamic>;
-            int frameNum = _framejson["FrameNumber"];
-            if( !frameStepMap[_pageIndex]!.containsKey(frameNum) ) frameStepMap[_pageIndex]![frameNum] = {};
-
-            // {SpeakBlockList: [], Cornermath.Points: [{X: 0, Y: 0}, {X: 502, Y: 0}, {X: 505, Y: 259}, {X: 0, Y: 259}], FrameNumber: 0, StepData: {X: 0, Y: 0, StepNum: 0}}
-            // print(_framejson);
-
-            frameStepMap[_pageIndex]![frameNum] = {
-              "x" :_framejson["StepData"]["X"],
-              "y" :_framejson["StepData"]["Y"],
-              "step" :_framejson["StepData"]["StepNum"],
-            };
-
-            setState(() { });
-
-          });
-        });
-
-        print( frameStepMap );
-
-        /*
-        {
-          0: {
-            0: {x: 0, y: 0, step: 0}, 
-            1: {x: 0, y: 0, step: 1}, 
-            2: {x: 0, y: 0, step: 2}, 
-            3: {x: 1, y: 0, step: 2}, 
-            4: {x: 2, y: 0, step: 2}
-          }, 
-          1: {
-            0: {x: 0, y: 0, step: 0}, 
-            1: {x: 0, y: 0, step: 1}, 
-            2: {x: 1, y: 0, step: 1}, 
-            3: {x: 0, y: 0, step: 2}, 
-            4: {x: 1, y: 0, step: 2}, 
-            5: {x: 2, y: 0, step: 2}
-          }
-        }
-        */
-
-        // comico設定　https://tips.clip-studio.com/ja-jp/articles/2781#:~:text=%E8%A7%A3%E5%83%8F%E5%BA%A6%E3%81%AF%E5%8D%B0%E5%88%B7%E3%81%AE%E9%9A%9B,%E3%81%99%E3%82%8B%E3%81%93%E3%81%A8%E3%81%8C%E5%A4%9A%E3%81%84%E3%81%A7%E3%81%99%E3%80%82
-        const double defaultCanvasWidth = 690;
-
-        // TODO: 真ん中になるように調整
-        double currentHeight = 100;
-        frameStepMap.forEach((_pageIndex, _frameMap) {
-          _frameMap.forEach((_frameIndex, _frameStepData) {
-            String _imageTitle(){
-              int pageNumCutLength = frameStepMap.length >= 100 ? -3:-2;
-              String fullPageNum = '00000' + (_pageIndex+1).toString();
-              String cutPageNum  = fullPageNum.substring(fullPageNum.length+pageNumCutLength);
-
-              int frameNumCutLength = _frameMap.length >= 100 ? -3:-2;
-              String fullFrameNum = '00000' + (_frameIndex+1).toString();
-              String cutFrameNum  = fullFrameNum.substring(fullFrameNum.length+frameNumCutLength);
-
-              return cutPageNum + "p_" + cutFrameNum + ".png";
-            }
-
-            // すでにwebに設定済みのデータがある（読み込み済み）なら、なにもせずに終了
-            int targetFrameIndex = frameImageList.indexWhere((_frameImage) => _frameImage.name == _imageTitle());
-            if( targetFrameIndex < 0 ) return;
-
-            FrameImage targetFrame = frameImageList[targetFrameIndex];
-
-            // TODO: 配置に関してはこいつを良い感じにする
-            void setFrameInitPos(){
-              math.Point<double> calcPosition(){
-
-              print( frameStepMap[_pageIndex]?[_frameIndex] ?? {} );
-
-            // frameStepMap[_pageIndex]![frameNum] = {
-
-                // ignore: prefer_const_constructors
-                return math.Point(0, currentHeight + 100);
-              }
-
-              targetFrame.position = calcPosition();
-
-              currentHeight = currentHeight + 100;
-            }
-
-            setFrameInitPos();
-
-            // 枠を超えていた場合は、rateで枠内に収まるようにする
-            if( targetFrame.rotateSize.x > defaultCanvasWidth ) targetFrame.sizeRate = targetFrame.rotateSize.x/defaultCanvasWidth;
-
-            targetFrame.save();
-
-            currentHeight = targetFrame.position.y + targetFrame.rotateSize.y * targetFrame.sizeRate;
-          });
-        });
-
-        widget.project.canvasSize = Size(defaultCanvasWidth, currentHeight + 100);
-        _canvasDetailKey.currentState?.updateTextField();
-
-        widget.project.save();
-        setState(() { });
-
-        //  ないなら、ファイルを作って保存処理＋自然配置
-        continue;
-      }
+      initFramePos(result.files, frameImageList, widget.project);
+      setState(() { });
     });
   }  
 
