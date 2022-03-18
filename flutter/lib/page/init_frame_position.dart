@@ -65,7 +65,7 @@ void initFramePos(List<PlatformFile> files, List<FrameImage> frameImageList, Pro
     // map作成
     Map<int, Map<int, FramePagePos>> frameStepMap = _createFrameStepMap(_file, frameImageList);
 
-    double currentHeight  = 100;
+    double currentHeight  = 225;
     double preFrameHeight = 0;
     bool rightToLeft = false;
     frameStepMap.forEach((_pageIndex, _frameMap) {
@@ -78,7 +78,7 @@ void initFramePos(List<PlatformFile> files, List<FrameImage> frameImageList, Pro
         // コマとして認識できていない場合は、横幅いっぱいのコマにする
         if( currentFramePos == null ){
           rightToLeft = !rightToLeft;
-          targetFrame.position = math.Point(0, currentHeight + (targetFrame.rotateSize.y * targetFrame.sizeRate)/3);
+          targetFrame.position = math.Point(0, preFrameHeight == 0 ? currentHeight : currentHeight + (targetFrame.rotateSize.y * targetFrame.sizeRate)/3);
           targetFrame.sizeRate = defaultCanvasWidth/targetFrame.rotateSize.x;
 
           // 次のコマの高さ
@@ -94,7 +94,7 @@ void initFramePos(List<PlatformFile> files, List<FrameImage> frameImageList, Pro
 
         // 前後のコマが別の段落だった場合は、横幅いっぱいのコマ
         if( sameStepFrameList.length == 1){
-          targetFrame.position = math.Point(0, currentHeight + (targetFrame.rotateSize.y * targetFrame.sizeRate)/3);
+          targetFrame.position = math.Point(0, preFrameHeight == 0 ? currentHeight : currentHeight + (targetFrame.rotateSize.y * targetFrame.sizeRate)/3);
           targetFrame.sizeRate = defaultCanvasWidth/targetFrame.rotateSize.x;
 
           // 次のコマの高さ
@@ -139,7 +139,7 @@ void initFramePos(List<PlatformFile> files, List<FrameImage> frameImageList, Pro
             _frame.frameImageData.position = math.Point( 
               // 画面外にいかない対応
               math.min( math.max(0, pos), defaultCanvasWidth - (_frame.frameImageData.rotateSize.x*(rate+overRateSize)), ),
-              currentHeight + targetFrame.rotateSize.y * targetFrame.sizeRate/4
+              preFrameHeight == 0 ? currentHeight : currentHeight + targetFrame.rotateSize.y * targetFrame.sizeRate/4
             );
 
             // 次のコマの高さ
@@ -176,7 +176,7 @@ void initFramePos(List<PlatformFile> files, List<FrameImage> frameImageList, Pro
             _frame.frameImageData.position = math.Point( 
               // 画面外にいかない対応
               math.min( math.max(0, pos), defaultCanvasWidth - (_frame.frameImageData.rotateSize.x*(rate-overRateSize)), ),
-              sameStepFrameList.first == currentFramePos ? currentHeight + targetFrame.rotateSize.y * targetFrame.sizeRate/4 : currentHeight - preFrameHeight/2
+              preFrameHeight == 0 ? currentHeight : (sameStepFrameList.first == currentFramePos ? currentHeight + targetFrame.rotateSize.y * targetFrame.sizeRate/4 : currentHeight - preFrameHeight/2)
             );
 
             // 次のコマの高さ
