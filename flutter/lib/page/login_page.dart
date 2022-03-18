@@ -57,6 +57,7 @@ class _LoginPageWidgetState extends State<LoginPageWidget> {
       widgetList.addAll([
         loginIdWidget(),
         loginButton(),
+          newProjectButton()
       ]);
     }
 

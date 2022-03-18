@@ -102,6 +102,8 @@ class DbFireStore implements DbImpl {
 
         // 追加
         if(_doc.type == DocumentChangeType.added){
+          if( !_cachedProjectList.containsKey(baseProjRef().path) ) _cachedProjectList[baseProjRef().path] = [];
+
           List<Project> storedProject = _cachedProjectList[baseProjRef().path]!.where( (_cacheProj){ return ( _cacheProj.dbIndex.isEmpty || _cacheProj.dbIndex == _changeProject.dbIndex ); } ).toList();
           if(storedProject.isNotEmpty) return;   // すでにある場合は、なにもしない
 
@@ -112,7 +114,7 @@ class DbFireStore implements DbImpl {
         }        
 
         // 更新
-        List<Project> storedProject = _cachedProjectList[baseProjRef().path]!.where( (_cacheProj){ return ( _cacheProj.dbIndex == _changeProject.dbIndex ); } ).toList();
+        List<Project> storedProject = _cachedProjectList[baseProjRef().path]?.where( (_cacheProj){ return ( _cacheProj.dbIndex == _changeProject.dbIndex ); } ).toList() ?? [];
         if( storedProject.isEmpty ) return;
 
         Project storedChangedProject = storedProject.first;
@@ -224,6 +226,7 @@ class DbFireStore implements DbImpl {
 
         // 追加
         if(_doc.type == DocumentChangeType.added){
+          if( !_cachedFrameList.containsKey(_changeFrame.project) ) _cachedFrameList[_changeFrame.project] = [];
           List<FrameImage> storedFrame = _cachedFrameList[_changeFrame.project]!.where( (_cacheFrame){ return ( _cacheFrame.dbIndex.isEmpty || _cacheFrame.dbIndex == _changeFrame.dbIndex ); } ).toList();
           if(storedFrame.isNotEmpty) return;   // すでにある場合は、なにもしない
 
@@ -234,7 +237,7 @@ class DbFireStore implements DbImpl {
         }        
 
         // 更新
-        List<FrameImage> storedFrame = _cachedFrameList[_changeFrame.project]!.where( (_cacheFrame){ return ( _cacheFrame.dbIndex == _changeFrame.dbIndex ); } ).toList();
+        List<FrameImage> storedFrame = _cachedFrameList[_changeFrame.project]?.where( (_cacheFrame){ return ( _cacheFrame.dbIndex == _changeFrame.dbIndex ); } ).toList() ?? [];
         if( storedFrame.isEmpty ) return;
 
         FrameImage storedChangedFrame = storedFrame.first;
@@ -351,6 +354,8 @@ class DbFireStore implements DbImpl {
 
         // 追加
         if(_doc.type == DocumentChangeType.added){
+          if( !_cachedBackgroundColorList.containsKey(_changeBackgroundColor.project) ) _cachedBackgroundColorList[_changeBackgroundColor.project] = [];
+
           List<BackGroundColorChange> storedBackGround = _cachedBackgroundColorList[_changeBackgroundColor.project]!.where( (_cachedBackgroundColor){ return ( _cachedBackgroundColor.dbIndex.isEmpty || _cachedBackgroundColor.dbIndex == _changeBackgroundColor.dbIndex ); } ).toList();
           if(storedBackGround.isNotEmpty) return;   // すでにある場合は、なにもしない
 
@@ -361,7 +366,7 @@ class DbFireStore implements DbImpl {
         }        
 
         // 更新
-        List<BackGroundColorChange> storedBackGround = _cachedBackgroundColorList[_changeBackgroundColor.project]!.where( (_cachedBackgroundColor){ return ( _cachedBackgroundColor.dbIndex == _changeBackgroundColor.dbIndex ); } ).toList();
+        List<BackGroundColorChange> storedBackGround = _cachedBackgroundColorList[_changeBackgroundColor.project]?.where( (_cachedBackgroundColor){ return ( _cachedBackgroundColor.dbIndex == _changeBackgroundColor.dbIndex ); } ).toList() ?? [];
         if( storedBackGround.isEmpty ) return;
 
         BackGroundColorChange storedChangedBackGround = storedBackGround.first;
