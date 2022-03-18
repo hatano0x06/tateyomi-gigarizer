@@ -1381,6 +1381,8 @@ class EditPageState extends State<EditPage> {
           });
         });
 
+        print( frameStepMap );
+
         /*
         {
           0: {
@@ -1404,7 +1406,8 @@ class EditPageState extends State<EditPage> {
         // comico設定　https://tips.clip-studio.com/ja-jp/articles/2781#:~:text=%E8%A7%A3%E5%83%8F%E5%BA%A6%E3%81%AF%E5%8D%B0%E5%88%B7%E3%81%AE%E9%9A%9B,%E3%81%99%E3%82%8B%E3%81%93%E3%81%A8%E3%81%8C%E5%A4%9A%E3%81%84%E3%81%A7%E3%81%99%E3%80%82
         const double defaultCanvasWidth = 690;
 
-        double currentHeight = 0;
+        // TODO: 真ん中になるように調整
+        double currentHeight = 100;
         frameStepMap.forEach((_pageIndex, _frameMap) {
           _frameMap.forEach((_frameIndex, _frameStepData) {
             String _imageTitle(){
@@ -1426,14 +1429,23 @@ class EditPageState extends State<EditPage> {
             FrameImage targetFrame = frameImageList[targetFrameIndex];
 
             // TODO: 配置に関してはこいつを良い感じにする
-            math.Point<double> calcPos(){
-              // ignore: prefer_const_constructors
-              if( currentHeight == 0 ) return math.Point(0,0);
+            void setFrameInitPos(){
+              math.Point<double> calcPosition(){
 
-              // ignore: prefer_const_constructors
-              return math.Point(0, currentHeight + 100);
+              print( frameStepMap[_pageIndex]?[_frameIndex] ?? {} );
+
+            // frameStepMap[_pageIndex]![frameNum] = {
+
+                // ignore: prefer_const_constructors
+                return math.Point(0, currentHeight + 100);
+              }
+
+              targetFrame.position = calcPosition();
+
+              currentHeight = currentHeight + 100;
             }
-            targetFrame.position = calcPos();
+
+            setFrameInitPos();
 
             // 枠を超えていた場合は、rateで枠内に収まるようにする
             if( targetFrame.rotateSize.x > defaultCanvasWidth ) targetFrame.sizeRate = targetFrame.rotateSize.x/defaultCanvasWidth;

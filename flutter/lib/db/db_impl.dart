@@ -38,6 +38,8 @@ class DbImpl{
 
 
   Future<List<FrameImage>> getFrameList(Project _proj) async {
+    return [];
+    
     return [
       FrameImage(
         dbIndex     : "aaaa",
@@ -75,7 +77,7 @@ class DbImpl{
 
   Future<List<BackGroundColorChange>> getBackGroundColorList(Project proj) async {
     return [
-      BackGroundColorChange(this, proj, "back1", Colors.black, 200, 200, ),
+      // BackGroundColorChange(this, proj, "back1", Colors.black, 200, 200, ),
       // BackGroundColorChange(this, proj, "back2", Colors.blue , 500, 100, ),
     ];
   }

@@ -16,9 +16,6 @@ void main() async {
   runApp(const MyApp());
 }
 
-// TODO: 縦読みの機能（２１日まで
-//  - 配置を良い感じにするgit pu
-
 // TODO: オプション
 //  android リリース(確認中)
 //  - 横に全体像が見れるやつ
@@ -45,8 +42,8 @@ class MyApp extends StatelessWidget {
       ),
       navigatorObservers: [ FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance), ],
       // // test用
-      // home: LoginPageWidget(dbInstance: DbImpl(),)
-      home: LoginPageWidget(dbInstance: DbFireStore(),),
+      home: LoginPageWidget(dbInstance: DbImpl(),)
+      // home: LoginPageWidget(dbInstance: DbFireStore(),),
     );
   }
 }
