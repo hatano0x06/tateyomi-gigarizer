@@ -88,8 +88,10 @@ class _LoginPageWidgetState extends State<LoginPageWidget> {
   List<Widget> existProjectList(){
     if(projectList.isEmpty) return [];
 
+    projectList.sort((Project a, Project b){ return b.lastOpenTime.compareTo(a.lastOpenTime); });
+
     List<Widget> widgetList = [];
-    for (var _proj in projectList) {
+    for (Project _proj in projectList) {
       widgetList.add(
         Card(
           color: Colors.grey[300],
