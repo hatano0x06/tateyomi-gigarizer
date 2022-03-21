@@ -39,11 +39,18 @@ class ViewerPageState extends State<ViewerPage> {
 
   double stricyArea = 10;
 
+  Map<String, Uint8List> frameImageBytes = {};
+  Map<String, math.Point<double>> frameImageSize = {};
+
   @override
   void initState(){
     super.initState();
     widget.dbInstance.reBuildCanvasBody = (){
       setState(() { });
+
+      for (FrameImage _frame in frameImageList) {
+        if( _frame.size.x == 0 && _frame.size.y == 0 && frameImageSize.containsKey(_frame.name) ) _frame.size = frameImageSize[_frame.name]!;
+      }
     };
 
     verticalScrollController.addListener(() { setState(() { }); });
@@ -86,7 +93,7 @@ class ViewerPageState extends State<ViewerPage> {
 
   bool isImageLoaded(){
     if( widget.project.canvasSize == Size.zero ) return false;
-    return frameImageList.where((_frameImage) => _frameImage.byteData != null).isNotEmpty;
+    return frameImageBytes.isNotEmpty;
   }
 
   double rate(){
@@ -240,7 +247,7 @@ class ViewerPageState extends State<ViewerPage> {
     List<Widget> showWidgetList = [];
 
     for (FrameImage _frameData in frameImageList) {
-      if( _frameData.byteData == null ) continue;
+      if( !frameImageBytes.containsKey(_frameData.dbIndex)) continue;
       if( _frameData.sizeRate <= 0.0 ) continue;
 
       showWidgetList.add(_frameDraggingWidget(_frameData));
@@ -256,7 +263,7 @@ class ViewerPageState extends State<ViewerPage> {
     Widget dragging = RotatedBox(
       quarterTurns: _frameData.angle,
       child : Image.memory(
-        _frameData.byteData!, 
+        frameImageBytes[_frameData.dbIndex]!,
         width: _frameData.size.x * _frameData.sizeRate * rate(), 
         // height: _frameData.size.y,
         fit: BoxFit.fitWidth, 
@@ -307,10 +314,15 @@ class ViewerPageState extends State<ViewerPage> {
 
         try{
           FrameImage frameImage = frameImageList.singleWhere((_frameImage) => _frameImage.name == _file.name);
-          frameImage.byteData = imageBytes;
+          frameImageBytes[frameImage.dbIndex] = _file.bytes!;
+          frameImageSize[frameImage.dbIndex] = math.Point(_image.width.toDouble(), _image.height.toDouble());
           frameImage.size = math.Point(_image.width.toDouble(), _image.height.toDouble());
         // ignore: empty_catches
-        } catch(e){ }
+        } catch(e){
+          frameImageBytes[_file.name] = _file.bytes!;
+          frameImageSize[_file.name] = math.Point(_image.width.toDouble(), _image.height.toDouble());
+        }
+
       });
       
       setState(() { });

@@ -16,31 +16,31 @@ import 'dart:convert';
 // comico設定　https://tips.clip-studio.com/ja-jp/articles/2781#:~:text=%E8%A7%A3%E5%83%8F%E5%BA%A6%E3%81%AF%E5%8D%B0%E5%88%B7%E3%81%AE%E9%9A%9B,%E3%81%99%E3%82%8B%E3%81%93%E3%81%A8%E3%81%8C%E5%A4%9A%E3%81%84%E3%81%A7%E3%81%99%E3%80%82
 const double defaultCanvasWidth = 690;
 
-Future<void> initLoadImage(List<PlatformFile> files, List<FrameImage> frameImageList, Map<String, Uint8List> frameImageBytes, Project project) async {
+Future<ui.Image> _loadImage(Uint8List _charThumbImg) async {
+  final Completer<ui.Image> completer = Completer();
+
+  ui.decodeImageFromList(_charThumbImg, (ui.Image convertedImg) {
+    return completer.complete(convertedImg);
+  });
+  return completer.future;
+}
+
+Future<void> initLoadImage(List<PlatformFile> files, List<FrameImage> frameImageList, Map<String, Uint8List> frameImageBytes, Map<String, math.Point> frameImageSize, Project project) async {
   await Future.forEach(files.where((_file) => _file.extension != null && _file.extension == "png").toList(), (PlatformFile _file) async {
     if(_file.bytes == null) return;
 
-    Future<ui.Image> _loadImage(Uint8List _charThumbImg) async {
-      final Completer<ui.Image> completer = Completer();
-
-      ui.decodeImageFromList(_charThumbImg, (ui.Image convertedImg) {
-        return completer.complete(convertedImg);
-      });
-      return completer.future;
-    }
-                
     ui.Image _image = await _loadImage(_file.bytes!);
 
     try{
       FrameImage frameImage = frameImageList.singleWhere((_frameImage) => _frameImage.name == _file.name);
       frameImageBytes[frameImage.dbIndex] = _file.bytes!;
+      frameImageSize[frameImage.dbIndex] = math.Point(_image.width.toDouble(), _image.height.toDouble());
       frameImage.size = math.Point(_image.width.toDouble(), _image.height.toDouble());
     } catch(e){
       FrameImage newImage = FrameImage(
         dbInstance  : project.dbInstance,
         project     : project,
         dbIndex     : "",
-        byteData    : null, 
         name        : _file.name,
         angle       : 0,
         sizeRate    : 1.0,

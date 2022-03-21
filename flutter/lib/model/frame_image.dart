@@ -1,7 +1,6 @@
 // コマデータ
 
 import 'dart:math';
-import 'dart:typed_data';
 import 'dart:convert';
 
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
@@ -19,7 +18,6 @@ class FrameImage{
   late Point<double> position;
   late int angle;
 
-  late Uint8List? byteData;  // こいつは保存しない
   late Point<double> size;   // こいつは保存しない
 
   FrameImage(
@@ -36,7 +34,6 @@ class FrameImage{
       required this.angle, 
 
       // ファイルから後でわかるやつ
-      required this.byteData, 
       required this.size, 
     }
   );
@@ -111,7 +108,6 @@ class FrameImage{
       position  : position,
       size      : size,
       sizeRate  : sizeRate,
-      byteData  : byteData,
     );
   }
 

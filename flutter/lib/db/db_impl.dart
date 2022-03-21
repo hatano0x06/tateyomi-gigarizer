@@ -50,7 +50,6 @@ class DbImpl{
         sizeRate    : 1.0,
         position    : const Point<double>(0,0),
         size        : const Point(200,200),
-        byteData    : null, 
       ),
       FrameImage(
         dbIndex     : "bbbb",
@@ -61,7 +60,6 @@ class DbImpl{
         sizeRate    : 1.0,
         position    : const Point<double>(100,100),
         size        : const Point(200,200),
-        byteData    : null, 
       ),
     ];
   }

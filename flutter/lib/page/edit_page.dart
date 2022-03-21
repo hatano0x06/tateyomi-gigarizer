@@ -60,6 +60,7 @@ class EditPageState extends State<EditPage> {
   List<HistoryData> futureLog   = [];
 
   Map<String, Uint8List> frameImageBytes = {};
+  Map<String, math.Point<double>> frameImageSize = {};
 
   @override
   void initState(){
@@ -74,6 +75,11 @@ class EditPageState extends State<EditPage> {
       if( focusBackGroundColorChange != null ){
         if( backGroundColorChangeList.indexWhere((_backlist) => _backlist.dbIndex == focusBackGroundColorChange!.dbIndex) < 0 ) focusBackGroundColorChange = null;
       }      
+
+      for (FrameImage _frame in frameImageList) {
+        if( _frame.size.x == 0 && _frame.size.y == 0 && frameImageSize.containsKey(_frame.name) ) _frame.size = frameImageSize[_frame.name]!;
+      }
+
       setState(() { });
     };
 
@@ -1319,7 +1325,7 @@ class EditPageState extends State<EditPage> {
       backGroundColorChangeList = await widget.dbInstance.getBackGroundColorList(widget.project);
 
       // 画像読み込み
-      await initLoadImage(result.files, frameImageList, frameImageBytes, widget.project);
+      await initLoadImage(result.files, frameImageList, frameImageBytes, frameImageSize, widget.project);
       // 設定読み込み
       initFramePos(result.files, frameImageList, widget.project);
       setState(() { });

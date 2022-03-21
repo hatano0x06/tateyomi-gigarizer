@@ -187,7 +187,6 @@ class DbFireStore implements DbImpl {
         sizeRate    : checkDouble(snapData["size_rate"], 1.0),
         position    : Point<double>( checkDouble(snapData["position_x"], 0), checkDouble(snapData["position_y"], 0), ),
         angle       : snapData["angle"] ?? 0,
-        byteData    : null,
         size        : const Point<double>(0,0),
       );
       return addFrameImage;
