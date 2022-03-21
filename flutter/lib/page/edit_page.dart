@@ -825,6 +825,7 @@ class EditPageState extends State<EditPage> {
           ballDiameter: ballDiameter,
           onDragStart : (){ addHistory(typeEdit, widget.project.clone()); },
           onDragEnd   : (){
+            setCanvasEdit(true);
             _canvasDetailKey.currentState?.updateTextField();
             widget.project.save();
           },
