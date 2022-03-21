@@ -83,7 +83,7 @@ class ViewerPageState extends State<ViewerPage> {
               fontSize: 16.0
             );
 
-            CanvasToImage(widget.project, frameImageList, backGroundColorChangeList).download();
+            CanvasToImage(widget.project, frameImageList, backGroundColorChangeList, frameImageBytes).download();
           },
         )
       )
@@ -297,6 +297,7 @@ class ViewerPageState extends State<ViewerPage> {
       await Future.forEach(result.files, (PlatformFile _file) async {
         if( _file.path == null ) return;
         if( !(await File(_file.path!).exists()) ) return;
+        if( _file.bytes == null ) return;
 
         Uint8List imageBytes = File(_file.path!).readAsBytesSync();
         if( imageBytes.isEmpty ) return;
@@ -319,8 +320,6 @@ class ViewerPageState extends State<ViewerPage> {
           frameImage.size = math.Point(_image.width.toDouble(), _image.height.toDouble());
         // ignore: empty_catches
         } catch(e){
-          frameImageBytes[_file.name] = _file.bytes!;
-          frameImageSize[_file.name] = math.Point(_image.width.toDouble(), _image.height.toDouble());
         }
 
       });

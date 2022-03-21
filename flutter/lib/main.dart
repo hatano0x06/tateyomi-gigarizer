@@ -16,8 +16,6 @@ void main() async {
   runApp(const MyApp());
 }
 
-// TODO: 削除時のsizeとimagebyte、スマホも
-
 // TODO: オプション
 //  - 横に全体像が見れるやつ
 //  - クラッシュログ

@@ -21,8 +21,9 @@ class CanvasToImage{
   final Project project;
   final List<FrameImage> frameImageList;
   final List<BackGroundColorChange> backgroundColorList;
+  final Map<String, Uint8List> frameImageBytes;
 
-  CanvasToImage(this.project, this.frameImageList, this.backgroundColorList, );
+  CanvasToImage(this.project, this.frameImageList, this.backgroundColorList, this.frameImageBytes, );
 
   final List<double> outputPixelList = [690, 1300];
 
@@ -106,7 +107,7 @@ class CanvasToImage{
     );
 
     _writeBackGroundColor(canvas, canvasSize, rate, backgroundColorList);
-    await _writeFrameImage(canvas, canvasSize, rate, frameImageList);
+    await _writeFrameImage(canvas, canvasSize, rate, frameImageList, frameImageBytes);
 
     // 保存
     try{
@@ -186,13 +187,13 @@ class CanvasToImage{
 
   }
 
-  Future<void> _writeFrameImage(Canvas canvas, Size canvasSize, double rate, List<FrameImage> frameImageList) async {
+  Future<void> _writeFrameImage(Canvas canvas, Size canvasSize, double rate, List<FrameImage> frameImageList, Map<String, Uint8List> frameImageBytes) async {
     // 画像の描画
     await Future.forEach(frameImageList.toList(), (FrameImage _frameData) async {
-      if( _frameData.byteData == null ) return;
+      if( !frameImageBytes.containsKey(_frameData.dbIndex)) return;
       if( _frameData.sizeRate <= 0 ) return;
 
-      ui.Image _image = await _loadImage(_frameData.byteData!);
+      ui.Image _image = await _loadImage(frameImageBytes[_frameData.dbIndex]!);
 
       Offset startPosOffset = Offset.zero;
       if( _frameData.angle == 1) startPosOffset = Offset( _frameData.size.y, 0);

@@ -13,12 +13,15 @@ class DownloadViewerBoard extends StatefulWidget {
   final Project project;
   final List<FrameImage> frameImageList;
   final List<BackGroundColorChange> backgroundColorList;
+  final Map<String, Uint8List> frameImageBytes;
+
 
   const DownloadViewerBoard({
     Key? key,
     required this.project, 
     required this.frameImageList, 
     required this.backgroundColorList, 
+    required this.frameImageBytes, 
   }):super(key:key);
   
   @override
@@ -34,7 +37,7 @@ class _DownloadViewerBoardState extends State<DownloadViewerBoard> {
     super.initState();
 
     SchedulerBinding.instance?.addPostFrameCallback((_) async {
-      Map<double, Uint8List> imageMap = await CanvasToImage(widget.project, widget.frameImageList, widget.backgroundColorList).canvasImageList();
+      Map<double, Uint8List> imageMap = await CanvasToImage(widget.project, widget.frameImageList, widget.backgroundColorList, widget.frameImageBytes).canvasImageList();
       if( imageMap.isEmpty ) return;
 
       showByteImage = imageMap[imageMap.keys.first];
@@ -51,7 +54,7 @@ class _DownloadViewerBoardState extends State<DownloadViewerBoard> {
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.repeat),
         onPressed: () async {
-          Map<double, Uint8List> imageMap = await CanvasToImage(widget.project, widget.frameImageList, widget.backgroundColorList).canvasImageList();
+          Map<double, Uint8List> imageMap = await CanvasToImage(widget.project, widget.frameImageList, widget.backgroundColorList, widget.frameImageBytes).canvasImageList();
           if( imageMap.isEmpty ) return;
 
           showByteImage = imageMap[imageMap.keys.first];

@@ -2,6 +2,7 @@
 
 import 'dart:math';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
 import 'package:tateyomi_gigarizer/model/common.dart';
@@ -49,13 +50,13 @@ class FrameImage{
     };
   }
 
-  Map<String, dynamic> toDownloadJson(){
+  Map<String, dynamic> toDownloadJson(Map<String, Uint8List> frameImageBytes){
     return {
       'angle'       : angle,
       'position'    : { "x" : position.x, "y" : position.y },
       'size'        : { "width" : size.x * sizeRate, "height" : size.y * sizeRate },
       'imageSize'   : { "width" : size.x, "height" : size.y },
-      'byteData'    : byteData != null ? ("data:image/png;base64," + base64.encode(byteData!)) : "",
+      'byteData'    : frameImageBytes.containsKey(dbIndex) ? ("data:image/png;base64," + base64.encode(frameImageBytes[dbIndex]!)) : "",
     };
   }
 
