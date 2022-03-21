@@ -40,9 +40,9 @@ class FrameDetailWidgetState extends State<FrameDetailWidget> {
   final FocusNode frameSizeRateFocusNode = FocusNode();
 
   void updateTextField(){
-    framePosXController.value = framePosXController.value.copyWith( text: widget.focusFrame.position.x.toString() );
-    framePosYController.value = framePosYController.value.copyWith( text: widget.focusFrame.position.y.toString() );
-    frameSizeRateController.value = frameSizeRateController.value.copyWith( text: widget.focusFrame.sizeRate.toString() );
+    framePosXController.value = framePosXController.value.copyWith( text: widget.focusFrame.position.x.toStringAsFixed(3) );
+    framePosYController.value = framePosYController.value.copyWith( text: widget.focusFrame.position.y.toStringAsFixed(3) );
+    frameSizeRateController.value = frameSizeRateController.value.copyWith( text: widget.focusFrame.sizeRate.toStringAsFixed(3) );
 
     setState(() { });
   }
@@ -55,9 +55,9 @@ class FrameDetailWidgetState extends State<FrameDetailWidget> {
   void initState(){
     super.initState();
     
-    framePosXController.value = framePosXController.value.copyWith( text: widget.focusFrame.position.x.toString() );
-    framePosYController.value = framePosYController.value.copyWith( text: widget.focusFrame.position.y.toString() );
-    frameSizeRateController.value = frameSizeRateController.value.copyWith( text: widget.focusFrame.sizeRate.toString() );
+    framePosXController.value = framePosXController.value.copyWith( text: widget.focusFrame.position.x.toStringAsFixed(3) );
+    framePosYController.value = framePosYController.value.copyWith( text: widget.focusFrame.position.y.toStringAsFixed(3) );
+    frameSizeRateController.value = frameSizeRateController.value.copyWith( text: widget.focusFrame.sizeRate.toStringAsFixed(3) );
   }
 
   @override
@@ -187,7 +187,7 @@ class FrameDetailWidgetState extends State<FrameDetailWidget> {
             Container(
               padding   : const EdgeInsets.symmetric(vertical: 10),
               alignment : Alignment.centerLeft,
-              child : Text("右端からの距離 : " + (widget.project.canvasSize.width - (widget.focusFrame.position.x + widget.focusFrame.rotateSize.x * widget.focusFrame.sizeRate)).toString() ),
+              child : Text("右端からの距離 : " + (widget.project.canvasSize.width - (widget.focusFrame.position.x + widget.focusFrame.rotateSize.x * widget.focusFrame.sizeRate)).toStringAsFixed(3) ),
             ),
             Align(
               alignment : Alignment.centerLeft,

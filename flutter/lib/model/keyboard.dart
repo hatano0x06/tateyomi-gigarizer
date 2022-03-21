@@ -132,7 +132,15 @@ String? rateStringValidate(String posString){
   if(posString.isEmpty) return "数字を入力してください";
 
   if( !validator.isFloat(posString) ) return "有効な形になっていません";
-  if( !validator.isFloat(posString) ) return "有効な形になっていません";
+
+  return null;
+}
+
+
+String? rateStringIntValidate(String posString){
+  if(posString.isEmpty) return "数字を入力してください";
+
+  if( !validator.isInt(posString) ) return "有効な形になっていません";
 
   return null;
 }

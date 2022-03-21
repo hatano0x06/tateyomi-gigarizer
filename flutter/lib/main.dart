@@ -17,10 +17,8 @@ void main() async {
 }
 
 // TODO: 削除時のsizeとimagebyte、スマホも
-// TODO: 倍率とかの小数点3桁(frame, project)
 
 // TODO: オプション
-//  android リリース(確認中)
 //  - 横に全体像が見れるやつ
 //  - クラッシュログ
 

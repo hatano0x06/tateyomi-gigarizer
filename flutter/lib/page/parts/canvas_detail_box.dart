@@ -42,7 +42,6 @@ class CanvasDetailWidgetState extends State<CanvasDetailWidget> {
   @override
   void initState(){
     super.initState();
-    
     canvasSizeYController.value = canvasSizeYController.value.copyWith( text: widget.project.canvasSize.height.toString() );
   }
 
@@ -86,17 +85,17 @@ class CanvasDetailWidgetState extends State<CanvasDetailWidget> {
               alignment: Alignment.centerLeft,
               child :  Text("キャンパスサイズの編集", style: TextStyle( fontWeight: FontWeight.bold), ),
             ),
-            textFormWidget(canvasSizeYController, canvasSizeYFocusNode, "縦", [FilteringTextInputFormatter.allow(RegExp('[0123456789.]'))], 
+            textFormWidget(canvasSizeYController, canvasSizeYFocusNode, "縦", [FilteringTextInputFormatter.allow(RegExp('[0123456789]'))], 
               (String? value){
                 if( value == null ) return null;
                 return rateStringValidate(value);
               },
               (){
-                if(posStringValidate(canvasSizeYController.text) != null ) return;
+                if(rateStringIntValidate(canvasSizeYController.text) != null ) return;
 
                 widget.update();
 
-                widget.project.canvasSize = Size(widget.project.canvasSize.width, double.parse(canvasSizeYController.text));
+                widget.project.canvasSize = Size(widget.project.canvasSize.width, int.parse(canvasSizeYController.text).toDouble());
                 widget.project.save();
 
                 widget.mainBuild();

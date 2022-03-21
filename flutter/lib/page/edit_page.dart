@@ -831,7 +831,7 @@ class EditPageState extends State<EditPage> {
               if( canvasDragPos.y <= backGroundColorChangeList.last.pos + backGroundColorChangeList.last.size ) return;
             }
             
-            widget.project.canvasSize = Size(widget.project.canvasSize.width, canvasDragPos.y);
+            widget.project.canvasSize = Size(widget.project.canvasSize.width, canvasDragPos.y.round().toDouble());
             setState(() { });
           },
         ),
