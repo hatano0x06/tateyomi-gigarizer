@@ -681,6 +681,9 @@ class EditPageState extends State<EditPage> {
         project         : widget.project,
         frameImageList  : frameImageList,
         mainBuild       : (){ setState(() { });},
+        update          : (){
+          addHistory(typeEdit, widget.project.clone());
+        }
       ),
     );
 

@@ -200,10 +200,21 @@ class FrameDetailWidgetState extends State<FrameDetailWidget> {
                       for (FrameImage _depandFrame in widget.focusFrameDependList) { saveList.add(_depandFrame.clone() ); }
                       widget.update(saveList);
 
-                      // TODO: angle depned
+                      double preHeight = widget.focusFrame.rotateSize.y * widget.focusFrame.sizeRate;
+
                       widget.focusFrame.angle += 1;
                       widget.focusFrame.angle = widget.focusFrame.angle%4;
                       widget.focusFrame.save();
+
+                      double postHeight = widget.focusFrame.rotateSize.y * widget.focusFrame.sizeRate;
+
+                      double diffY = preHeight - postHeight;
+
+                      for (FrameImage _depandFrame in widget.focusFrameDependList) {
+                        _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y-diffY);
+                        _depandFrame.save();
+                      }
+
                       widget.mainBuild();
                     }, 
                   ),
