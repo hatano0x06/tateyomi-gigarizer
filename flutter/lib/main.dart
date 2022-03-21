@@ -16,6 +16,8 @@ void main() async {
   runApp(const MyApp());
 }
 
+// TODO: 回転、文字入力
+
 // TODO: オプション
 //  android リリース(確認中)
 //  - 横に全体像が見れるやつ
@@ -42,8 +44,8 @@ class MyApp extends StatelessWidget {
       ),
       navigatorObservers: [ FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance), ],
       // // test用
-      // home: LoginPageWidget(dbInstance: DbImpl(),)
-      home: LoginPageWidget(dbInstance: DbFireStore(),),
+      home: LoginPageWidget(dbInstance: DbImpl(),)
+      // home: LoginPageWidget(dbInstance: DbFireStore(),),
     );
   }
 }

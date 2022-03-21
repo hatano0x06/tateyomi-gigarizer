@@ -29,6 +29,8 @@ class BackGroundColorDetailWidgetState extends State<BackGroundColorDetailWidget
   final FocusNode focusNode = FocusNode();
 
   late BackGroundColorChange tempColorChange;
+
+  bool isFirst = true;
   @override
   void initState(){
     super.initState();
@@ -48,7 +50,7 @@ class BackGroundColorDetailWidgetState extends State<BackGroundColorDetailWidget
 
       if( tempColorChange.targetColor != widget.backGroundColorChange.targetColor){
         widget.backGroundColorChange.save();
-        widget.update(tempColorChange);
+        widget.update(tempColorChange.clone());
       }
       tempColorChange = widget.backGroundColorChange.clone();
     });
@@ -58,12 +60,16 @@ class BackGroundColorDetailWidgetState extends State<BackGroundColorDetailWidget
   void dispose(){
     if( tempColorChange.targetColor != widget.backGroundColorChange.targetColor){
       widget.backGroundColorChange.save();
-      widget.update(tempColorChange);
+      widget.update(tempColorChange.clone());
     }
 
     textController.dispose();
     focusNode.dispose();
     super.dispose();
+  }
+
+  void clearFirst(){
+    isFirst = true;
   }
 
   bool isFocus(){
@@ -89,6 +95,10 @@ class BackGroundColorDetailWidgetState extends State<BackGroundColorDetailWidget
             ColorPicker(
               pickerColor   : widget.backGroundColorChange.targetColor,
               onColorChanged: (Color color) {
+                if( isFirst ){
+                  widget.update(widget.backGroundColorChange.clone());
+                  isFirst = false;
+                }
                 widget.mainBuild();
                 widget.backGroundColorChange.targetColor = color;
               },

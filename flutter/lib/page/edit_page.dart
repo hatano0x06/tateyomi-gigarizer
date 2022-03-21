@@ -353,6 +353,7 @@ class EditPageState extends State<EditPage> {
         if(targetFrame != null) return;
 
         void backgroundFunc(){
+          _backgroundColorDetailKey.currentState?.clearFirst();
           BackGroundColorChange? targetBackGround = targetBackGroundColor(_tapUp.globalPosition);
           if( focusBackGroundColorChange == targetBackGround || targetBackGround == null){
             setFocusBackGround(null);
@@ -387,6 +388,7 @@ class EditPageState extends State<EditPage> {
 
         draggingBackGroundColorChange = targetBackGroundColor(_dragStart.globalPosition);
         if( draggingBackGroundColorChange != null ){
+          _backgroundColorDetailKey.currentState?.clearFirst();
           setFocusBackGround(draggingBackGroundColorChange);
           initDragPosition = math.Point(0, draggingBackGroundColorChange!.pos);
 
@@ -487,6 +489,8 @@ class EditPageState extends State<EditPage> {
           (_canvasDetailKey.currentState?.isFocus() ?? false) || 
           (_backgroundColorDetailKey.currentState?.isFocus() ?? false)
         )  return;
+
+        _backgroundColorDetailKey.currentState?.clearFirst();
 
         setState(() { });
         if( shortCutType == TYPE_SHORTCUT_HISTORY_BACK ){
@@ -713,6 +717,7 @@ class EditPageState extends State<EditPage> {
       top   : 20,
       left  : sideSpaceWidth() + widget.project.canvasSize.width - horizonScrollController.position.pixels + 20,
       child: BackGroundColorDetailWidget(
+        key : _backgroundColorDetailKey,
         backGroundColorChange: focusBackGroundColorChange!,
         mainBuild: (){ setState(() { });},
         update: (BackGroundColorChange _backColor){
@@ -965,7 +970,7 @@ class EditPageState extends State<EditPage> {
         child: CornerBallWidget(
           cursor      : SystemMouseCursors.resizeUpDown,
           ballDiameter: ballDiameter,
-          onDragStart : (){ addHistory(typeEdit, focusBackGroundColorChange!.clone()); },
+          onDragStart : (){ addHistory(typeEdit, focusBackGroundColorChange!.clone()); _backgroundColorDetailKey.currentState?.clearFirst(); },
           onDragEnd   : (){ focusBackGroundColorChange!.save(); },
           onDrag      : (dragPos) {
             setState(() { });
@@ -986,7 +991,7 @@ class EditPageState extends State<EditPage> {
         child: CornerBallWidget(
           cursor      : SystemMouseCursors.resizeUpDown,
           ballDiameter: ballDiameter,
-          onDragStart : (){ addHistory(typeEdit, focusBackGroundColorChange!.clone()); },
+          onDragStart : (){ addHistory(typeEdit, focusBackGroundColorChange!.clone()); _backgroundColorDetailKey.currentState?.clearFirst(); },
           onDragEnd   : (){ focusBackGroundColorChange!.save(); },
           onDrag      : (dragPos) {
 
