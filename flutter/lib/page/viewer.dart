@@ -246,6 +246,8 @@ class ViewerPageState extends State<ViewerPage> {
   List<Widget> _frameBodyList(){
     List<Widget> showWidgetList = [];
 
+    print( frameImageList );
+    
     for (FrameImage _frameData in frameImageList) {
       if( !frameImageBytes.containsKey(_frameData.dbIndex)) continue;
       if( _frameData.sizeRate <= 0.0 ) continue;
@@ -297,7 +299,6 @@ class ViewerPageState extends State<ViewerPage> {
       await Future.forEach(result.files, (PlatformFile _file) async {
         if( _file.path == null ) return;
         if( !(await File(_file.path!).exists()) ) return;
-        if( _file.bytes == null ) return;
 
         Uint8List imageBytes = File(_file.path!).readAsBytesSync();
         if( imageBytes.isEmpty ) return;
@@ -313,9 +314,11 @@ class ViewerPageState extends State<ViewerPage> {
                     
         ui.Image _image = await _loadImage(imageBytes);
 
+        print( _file.name );
+
         try{
           FrameImage frameImage = frameImageList.singleWhere((_frameImage) => _frameImage.name == _file.name);
-          frameImageBytes[frameImage.dbIndex] = _file.bytes!;
+          frameImageBytes[frameImage.dbIndex] = imageBytes;
           frameImageSize[frameImage.dbIndex] = math.Point(_image.width.toDouble(), _image.height.toDouble());
           frameImage.size = math.Point(_image.width.toDouble(), _image.height.toDouble());
         // ignore: empty_catches
