@@ -77,7 +77,7 @@ class EditPageState extends State<EditPage> {
       }      
 
       for (FrameImage _frame in frameImageList) {
-        if( _frame.size.x == 0 && _frame.size.y == 0 && frameImageSize.containsKey(_frame.name) ) _frame.size = frameImageSize[_frame.name]!;
+        if( _frame.size.x == 0 && _frame.size.y == 0 && frameImageSize.containsKey(_frame.dbIndex) ) _frame.size = frameImageSize[_frame.dbIndex]!;
       }
 
       setState(() { });
@@ -1318,6 +1318,7 @@ class EditPageState extends State<EditPage> {
         allowMultiple     : true,
         type              : FileType.custom,
         allowedExtensions : frameImageList.isEmpty ? ['png', 'json'] : ['png' ],
+        withReadStream: true,
       );
 
       if(result == null) return;
@@ -1325,9 +1326,10 @@ class EditPageState extends State<EditPage> {
       backGroundColorChangeList = await widget.dbInstance.getBackGroundColorList(widget.project);
 
       // 画像読み込み
-      await initLoadImage(result.files, frameImageList, frameImageBytes, frameImageSize, widget.project);
-      // 設定読み込み
-      initFramePos(result.files, frameImageList, widget.project);
+      await initLoadImage(
+        result.files, frameImageList, frameImageBytes, frameImageSize, widget.project, 
+        (){ setState(() { }); }, (){ initFramePos(result.files, frameImageList, widget.project, (){ setState(() { }); },); }
+      );
       setState(() { });
     });
   }  

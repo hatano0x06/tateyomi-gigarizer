@@ -74,6 +74,10 @@ class _TextInputDialogState extends State<TextInputDialog> {
       autofocus       : true,
       decoration      : const InputDecoration( labelText: "タイトル", ),
       validator    : titleStringValidate,
+      onFieldSubmitted: (_){ 
+        if(titleStringValidate(_textEditingController.text) != null ) return;
+        Navigator.of(context, rootNavigator: true).pop(_textEditingController.text);
+      },
     );
 
     return Padding(

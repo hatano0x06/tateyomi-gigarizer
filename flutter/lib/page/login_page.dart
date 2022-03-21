@@ -153,16 +153,17 @@ class _LoginPageWidgetState extends State<LoginPageWidget> {
     projectList.clear();
     isEnableLoginId = false;
 
-    // widget.dbInstance.loginId = "caramelmama";
+    // TODO: asdf
+    widget.dbInstance.loginId = "caramelmama";
 
-    if( widget.dbInstance.isTest ){
-      widget.dbInstance.loginId = "caramelmama";
-    } else {
-      // TODO: firebaseのセキュリティのほうでも制限かかっているので、注意
-      // caramelmama以外許さない（一旦
-      if( loginNameController.text != "caramelmama") return;
-      widget.dbInstance.loginId = loginNameController.text;
-    }
+    // if( widget.dbInstance.isTest ){
+    //   widget.dbInstance.loginId = "caramelmama";
+    // } else {
+    //   // TODO: firebaseのセキュリティのほうでも制限かかっているので、注意
+    //   // caramelmama以外許さない（一旦
+    //   if( loginNameController.text != "caramelmama") return;
+    //   widget.dbInstance.loginId = loginNameController.text;
+    // }
 
     projectList = await widget.dbInstance.getProjectList();
     isEnableLoginId = true;
