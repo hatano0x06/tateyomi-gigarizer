@@ -246,8 +246,6 @@ class ViewerPageState extends State<ViewerPage> {
   List<Widget> _frameBodyList(){
     List<Widget> showWidgetList = [];
 
-    print( frameImageList );
-    
     for (FrameImage _frameData in frameImageList) {
       if( !frameImageBytes.containsKey(_frameData.dbIndex)) continue;
       if( _frameData.sizeRate <= 0.0 ) continue;
@@ -313,8 +311,6 @@ class ViewerPageState extends State<ViewerPage> {
         }
                     
         ui.Image _image = await _loadImage(imageBytes);
-
-        print( _file.name );
 
         try{
           FrameImage frameImage = frameImageList.singleWhere((_frameImage) => _frameImage.name == _file.name);
