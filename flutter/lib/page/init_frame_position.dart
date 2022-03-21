@@ -25,195 +25,212 @@ Future<ui.Image> _loadImage(Uint8List _charThumbImg) async {
   return completer.future;
 }
 
-Future<void> initLoadImage(List<PlatformFile> files, List<FrameImage> frameImageList, Map<String, Uint8List> frameImageBytes, Map<String, math.Point> frameImageSize, Project project) async {
-  await Future.forEach(files.where((_file) => _file.extension != null && _file.extension == "png").toList(), (PlatformFile _file) async {
-    if(_file.bytes == null) return;
+Future<void> initLoadImage(
+  List<PlatformFile> files, List<FrameImage> frameImageList, Map<String, Uint8List> frameImageBytes, Map<String, math.Point<double>> frameImageSize, Project project,
+  void Function() mainBuild, void Function() allDoneAction
+) async {
+  List<PlatformFile> fileList = files.where((_file) => _file.extension != null && _file.extension == "png").toList();
+  await Future.forEach(fileList, (PlatformFile _file) async {
+    _file.readStream?.listen((_imageByte) async {
+      Uint8List bytes = _imageByte as Uint8List;
+      ui.Image _image = await _loadImage(bytes);
 
-    ui.Image _image = await _loadImage(_file.bytes!);
+      try{
+        FrameImage frameImage = frameImageList.singleWhere((_frameImage) => _frameImage.name == _file.name);
 
-    try{
-      FrameImage frameImage = frameImageList.singleWhere((_frameImage) => _frameImage.name == _file.name);
-      frameImageBytes[frameImage.dbIndex] = _file.bytes!;
-      frameImageSize[frameImage.dbIndex] = math.Point(_image.width.toDouble(), _image.height.toDouble());
-      frameImage.size = math.Point(_image.width.toDouble(), _image.height.toDouble());
-    } catch(e){
-      FrameImage newImage = FrameImage(
-        dbInstance  : project.dbInstance,
-        project     : project,
-        dbIndex     : "",
-        name        : _file.name,
-        angle       : 0,
-        sizeRate    : 1.0,
-        position    : const math.Point<double>(0,0),
-        size        : math.Point(_image.width.toDouble(), _image.height.toDouble())
-      );
-      newImage.sizeRate = defaultCanvasWidth/newImage.rotateSize.x;
+        frameImageBytes[frameImage.dbIndex] = bytes;
+        frameImageSize[frameImage.dbIndex] = math.Point(_image.width.toDouble(), _image.height.toDouble());
+        frameImage.size = math.Point<double>(_image.width.toDouble(), _image.height.toDouble());
+      } catch(e){
+        FrameImage newImage = FrameImage(
+          dbInstance  : project.dbInstance,
+          project     : project,
+          dbIndex     : "",
+          name        : _file.name,
+          angle       : 0,
+          sizeRate    : 1.0,
+          position    : const math.Point<double>(0,0),
+          size        : math.Point(_image.width.toDouble(), _image.height.toDouble())
+        );
+        newImage.sizeRate = defaultCanvasWidth/newImage.rotateSize.x;
+        newImage.size = math.Point<double>(_image.width.toDouble(), _image.height.toDouble());
 
-      newImage.save();
-      frameImageBytes[newImage.dbIndex] = _file.bytes!;
+        frameImageList.add( newImage );
 
-      frameImageList.add( newImage );
-    }
+        newImage.save();
+        frameImageBytes[newImage.dbIndex] = bytes;
+        frameImageSize[newImage.dbIndex] = math.Point<double>(_image.width.toDouble(), _image.height.toDouble());
+
+      }
+
+      if( fileList.length == frameImageBytes.length ){
+        allDoneAction();
+        mainBuild();
+      }
+
+    });
   });
   
 }
 
-void initFramePos(List<PlatformFile> files, List<FrameImage> frameImageList, Project project){
+void initFramePos(List<PlatformFile> files, List<FrameImage> frameImageList, Project project, void Function() mainBuild){
   for (PlatformFile _file in files.where((_file) => _file.extension != null && _file.extension == "json").toList()) {
-    if(_file.bytes == null) continue;
+    _file.readStream?.listen((fileByte) async {
+      // map作成
+      Map<int, Map<int, FramePagePos>> frameStepMap = _createFrameStepMap(fileByte as Uint8List, frameImageList);
 
-    // map作成
-    Map<int, Map<int, FramePagePos>> frameStepMap = _createFrameStepMap(_file, frameImageList);
+      double currentHeight  = 225;
+      double preFrameHeight = 0;
+      bool rightToLeft = false;
+      frameStepMap.forEach((_pageIndex, _frameMap) {
+        List<FramePagePos> samePageFrameList = frameStepMap[_pageIndex]?.values.toList() ?? [];
 
-    double currentHeight  = 225;
-    double preFrameHeight = 0;
-    bool rightToLeft = false;
-    frameStepMap.forEach((_pageIndex, _frameMap) {
-      List<FramePagePos> samePageFrameList = frameStepMap[_pageIndex]?.values.toList() ?? [];
+        _frameMap.forEach((_frameIndex, _frameStepData) {
+          FrameImage targetFrame = _frameStepData.frameImageData;
+          FramePagePos? currentFramePos = frameStepMap[_pageIndex]?[_frameIndex];
 
-      _frameMap.forEach((_frameIndex, _frameStepData) {
-        FrameImage targetFrame = _frameStepData.frameImageData;
-        FramePagePos? currentFramePos = frameStepMap[_pageIndex]?[_frameIndex];
-
-        // コマとして認識できていない場合は、横幅いっぱいのコマにする
-        if( currentFramePos == null ){
-          rightToLeft = !rightToLeft;
-          targetFrame.position = math.Point(0, preFrameHeight == 0 ? currentHeight : currentHeight + (targetFrame.rotateSize.y * targetFrame.sizeRate)/3);
-          targetFrame.sizeRate = defaultCanvasWidth/targetFrame.rotateSize.x;
-
-          // 次のコマの高さ
-          currentHeight = targetFrame.position.y + targetFrame.rotateSize.y * targetFrame.sizeRate;
-          preFrameHeight = targetFrame.rotateSize.y * targetFrame.sizeRate;
-          return;
-        }
-
-        List<FramePagePos> sameStepFrameList = samePageFrameList.where((_frameData) => _frameData.step == currentFramePos.step).toList();
-
-        // 波状に配置するので、反転処理
-        if( sameStepFrameList.first == currentFramePos ) rightToLeft = !rightToLeft;
-
-        // 前後のコマが別の段落だった場合は、横幅いっぱいのコマ
-        if( sameStepFrameList.length == 1){
-          targetFrame.position = math.Point(0, preFrameHeight == 0 ? currentHeight : currentHeight + (targetFrame.rotateSize.y * targetFrame.sizeRate)/3);
-          targetFrame.sizeRate = defaultCanvasWidth/targetFrame.rotateSize.x;
-
-          // 次のコマの高さ
-          currentHeight = targetFrame.position.y + targetFrame.rotateSize.y * targetFrame.sizeRate;
-          preFrameHeight = targetFrame.rotateSize.y * targetFrame.sizeRate;
-          return;
-        }
-
-        double maxWidth = 0.0;
-        List<double> widthList = [];
-        for (FramePagePos _frame in sameStepFrameList) { widthList.add(_frame.frameImageData.rotateSize.x); maxWidth += _frame.frameImageData.rotateSize.x; }
-        widthList.sort();
-
-        
-        void wideFramePosition(){
-          double xPos = 0.0;
-          for (FramePagePos _frame in sameStepFrameList) {
-            double rate = 1/maxWidth * defaultCanvasWidth;
-            double resizeWidth = _frame.frameImageData.rotateSize.x * rate;
-
-            // 対象のコマはなにもしない
-            if( _frame != currentFramePos ){
-              xPos += resizeWidth;
-              continue;
-            }
-
-            // ちょっとコマがかぶるように大きくする
-            double overRateSize = 0.1;
-            _frame.frameImageData.sizeRate = rate + overRateSize;
-
-            // 大きくしたときに、キャンパスのサイズを超えてしまった場合は、対応
-            if( _frame.frameImageData.rotateSize.x * _frame.frameImageData.sizeRate > defaultCanvasWidth){
-              _frame.frameImageData.sizeRate = defaultCanvasWidth/_frame.frameImageData.rotateSize.x;
-              overRateSize = _frame.frameImageData.sizeRate - rate;
-            }
-
-            // 波状に配置するので、反転処理
-            double pos = rightToLeft ? 
-              defaultCanvasWidth - xPos - (_frame.frameImageData.rotateSize.x*(rate+overRateSize/2))
-              : xPos;
-
-            _frame.frameImageData.position = math.Point( 
-              // 画面外にいかない対応
-              math.min( math.max(0, pos), defaultCanvasWidth - (_frame.frameImageData.rotateSize.x*(rate+overRateSize)), ),
-              preFrameHeight == 0 ? currentHeight : currentHeight + targetFrame.rotateSize.y * targetFrame.sizeRate/4
-            );
+          // コマとして認識できていない場合は、横幅いっぱいのコマにする
+          if( currentFramePos == null ){
+            rightToLeft = !rightToLeft;
+            targetFrame.position = math.Point(0, preFrameHeight == 0 ? currentHeight : currentHeight + (targetFrame.rotateSize.y * targetFrame.sizeRate)/3);
+            targetFrame.sizeRate = defaultCanvasWidth/targetFrame.rotateSize.x;
 
             // 次のコマの高さ
             currentHeight = targetFrame.position.y + targetFrame.rotateSize.y * targetFrame.sizeRate;
             preFrameHeight = targetFrame.rotateSize.y * targetFrame.sizeRate;
+            return;
           }
-        }
 
-        void normalFramePosition(){
-          double xPos = 0.0;
-          for (FramePagePos _frame in sameStepFrameList) {
-            double rate = 1/maxWidth * defaultCanvasWidth;
-            double resizeWidth = _frame.frameImageData.rotateSize.x * rate;
+          List<FramePagePos> sameStepFrameList = samePageFrameList.where((_frameData) => _frameData.step == currentFramePos.step).toList();
 
-            // 対象のコマはなにもしない
-            if( _frame != currentFramePos ){
-              xPos += resizeWidth;
-              continue;
-            }
+          // 波状に配置するので、反転処理
+          if( sameStepFrameList.first == currentFramePos ) rightToLeft = !rightToLeft;
 
-            // ちょっとコマがかぶるように大きくする
-            double overRateSize = 0.1;
-            _frame.frameImageData.sizeRate = rate - overRateSize;
-            // TOOD: 壁橋にくっつける
-
-            // 波状に配置するので、反転処理
-            double pos = rightToLeft ? 
-              defaultCanvasWidth - xPos - (_frame.frameImageData.rotateSize.x*(rate-overRateSize/2))
-              : xPos;
-
-            if( sameStepFrameList.first == currentFramePos ) pos = rightToLeft ? defaultCanvasWidth : 0;
-            if( sameStepFrameList.last == currentFramePos ) pos = rightToLeft ? 0 : defaultCanvasWidth;
-
-            _frame.frameImageData.position = math.Point( 
-              // 画面外にいかない対応
-              math.min( math.max(0, pos), defaultCanvasWidth - (_frame.frameImageData.rotateSize.x*(rate-overRateSize)), ),
-              preFrameHeight == 0 ? currentHeight : (sameStepFrameList.first == currentFramePos ? currentHeight + targetFrame.rotateSize.y * targetFrame.sizeRate/4 : currentHeight - preFrameHeight/2)
-            );
+          // 前後のコマが別の段落だった場合は、横幅いっぱいのコマ
+          if( sameStepFrameList.length == 1){
+            targetFrame.position = math.Point(0, preFrameHeight == 0 ? currentHeight : currentHeight + (targetFrame.rotateSize.y * targetFrame.sizeRate)/3);
+            targetFrame.sizeRate = defaultCanvasWidth/targetFrame.rotateSize.x;
 
             // 次のコマの高さ
             currentHeight = targetFrame.position.y + targetFrame.rotateSize.y * targetFrame.sizeRate;
             preFrameHeight = targetFrame.rotateSize.y * targetFrame.sizeRate;
-
+            return;
           }
-        }        
 
-        bool haveWideFrame = (widthList.last > widthList[widthList.length-2] * 2.5);
-        if( haveWideFrame ){
-          wideFramePosition();
-          return;
-        }
+          double maxWidth = 0.0;
+          List<double> widthList = [];
+          for (FramePagePos _frame in sameStepFrameList) { widthList.add(_frame.frameImageData.rotateSize.x); maxWidth += _frame.frameImageData.rotateSize.x; }
+          widthList.sort();
 
-        normalFramePosition();
+          
+          void wideFramePosition(){
+            double xPos = 0.0;
+            for (FramePagePos _frame in sameStepFrameList) {
+              double rate = 1/maxWidth * defaultCanvasWidth;
+              double resizeWidth = _frame.frameImageData.rotateSize.x * rate;
+
+              // 対象のコマはなにもしない
+              if( _frame != currentFramePos ){
+                xPos += resizeWidth;
+                continue;
+              }
+
+              // ちょっとコマがかぶるように大きくする
+              double overRateSize = 0.1;
+              _frame.frameImageData.sizeRate = rate + overRateSize;
+
+              // 大きくしたときに、キャンパスのサイズを超えてしまった場合は、対応
+              if( _frame.frameImageData.rotateSize.x * _frame.frameImageData.sizeRate > defaultCanvasWidth){
+                _frame.frameImageData.sizeRate = defaultCanvasWidth/_frame.frameImageData.rotateSize.x;
+                overRateSize = _frame.frameImageData.sizeRate - rate;
+              }
+
+              // 波状に配置するので、反転処理
+              double pos = rightToLeft ? 
+                defaultCanvasWidth - xPos - (_frame.frameImageData.rotateSize.x*(rate+overRateSize/2))
+                : xPos;
+
+              _frame.frameImageData.position = math.Point( 
+                // 画面外にいかない対応
+                math.min( math.max(0, pos), defaultCanvasWidth - (_frame.frameImageData.rotateSize.x*(rate+overRateSize)), ),
+                preFrameHeight == 0 ? currentHeight : currentHeight + targetFrame.rotateSize.y * targetFrame.sizeRate/4
+              );
+
+              // 次のコマの高さ
+              currentHeight = targetFrame.position.y + targetFrame.rotateSize.y * targetFrame.sizeRate;
+              preFrameHeight = targetFrame.rotateSize.y * targetFrame.sizeRate;
+            }
+          }
+
+          void normalFramePosition(){
+            double xPos = 0.0;
+            for (FramePagePos _frame in sameStepFrameList) {
+              double rate = 1/maxWidth * defaultCanvasWidth;
+              double resizeWidth = _frame.frameImageData.rotateSize.x * rate;
+
+              // 対象のコマはなにもしない
+              if( _frame != currentFramePos ){
+                xPos += resizeWidth;
+                continue;
+              }
+
+              // ちょっとコマがかぶるように大きくする
+              double overRateSize = 0.1;
+              _frame.frameImageData.sizeRate = rate - overRateSize;
+              // TOOD: 壁橋にくっつける
+
+              // 波状に配置するので、反転処理
+              double pos = rightToLeft ? 
+                defaultCanvasWidth - xPos - (_frame.frameImageData.rotateSize.x*(rate-overRateSize/2))
+                : xPos;
+
+              if( sameStepFrameList.first == currentFramePos ) pos = rightToLeft ? defaultCanvasWidth : 0;
+              if( sameStepFrameList.last == currentFramePos ) pos = rightToLeft ? 0 : defaultCanvasWidth;
+
+              _frame.frameImageData.position = math.Point( 
+                // 画面外にいかない対応
+                math.min( math.max(0, pos), defaultCanvasWidth - (_frame.frameImageData.rotateSize.x*(rate-overRateSize)), ),
+                preFrameHeight == 0 ? currentHeight : (sameStepFrameList.first == currentFramePos ? currentHeight + targetFrame.rotateSize.y * targetFrame.sizeRate/4 : currentHeight - preFrameHeight/2)
+              );
+
+              // 次のコマの高さ
+              currentHeight = targetFrame.position.y + targetFrame.rotateSize.y * targetFrame.sizeRate;
+              preFrameHeight = targetFrame.rotateSize.y * targetFrame.sizeRate;
+
+            }
+          }        
+
+          bool haveWideFrame = (widthList.last > widthList[widthList.length-2] * 2.5);
+          if( haveWideFrame ){
+            wideFramePosition();
+            return;
+          }
+
+          normalFramePosition();
 
 
+        });
       });
-    });
 
-    // 保存処理
-    frameStepMap.forEach((_pageIndex, _frameMap) {
-      _frameMap.forEach((_frameIndex, _frameStepData) {
-        _frameStepData.frameImageData.save();
+      // 保存処理
+      frameStepMap.forEach((_pageIndex, _frameMap) {
+        _frameMap.forEach((_frameIndex, _frameStepData) {
+          _frameStepData.frameImageData.save();
+        });
       });
-    });
 
-    project.canvasSize = Size(defaultCanvasWidth, currentHeight + 100);
-    project.save();
+      project.canvasSize = Size(defaultCanvasWidth, currentHeight + 100);
+      project.save();
+
+      mainBuild();
+    });
   }
 }
 
-Map<int, Map<int, FramePagePos>> _createFrameStepMap(PlatformFile _file, List<FrameImage> frameImageList,){
+Map<int, Map<int, FramePagePos>> _createFrameStepMap(Uint8List _filebyte, List<FrameImage> frameImageList,){
   Map<int, Map<int, FramePagePos>> frameStepMap = {};
 
-  List<dynamic> jsonData = json.decode(utf8.decode(_file.bytes!)); 
+  List<dynamic> jsonData = json.decode(utf8.decode(_filebyte)); 
   // List<List<Map<String, dynamic>>> jsonData = json.decode(utf8.decode(_file.bytes!)); 
   // print( jsonData );
   jsonData.asMap().forEach((_pageIndex, _pageValueJson) {
