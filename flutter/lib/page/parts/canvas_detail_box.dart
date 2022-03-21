@@ -73,6 +73,7 @@ class CanvasDetailWidgetState extends State<CanvasDetailWidget> {
     canvasSizeYController.addListener((){
       if(posStringValidate(canvasSizeYController.text) != null ) return;
 
+      // TODO: asdf
       widget.project.canvasSize = Size(widget.project.canvasSize.width, double.parse(canvasSizeYController.text));
       widget.project.save();
 

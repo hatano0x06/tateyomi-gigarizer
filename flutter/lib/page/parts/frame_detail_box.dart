@@ -14,6 +14,7 @@ class FrameDetailWidget extends StatefulWidget {
   final List<FrameImage> focusFrameDependList;
   final void Function() mainBuild;
   final void Function() delete;
+  final void Function(List<FrameImage>) update;
 
   const FrameDetailWidget({
     Key? key, 
@@ -22,6 +23,7 @@ class FrameDetailWidget extends StatefulWidget {
     required this.focusFrameDependList, 
     required this.mainBuild, 
     required this.delete, 
+    required this.update, 
   }):super(key:key);
 
 
@@ -56,54 +58,6 @@ class FrameDetailWidgetState extends State<FrameDetailWidget> {
     framePosXController.value = framePosXController.value.copyWith( text: widget.focusFrame.position.x.toString() );
     framePosYController.value = framePosYController.value.copyWith( text: widget.focusFrame.position.y.toString() );
     frameSizeRateController.value = frameSizeRateController.value.copyWith( text: widget.focusFrame.sizeRate.toString() );
-
-    framePosXController.addListener((){
-      if(posStringValidate(framePosXController.text) != null ) return;
-
-      widget.focusFrame.position = Point<double>(double.parse(framePosXController.text), widget.focusFrame.position.y);
-      widget.focusFrame.save();
-
-      widget.mainBuild();
-    });    
-
-    framePosYController.addListener((){
-      if(posStringValidate(framePosYController.text) != null ) return;
-
-      double prePosY = widget.focusFrame.position.y;
-      double newPosY = double.parse(framePosYController.text);
-
-      widget.focusFrame.position = Point<double>(widget.focusFrame.position.x, newPosY);
-      widget.focusFrame.save();
-
-      double diffY = prePosY - newPosY;
-      for (FrameImage _depandFrame in widget.focusFrameDependList) {
-        _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y-diffY);
-        _depandFrame.save();
-      }
-
-      widget.mainBuild();
-    });    
-
-    frameSizeRateController.addListener((){
-      if(rateStringValidate(frameSizeRateController.text) != null ) return;
-
-      double _rate = double.parse(frameSizeRateController.text);
-      _rate = math.max(_rate, 0.01);
-
-      double preBottom = widget.focusFrame.rotateSize.y * widget.focusFrame.sizeRate;
-      double newBottom = widget.focusFrame.rotateSize.y * _rate;
-
-      widget.focusFrame.sizeRate = _rate;
-      widget.focusFrame.save();
-
-      double diffY = preBottom - newBottom;
-      for (FrameImage _depandFrame in widget.focusFrameDependList) {
-        _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y-diffY);
-        _depandFrame.save();
-      }
-
-      widget.mainBuild();
-    });
   }
 
   @override
@@ -123,7 +77,14 @@ class FrameDetailWidgetState extends State<FrameDetailWidget> {
   @override
   Widget build(BuildContext context) {
 
-    Widget textFormWidget(TextEditingController editController, FocusNode focusNode, String labeltext, List<TextInputFormatter> formatList, String? Function(String?)? validatorFunc){
+    Widget textFormWidget(
+      TextEditingController editController, 
+      FocusNode focusNode, 
+      String labeltext, 
+      List<TextInputFormatter> formatList, 
+      String? Function(String?)? validatorFunc,
+      void Function() onChanged,
+    ){
       return TextFormField(
         autovalidateMode: AutovalidateMode.always,
         controller  : editController,
@@ -131,6 +92,7 @@ class FrameDetailWidgetState extends State<FrameDetailWidget> {
         decoration      : InputDecoration( labelText: labeltext, ),
         inputFormatters : formatList,
         validator    : validatorFunc,
+        onChanged: (_){ onChanged(); },
       );
     }
 
@@ -152,19 +114,75 @@ class FrameDetailWidgetState extends State<FrameDetailWidget> {
               (String? value){
                 if( value == null ) return null;
                 return posStringValidate(value);
+              },
+              (){
+                if(posStringValidate(framePosXController.text) != null ) return;
+                widget.update([widget.focusFrame.clone()]);
+
+                widget.focusFrame.position = Point<double>(double.parse(framePosXController.text), widget.focusFrame.position.y);
+                widget.focusFrame.save();
+
+                widget.mainBuild();                
               }
             ),
             textFormWidget(framePosYController, framePosYFocusNode, "Y位置", [FilteringTextInputFormatter.allow(RegExp('[0123456789.-]'))], 
               (String? value){
                 if( value == null ) return null;
                 return posStringValidate(value);
+              },
+              (){
+                if(posStringValidate(framePosYController.text) != null ) return;
+
+                List<FrameImage> saveList = [widget.focusFrame.clone()];
+                for (FrameImage _depandFrame in widget.focusFrameDependList) { saveList.add(_depandFrame.clone()); }
+                widget.update(saveList);
+
+                double prePosY = widget.focusFrame.position.y;
+                double newPosY = double.parse(framePosYController.text);
+
+                widget.focusFrame.position = Point<double>(widget.focusFrame.position.x, newPosY);
+                widget.focusFrame.save();
+
+                double diffY = prePosY - newPosY;
+                for (FrameImage _depandFrame in widget.focusFrameDependList) {
+                  _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y-diffY);
+                  _depandFrame.save();
+                }
+
+                widget.mainBuild();
               }
             ),
             textFormWidget(frameSizeRateController, frameSizeRateFocusNode, "大きさ倍率", [FilteringTextInputFormatter.allow(RegExp('[0123456789.]'))], 
               (String? value){
                 if( value == null ) return null;
                 return rateStringValidate(value);
+              },
+              (){
+                if(rateStringValidate(frameSizeRateController.text) != null ) return;
+
+                List<FrameImage> saveList = [widget.focusFrame.clone()];
+                for (FrameImage _depandFrame in widget.focusFrameDependList) { saveList.add(_depandFrame.clone() ); }
+                widget.update(saveList);
+
+                double _rate = double.parse(frameSizeRateController.text);
+                _rate = math.max(_rate, 0.01);
+
+                double preBottom = widget.focusFrame.rotateSize.y * widget.focusFrame.sizeRate;
+                double newBottom = widget.focusFrame.rotateSize.y * _rate;
+
+                widget.focusFrame.sizeRate = _rate;
+                widget.focusFrame.save();
+
+                double diffY = preBottom - newBottom;
+                for (FrameImage _depandFrame in widget.focusFrameDependList) {
+                  _depandFrame.position = Point(_depandFrame.position.x, _depandFrame.position.y-diffY);
+                  _depandFrame.save();
+                }
+
+                widget.mainBuild();
+                
               }
+
             ),
             Container(
               padding   : const EdgeInsets.symmetric(vertical: 10),
@@ -178,6 +196,11 @@ class FrameDetailWidgetState extends State<FrameDetailWidget> {
                   IconButton(
                     icon: const Icon(Icons.rotate_right_outlined),
                     onPressed: (){
+                      List<FrameImage> saveList = [widget.focusFrame.clone()];
+                      for (FrameImage _depandFrame in widget.focusFrameDependList) { saveList.add(_depandFrame.clone() ); }
+                      widget.update(saveList);
+
+                      // TODO: angle depned
                       widget.focusFrame.angle += 1;
                       widget.focusFrame.angle = widget.focusFrame.angle%4;
                       widget.focusFrame.save();

@@ -705,6 +705,9 @@ class EditPageState extends State<EditPage> {
           focusFrame!.delete();
           setFocusFrame(null);
         },
+        update: (List<FrameImage> updateFrameList){
+          addHistory(typeEdit, updateFrameList);
+        },
       )
     );
   }

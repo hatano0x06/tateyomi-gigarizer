@@ -17,6 +17,8 @@ void main() async {
 }
 
 // TODO: 回転、文字入力
+// TODO: 削除時のsizeとimagebyte、スマホも
+// TODO: 倍率とかの小数点3桁
 
 // TODO: オプション
 //  android リリース(確認中)
