@@ -30,15 +30,10 @@ Future<void> initLoadImage(
   void Function() mainBuild, void Function() allDoneAction
 ) async {
   List<PlatformFile> fileList = files.where((_file) => _file.extension != null && _file.extension == "png").toList();
-  print(" ----  ");
   await Future.forEach(fileList, (PlatformFile _file) async {
     _file.readStream?.listen((_imageByte) async {
       Uint8List bytes = _imageByte as Uint8List;
       ui.Image _image = await _loadImage(bytes);
-
-
-
-      print( _file.name + " : ${bytes.length} ");
 
       try{
         FrameImage frameImage = frameImageList.singleWhere((_frameImage) => _frameImage.name == _file.name);
@@ -79,18 +74,10 @@ Future<void> initLoadImage(
 }
 
 void initFramePos(List<PlatformFile> files, List<FrameImage> frameImageList, Project project, void Function() mainBuild){
-  print(" --- ");
-  frameImageList.forEach((_frame) {
-    print( _frame.name );
-  });
-  print(" --- ");
   for (PlatformFile _file in files.where((_file) => _file.extension != null && _file.extension == "json").toList()) {
     _file.readStream?.listen((fileByte) async {
       // map作成
       Map<int, Map<int, FramePagePos>> frameStepMap = _createFrameStepMap(fileByte as Uint8List, frameImageList);
-
-      print( frameStepMap );
-
 
       double currentHeight  = 225;
       double preFrameHeight = 0;
@@ -267,8 +254,6 @@ Map<int, Map<int, FramePagePos>> _createFrameStepMap(Uint8List _filebyte, List<F
 
         return cutPageNum + "p_" + cutFrameNum + ".png";
       }
-
-      print( _imageTitle() + " : ${frameImageList.indexWhere((_frameImage) => _frameImage.name == _imageTitle())}");
 
       int targetFrameIndex = frameImageList.indexWhere((_frameImage) => _frameImage.name == _imageTitle());
       if( targetFrameIndex < 0 ) return;
