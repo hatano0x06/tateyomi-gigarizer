@@ -37,7 +37,13 @@ class _DownloadViewerBoardState extends State<DownloadViewerBoard> {
     super.initState();
 
     SchedulerBinding.instance?.addPostFrameCallback((_) async {
-      Map<double, Uint8List> imageMap = await CanvasToImage(widget.project, widget.frameImageList, widget.backgroundColorList, widget.frameImageBytes).canvasImageList();
+      Map<double, Uint8List> imageMap = await CanvasToImage(
+        widget.project, 
+        widget.frameImageList, 
+        widget.backgroundColorList, 
+        widget.frameImageBytes,
+        (await widget.project.dbInstance.getDownloadCanvasSizeList()).keys.toList()
+      ).canvasImageList();
       if( imageMap.isEmpty ) return;
 
       showByteImage = imageMap[imageMap.keys.first];
@@ -54,7 +60,13 @@ class _DownloadViewerBoardState extends State<DownloadViewerBoard> {
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.repeat),
         onPressed: () async {
-          Map<double, Uint8List> imageMap = await CanvasToImage(widget.project, widget.frameImageList, widget.backgroundColorList, widget.frameImageBytes).canvasImageList();
+          Map<double, Uint8List> imageMap = await CanvasToImage(
+            widget.project, 
+            widget.frameImageList, 
+            widget.backgroundColorList, 
+            widget.frameImageBytes,
+            (await widget.project.dbInstance.getDownloadCanvasSizeList()).keys.toList()
+          ).canvasImageList();
           if( imageMap.isEmpty ) return;
 
           showByteImage = imageMap[imageMap.keys.first];

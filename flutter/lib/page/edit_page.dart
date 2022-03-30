@@ -65,6 +65,7 @@ class EditPageState extends State<EditPage> {
   @override
   void initState(){
     super.initState();
+
     widget.dbInstance.reBuildCanvasBody = (){
       
       // 削除されていた場合は、フォーカスの解除

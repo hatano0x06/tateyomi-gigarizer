@@ -22,18 +22,9 @@ class CanvasToImage{
   final List<FrameImage> frameImageList;
   final List<BackGroundColorChange> backgroundColorList;
   final Map<String, Uint8List> frameImageBytes;
+  final List<double> outputPixelList;
 
-  CanvasToImage(this.project, this.frameImageList, this.backgroundColorList, this.frameImageBytes, );
-
-  final List<double> outputPixelList = [690, 1300];
-
-  List<double> createOutputList(){
-    List<double> outputList = outputPixelList.toList();
-    if(outputList.contains(project.canvasSize.width)) return outputList;
-    outputList.add(project.canvasSize.width);
-
-    return outputList;
-  }
+  CanvasToImage(this.project, this.frameImageList, this.backgroundColorList, this.frameImageBytes, this.outputPixelList);
 
   Future<void> download() async {
     Map<double, Uint8List> outputMap = await canvasImageList();
@@ -75,8 +66,7 @@ class CanvasToImage{
 
     Map<double, Uint8List> resultList = {};
 
-    List<double> outputWidthList = createOutputList();
-    await Future.forEach(outputWidthList.toList(), (double _canvasWidth) async {
+    await Future.forEach(outputPixelList.toList(), (double _canvasWidth) async {
       Uint8List? _image = await _saveRelationMapUnit(_canvasWidth);
       if( _image == null ) return;
 

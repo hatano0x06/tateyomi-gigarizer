@@ -45,6 +45,7 @@ class ViewerPageState extends State<ViewerPage> {
   @override
   void initState(){
     super.initState();
+
     widget.dbInstance.reBuildCanvasBody = (){
       setState(() { });
 
@@ -71,7 +72,7 @@ class ViewerPageState extends State<ViewerPage> {
         controller  : verticalScrollController,
         child       : GestureDetector(
           child: Stack( children: showWidgetList ),
-          onLongPressStart: (LongPressStartDetails _tapDown){
+          onLongPressStart: (LongPressStartDetails _tapDown) async {
             if( _tapDown.globalPosition.dy > MediaQuery.of(context).size.height/3) return;
             Fluttertoast.showToast(
               msg: "データ作成中",
@@ -83,7 +84,10 @@ class ViewerPageState extends State<ViewerPage> {
               fontSize: 16.0
             );
 
-            CanvasToImage(widget.project, frameImageList, backGroundColorChangeList, frameImageBytes).download();
+            List<double> widthList = (await widget.dbInstance.getDownloadCanvasSizeList()).keys.toList();
+            print( widthList );
+
+            CanvasToImage(widget.project, frameImageList, backGroundColorChangeList, frameImageBytes, widthList).download();
           },
         )
       )

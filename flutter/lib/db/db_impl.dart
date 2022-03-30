@@ -88,5 +88,11 @@ class DbImpl{
   Future<void> updateBackGroundColor(BackGroundColorChange _updateBackGround) async { }
   Future<void> deleteBackGroundColor(BackGroundColorChange _deleteBackGround) async { }
 
+  Future<Map<double, String>> getDownloadCanvasSizeList() async {
+    return {
+      900:"comico",
+    };
+  }
+
   bool get isTest{ return true; }
 }

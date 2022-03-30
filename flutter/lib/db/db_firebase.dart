@@ -403,6 +403,30 @@ class DbFireStore implements DbImpl {
     baseBackGroundColorRef(_deleteBackGround.project).doc(_deleteBackGround.dbIndex).delete();
   }
 
+  static const String _downloadCollection = "download";
+  DocumentReference baseDownloadRef(){ return FirebaseFirestore.instance.collection(_downloadCollection).doc("kYHCYZB0Vtpzs2J7QL6o"); }
+  final Map<double, String> _cachedDownloadMap = {};
+
+  @override
+  Future<Map<double, String>> getDownloadCanvasSizeList() async {
+    if( _cachedDownloadMap.isNotEmpty ) return _cachedDownloadMap;
+
+    DocumentSnapshot frameDocSnapShot = await baseDownloadRef().get();
+    for (Map _widthMap in ((frameDocSnapShot.data() as Map)["widthMap"] as List)) {
+      _cachedDownloadMap[(_widthMap["width"] as int).toDouble()] = _widthMap["service"];
+    }
+
+    if(snapShotList.contains(baseDownloadRef().path)) return _cachedDownloadMap;
+    snapShotList.add(baseDownloadRef().path);
+
+    baseDownloadRef().snapshots().listen((data){
+      for (Map _widthMap in ((data.data() as Map)["widthMap"] as List)) {
+        _cachedDownloadMap[(_widthMap["width"] as int).toDouble()] = _widthMap["service"];
+      }
+    },);
+
+    return _cachedDownloadMap;    
+  }
 
   @override
   bool get isTest{ return false; }
