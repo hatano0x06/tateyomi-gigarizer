@@ -167,8 +167,6 @@ class DbFireStore implements DbImpl {
     FrameImage createFrameModel(DocumentSnapshot _snapDoc, Project? __proj){
       Map<String, dynamic> snapData = (_snapDoc.data() as Map<String, dynamic>);
 
-      print(" ----prodid ${snapData["project_id"]}");
-
       Project getProject(){
         if( __proj != null ) return __proj;
         if( snapData["project_id"] == null ) return _proj;

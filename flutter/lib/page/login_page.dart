@@ -160,7 +160,7 @@ class _LoginPageWidgetState extends State<LoginPageWidget> {
     } else {
       // TODO: firebaseのセキュリティのほうでも制限かかっているので、注意
       // caramelmama以外許さない（一旦
-      if( loginNameController.text != "caramelmama") return;
+      if( !["caramelmama", "test"].contains(loginNameController.text) ) return;
       widget.dbInstance.loginId = loginNameController.text;
     }
 
