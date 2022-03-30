@@ -77,29 +77,29 @@ void initFramePos(List<PlatformFile> files, List<FrameImage> frameImageList, Pro
   for (PlatformFile _file in files.where((_file) => _file.extension != null && _file.extension == "json").toList()) {
     _file.readStream?.listen((fileByte) async {
       // map作成
-      Map<int, Map<int, FramePagePos>> frameStepMap = _createFrameStepMap(fileByte as Uint8List, frameImageList);
+      List<List<FramePagePos>> frameStepMap = _createFrameStepMap(fileByte as Uint8List, frameImageList);
 
       double currentHeight  = 225;
       double preFrameHeight = 0;
       bool rightToLeft = false;
-      frameStepMap.forEach((_pageIndex, _frameMap) {
-        List<FramePagePos> samePageFrameList = frameStepMap[_pageIndex]?.values.toList() ?? [];
+      frameStepMap.asMap().forEach((_pageIndex, _frameMap) {
+        List<FramePagePos> samePageFrameList = _frameMap;
 
-        _frameMap.forEach((_frameIndex, _frameStepData) {
-          FrameImage targetFrame = _frameStepData.frameImageData;
-          FramePagePos? currentFramePos = frameStepMap[_pageIndex]?[_frameIndex];
+        _frameMap.asMap().forEach((_frameIndex, currentFramePos) {
+          FrameImage targetFrame = currentFramePos.frameImageData;
+          // FramePagePos? currentFramePos = frameStepMap[_pageIndex]?[_frameIndex];
 
-          // コマとして認識できていない場合は、横幅いっぱいのコマにする
-          if( currentFramePos == null ){
-            rightToLeft = !rightToLeft;
-            targetFrame.position = math.Point(0, preFrameHeight == 0 ? currentHeight : currentHeight + (targetFrame.rotateSize.y * targetFrame.sizeRate)/3);
-            targetFrame.sizeRate = defaultCanvasWidth/targetFrame.rotateSize.x;
+          // // コマとして認識できていない場合は、横幅いっぱいのコマにする
+          // if( currentFramePos == null ){
+          //   rightToLeft = !rightToLeft;
+          //   targetFrame.position = math.Point(0, preFrameHeight == 0 ? currentHeight : currentHeight + (targetFrame.rotateSize.y * targetFrame.sizeRate)/3);
+          //   targetFrame.sizeRate = defaultCanvasWidth/targetFrame.rotateSize.x;
 
-            // 次のコマの高さ
-            currentHeight = targetFrame.position.y + targetFrame.rotateSize.y * targetFrame.sizeRate;
-            preFrameHeight = targetFrame.rotateSize.y * targetFrame.sizeRate;
-            return;
-          }
+          //   // 次のコマの高さ
+          //   currentHeight = targetFrame.position.y + targetFrame.rotateSize.y * targetFrame.sizeRate;
+          //   preFrameHeight = targetFrame.rotateSize.y * targetFrame.sizeRate;
+          //   return;
+          // }
 
           List<FramePagePos> sameStepFrameList = samePageFrameList.where((_frameData) => _frameData.step == currentFramePos.step).toList();
 
@@ -213,11 +213,11 @@ void initFramePos(List<PlatformFile> files, List<FrameImage> frameImageList, Pro
       });
 
       // 保存処理
-      frameStepMap.forEach((_pageIndex, _frameMap) {
-        _frameMap.forEach((_frameIndex, _frameStepData) {
+      for (var _frameMap in frameStepMap) {
+        for (var _frameStepData in _frameMap) {
           _frameStepData.frameImageData.save();
-        });
-      });
+        }
+      }
 
       project.canvasSize = Size(defaultCanvasWidth, currentHeight + 100);
       project.save();
@@ -227,16 +227,16 @@ void initFramePos(List<PlatformFile> files, List<FrameImage> frameImageList, Pro
   }
 }
 
-Map<int, Map<int, FramePagePos>> _createFrameStepMap(Uint8List _filebyte, List<FrameImage> frameImageList,){
-  Map<int, Map<int, FramePagePos>> frameStepMap = {};
+List<List<FramePagePos>> _createFrameStepMap(Uint8List _filebyte, List<FrameImage> frameImageList,){
+  List<List<FramePagePos>> frameStepMap = [];
 
   List<dynamic> jsonData = json.decode(utf8.decode(_filebyte)); 
   // List<List<Map<String, dynamic>>> jsonData = json.decode(utf8.decode(_file.bytes!)); 
   // print( jsonData );
   jsonData.asMap().forEach((_pageIndex, _pageValueJson) {
-    if( !frameStepMap.containsKey(_pageIndex) ) frameStepMap[_pageIndex] = {};
-
     List<dynamic> _pageJson  = _pageValueJson as List<dynamic>;
+
+    List<FramePagePos> frameList = [];
 
     // print( "frameNum in Page : $_pageIndex" );
     _pageJson.asMap().forEach((_frameIndex, _frameValuejson) {
@@ -255,17 +255,28 @@ Map<int, Map<int, FramePagePos>> _createFrameStepMap(Uint8List _filebyte, List<F
         return cutPageNum + "p_" + cutFrameNum + ".png";
       }
 
-      int targetFrameIndex = frameImageList.indexWhere((_frameImage) => _frameImage.name == _imageTitle());
+      int targetFrameIndex = frameImageList.indexWhere((_frameImage) => _frameImage.name == (_framejson.containsKey("fileName") ? _framejson["fileName"] : _imageTitle()));
       if( targetFrameIndex < 0 ) return;
 
-      frameStepMap[_pageIndex]![frameNum] = FramePagePos(
-        _framejson["StepData"]["X"],
-        _framejson["StepData"]["Y"],
-        _framejson["StepData"]["StepNum"],
-        frameImageList[targetFrameIndex]
-      );
+      frameList.add(
+        FramePagePos(
+          _framejson["StepData"]["X"],
+          _framejson["StepData"]["Y"],
+          _framejson["StepData"]["StepNum"],
+          frameNum,
+          frameImageList[targetFrameIndex]
+        )
+      );      
     });
+
+    frameStepMap.add(frameList);
   });
+
+  for (List<FramePagePos> _frameList in frameStepMap) {
+    _frameList.sort((FramePagePos a, FramePagePos b){
+      return a.frameNumber.compareTo(b.frameNumber);
+    });
+  }
 
   return frameStepMap;
 
@@ -298,9 +309,10 @@ class FramePagePos {
   final int x;
   final int y;
   final int step;
+  final int frameNumber;
   final FrameImage frameImageData;
 
-  FramePagePos(this.x, this.y, this.step, this.frameImageData);
+  FramePagePos(this.x, this.y, this.step, this.frameNumber, this.frameImageData);
 
   @override
   String toString() {
