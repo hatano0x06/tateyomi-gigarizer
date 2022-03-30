@@ -85,8 +85,6 @@ class ViewerPageState extends State<ViewerPage> {
             );
 
             List<double> widthList = (await widget.dbInstance.getDownloadCanvasSizeList()).keys.toList();
-            print( widthList );
-
             CanvasToImage(widget.project, frameImageList, backGroundColorChangeList, frameImageBytes, widthList).download();
           },
         )
