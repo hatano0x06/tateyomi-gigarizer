@@ -1,11 +1,13 @@
 // ignore_for_file: avoid_print
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:archive/archive_io.dart';
 import 'package:esys_flutter_share_plus/esys_flutter_share_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:tateyomi_gigarizer/model/background_color_change.dart';
@@ -16,6 +18,7 @@ import 'package:tateyomi_gigarizer/model/project.dart';
 import 'dart:ui';
 import 'dart:ui' as ui;
 import 'dart:math' as math;
+import 'package:universal_html/js.dart' as javascript;
 
 class CanvasToImage{
   final Project project;
@@ -28,6 +31,11 @@ class CanvasToImage{
 
   Future<void> download() async {
     Map<double, Uint8List> outputMap = await canvasImageList();
+    saveFile(outputMap);
+
+  }
+
+  void saveFile(Map<double, Uint8List> outputMap) async {
     if( outputMap.isEmpty ) return;
 
     DateTime currentDate = DateTime.now();
@@ -36,7 +44,39 @@ class CanvasToImage{
       String magicPassCode = ("00" + value.toString());
       return magicPassCode.substring(magicPassCode.toString().length-2);
     }
+    Map<String, dynamic> createMap(double _canvasWidth, Uint8List canvasData){
+      double rate = _canvasWidth/project.canvasSize.width;
+      Size canvasSize = Size( _canvasWidth, project.canvasSize.height * rate );
+      
+      return {
+        "width" : canvasSize.width,
+        "height" : canvasSize.height,
+        "base64" : "data:image/png;base64," + base64.encode(canvasData),
+        "fileName" : _canvasWidth.toInt().toString() + ".png",
+      };
+
+    };
+
     String dateTime = "${currentDate.year}-${fillByZero(currentDate.month)}-${fillByZero(currentDate.day)}_${fillByZero(currentDate.hour)}:${fillByZero(currentDate.minute)}:${currentDate.second}";
+
+    if( kIsWeb ){
+      if( outputMap.length == 1){
+
+        Map<String, dynamic> downloadMap = createMap(outputMap.keys.first, outputMap.values.first);
+        downloadMap["fileName"] = project.name + "_" + dateTime + "_" + outputMap.keys.first.toInt().toString() +"px";
+        javascript.context.callMethod('saveMonoCanvas', [jsonEncode(downloadMap)]);  
+
+        return;
+      }
+
+      List<Map> jsonList = [];
+      outputMap.forEach((_pixelWidth, _imageData) {
+        jsonList.add(createMap(_pixelWidth, _imageData));
+      });
+
+      javascript.context.callMethod('saveCanvas', [jsonEncode(jsonList), project.name+"_" + dateTime + ".zip"]);  
+      return;
+    }
 
     // 一枚ならそのままダウンロード
     if( outputMap.length == 1){
@@ -60,6 +100,7 @@ class CanvasToImage{
     zipEncoder.close();
 
     Share.file( project.name, project.name+"_" + dateTime + ".zip", File(tempDirectory.path + "/" + project.name + '.zip').readAsBytesSync(), 'application/zip', );
+
   }
 
   Future<Map<double, Uint8List>> canvasImageList() async {

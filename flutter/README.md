@@ -5,8 +5,8 @@ Example Flutter project.
 ## Getting Started
 
 # web
-$ flutter run -d chrome --web-port=5000 --web-renderer=html
-$ flutter build web --web-renderer html --release
+$ flutter run -d chrome --web-port=5000 --web-renderer=canvaskit
+$ flutter build web --web-renderer canvaskit --release
 $ firebase hosting:channel:deploy --expires 1h ui-check1
 $ firebase deploy --only hosting
 

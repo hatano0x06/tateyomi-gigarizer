@@ -6,8 +6,10 @@ import 'package:adaptive_scrollbar/adaptive_scrollbar.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
 import 'package:tateyomi_gigarizer/dialog/text_input_dialog.dart';
+import 'package:tateyomi_gigarizer/download/canvas_to_image.dart';
 import 'package:tateyomi_gigarizer/model/background_color_change.dart';
 import 'package:tateyomi_gigarizer/model/frame_image.dart';
 import 'package:tateyomi_gigarizer/model/history_data.dart';
@@ -223,6 +225,24 @@ class EditPageState extends State<EditPage> {
 
               setCanvasEdit(true);
               setState(() { });
+            },
+          ),
+          IconButton(
+            icon    : const Icon(Icons.download),
+            onPressed: () async {
+              Fluttertoast.showToast(
+                msg: "データ作成中",
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.TOP,
+                timeInSecForIosWeb: 1,
+                backgroundColor: Colors.grey[300],
+                textColor: Colors.black,
+                fontSize: 16.0
+              );
+
+              List<double> widthList = (await widget.dbInstance.getDownloadCanvasSizeList()).keys.toList();
+              CanvasToImage(widget.project, frameImageList, backGroundColorChangeList, frameImageBytes, widthList).download();
+
             },
           ),
           IconButton(
