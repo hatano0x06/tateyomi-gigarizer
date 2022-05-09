@@ -16,10 +16,6 @@ void main() async {
   runApp(const MyApp());
 }
 
-// TODO: オプション
-//  - 横に全体像が見れるやつ
-//  - クラッシュログ
-
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
