@@ -54,8 +54,7 @@ class CanvasToImage{
         "base64" : "data:image/png;base64," + base64.encode(canvasData),
         "fileName" : _canvasWidth.toInt().toString() + ".png",
       };
-
-    };
+    }
 
     String dateTime = "${currentDate.year}-${fillByZero(currentDate.month)}-${fillByZero(currentDate.day)}_${fillByZero(currentDate.hour)}:${fillByZero(currentDate.minute)}:${currentDate.second}";
 
