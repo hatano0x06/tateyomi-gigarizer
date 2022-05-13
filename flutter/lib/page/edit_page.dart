@@ -1340,7 +1340,6 @@ class EditPageState extends State<EditPage> {
         allowMultiple     : true,
         type              : FileType.custom,
         allowedExtensions : frameImageList.isEmpty ? ['png', 'json'] : ['png' ],
-        withReadStream: true,
       );
 
       if(result == null) return;
@@ -1350,7 +1349,12 @@ class EditPageState extends State<EditPage> {
       // 画像読み込み
       await initLoadImage(
         result.files, frameImageList, frameImageBytes, frameImageSize, widget.project, 
-        (){ setState(() { }); }, (){ initFramePos(result.files, frameImageList, widget.project, (){ setState(() { }); },); }
+        (){ 
+          setState(() { }); 
+        }, 
+        (){ 
+          initFramePos(result.files, frameImageList, widget.project, (){ setState(() { }); },); 
+        }
       );
       setState(() { });
     });
