@@ -36,7 +36,7 @@ class _DownloadViewerBoardState extends State<DownloadViewerBoard> {
   void initState(){
     super.initState();
 
-    SchedulerBinding.instance.addPostFrameCallback((_) async {
+    SchedulerBinding.instance?.addPostFrameCallback((_) async {
       Map<double, Uint8List> imageMap = await CanvasToImage(
         widget.project, 
         widget.frameImageList, 

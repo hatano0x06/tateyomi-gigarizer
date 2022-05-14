@@ -247,16 +247,16 @@ class EditPageState extends State<EditPage> {
               );
 
               // TODO: asdf
-              // List<double> widthList = (await widget.dbInstance.getDownloadCanvasSizeList()).keys.toList();
-              // CanvasToImage(widget.project, frameImageList, backGroundColorChangeList, frameImageBytes, widthList).download();
+              List<double> widthList = (await widget.dbInstance.getDownloadCanvasSizeList()).keys.toList();
+              CanvasToImage(widget.project, frameImageList, backGroundColorChangeList, frameImageBytes, widthList).download();
 
-              Widget samplePage = DownloadViewerBoard(
-                project: widget.project,
-                frameImageList: frameImageList,
-                backgroundColorList: backGroundColorChangeList,
-                frameImageBytes: frameImageBytes,
-              );
-              Navigator.push( context, PageRouteBuilder( pageBuilder: (context, animation1, animation2) => samplePage ), );
+              // Widget samplePage = DownloadViewerBoard(
+              //   project: widget.project,
+              //   frameImageList: frameImageList,
+              //   backgroundColorList: backGroundColorChangeList,
+              //   frameImageBytes: frameImageBytes,
+              // );
+              // Navigator.push( context, PageRouteBuilder( pageBuilder: (context, animation1, animation2) => samplePage ), );
             },
           ),
           IconButton(
