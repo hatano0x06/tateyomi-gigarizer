@@ -5,7 +5,6 @@ import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:image/image.dart';
 import 'dart:ui' as ui;
 import 'dart:math' as math;
 

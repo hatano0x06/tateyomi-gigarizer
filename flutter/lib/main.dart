@@ -30,6 +30,7 @@ class MyApp extends StatelessWidget {
         primaryColor: Colors.white,
         scaffoldBackgroundColor   : Colors.grey,
         scrollbarTheme: ScrollbarThemeData(
+          showTrackOnHover: true,
           trackVisibility : MaterialStateProperty.all<bool>(true),
           thumbColor      : MaterialStateProperty.all<Color>(const Color.fromARGB(255, 88, 75, 66)),
         ),
@@ -37,8 +38,8 @@ class MyApp extends StatelessWidget {
       ),
       navigatorObservers: [ FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance), ],
       // // test用
-      home: LoginPageWidget(dbInstance: DbImpl(),)
-      // home: LoginPageWidget(dbInstance: DbFireStore(),),
+      // home: LoginPageWidget(dbInstance: DbImpl(),)
+      home: LoginPageWidget(dbInstance: DbFireStore(),),
     );
   }
 }

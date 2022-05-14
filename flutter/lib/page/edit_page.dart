@@ -246,7 +246,6 @@ class EditPageState extends State<EditPage> {
                 fontSize: 16.0
               );
 
-              // TODO: asdf
               List<double> widthList = (await widget.dbInstance.getDownloadCanvasSizeList()).keys.toList();
               CanvasToImage(widget.project, frameImageList, backGroundColorChangeList, frameImageBytes, widthList).download();
 
