@@ -35,6 +35,9 @@ Future<void> initLoadImage(
     Uint8List bytes = Uint8List.fromList(_file.bytes!);
     ui.Image _image = await _loadImage(bytes);
 
+    // Image _image = decodePng(_file.bytes!)!;
+    // if( _image.width > 1200 ) _image = copyResize(_image, width: 1200);
+
     try{
       FrameImage frameImage = frameImageList.singleWhere((_frameImage) => _frameImage.name == _file.name);
 

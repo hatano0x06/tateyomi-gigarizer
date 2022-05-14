@@ -19,6 +19,7 @@ import 'dart:ui';
 import 'dart:ui' as ui;
 import 'dart:math' as math;
 import 'package:universal_html/js.dart' as javascript;
+import "package:universal_html/html.dart" as html;
 
 class CanvasToImage{
   final Project project;
@@ -223,7 +224,31 @@ class CanvasToImage{
       if( !frameImageBytes.containsKey(_frameData.dbIndex)) return;
       if( _frameData.sizeRate <= 0 ) return;
 
-      ui.Image _image = await _loadImage(frameImageBytes[_frameData.dbIndex]!);
+      String jpg64 = base64Encode(frameImageBytes[_frameData.dbIndex]!);
+      html.ImageElement myImageElement = html.ImageElement();
+      myImageElement.src = 'data:png;base64,$jpg64';
+
+      await myImageElement.onLoad.first; // allow time for browser to render
+
+      int width = math.min(1200, (_frameData.size.x * _frameData.sizeRate * rate).toInt());
+      int height = (width * myImageElement.height! / myImageElement.width!).round();
+
+      html.CanvasElement myCanvas = html.CanvasElement(width: width, height: height);
+      html.CanvasRenderingContext2D ctx = myCanvas.context2D;
+
+      ctx.drawImageScaled(myImageElement, 0, 0, width, height);
+
+      Future<Uint8List> _getBlobData(html.Blob blob) {
+        final completer = Completer<Uint8List>();
+        final reader = html.FileReader();
+        reader.readAsArrayBuffer(blob);
+        reader.onLoad.listen((_) => completer.complete(reader.result as Uint8List));
+        return completer.future;
+      }
+
+      Uint8List _imageUint8List = await _getBlobData(await myCanvas.toBlob("png"));
+
+      ui.Image _image = await _loadImage(_imageUint8List);
 
       Offset startPosOffset = Offset.zero;
       if( _frameData.angle == 1) startPosOffset = Offset( _frameData.size.y, 0);
@@ -231,11 +256,14 @@ class CanvasToImage{
       if( _frameData.angle == 3) startPosOffset = Offset( 0, _frameData.size.x);
 
       canvas.save();
+
       canvas.translate((_frameData.position.x + startPosOffset.dx) * rate, (_frameData.position.y + startPosOffset.dy) * rate);
       canvas.rotate(_frameData.angle * math.pi/2);
+
       Rect srcRect = Rect.fromLTWH( 0, 0, _image.width.toDouble(), _image.height.toDouble() );
       Rect dstRect = Rect.fromLTWH( 0 , 0, _frameData.size.x * _frameData.sizeRate * rate,  _frameData.size.y * _frameData.sizeRate * rate );
       canvas.drawImageRect(_image, srcRect, dstRect, Paint()..style = PaintingStyle.fill..filterQuality = FilterQuality.high);
+
       canvas.restore();
     });
   }
