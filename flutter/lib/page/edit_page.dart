@@ -9,7 +9,13 @@ import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:tateyomi_gigarizer/db/db_impl.dart';
 import 'package:tateyomi_gigarizer/dialog/text_input_dialog.dart';
+
+// ignore: unused_import
 import 'package:tateyomi_gigarizer/download/canvas_to_image.dart';
+
+// ignore: unused_import
+import 'package:tateyomi_gigarizer/download/sample_show_download.dart';
+
 import 'package:tateyomi_gigarizer/model/background_color_change.dart';
 import 'package:tateyomi_gigarizer/model/frame_image.dart';
 import 'package:tateyomi_gigarizer/model/history_data.dart';
@@ -240,9 +246,17 @@ class EditPageState extends State<EditPage> {
                 fontSize: 16.0
               );
 
-              List<double> widthList = (await widget.dbInstance.getDownloadCanvasSizeList()).keys.toList();
-              CanvasToImage(widget.project, frameImageList, backGroundColorChangeList, frameImageBytes, widthList).download();
+              // TODO: asdf
+              // List<double> widthList = (await widget.dbInstance.getDownloadCanvasSizeList()).keys.toList();
+              // CanvasToImage(widget.project, frameImageList, backGroundColorChangeList, frameImageBytes, widthList).download();
 
+              Widget samplePage = DownloadViewerBoard(
+                project: widget.project,
+                frameImageList: frameImageList,
+                backgroundColorList: backGroundColorChangeList,
+                frameImageBytes: frameImageBytes,
+              );
+              Navigator.push( context, PageRouteBuilder( pageBuilder: (context, animation1, animation2) => samplePage ), );
             },
           ),
           IconButton(
