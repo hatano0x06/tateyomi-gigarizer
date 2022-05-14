@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:image/image.dart';
 import 'dart:ui' as ui;
 import 'dart:math' as math;
 
@@ -34,6 +35,9 @@ Future<void> initLoadImage(
   await Future.forEach(fileList, (PlatformFile _file) async {
     Uint8List bytes = Uint8List.fromList(_file.bytes!);
     ui.Image _image = await _loadImage(bytes);
+
+    // Image _image = decodePng(_file.bytes!)!;
+    // if( _image.width > 1200 ) _image = copyResize(_image, width: 1200);
 
     try{
       FrameImage frameImage = frameImageList.singleWhere((_frameImage) => _frameImage.name == _file.name);
